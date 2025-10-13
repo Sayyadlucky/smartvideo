@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/app.scss"],
+  "sourcesContent": ["/* Particle background */\r\n#particles {\r\n  position: fixed;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 50%;\r\n  z-index: 0;\r\n  pointer-events: none;\r\n}\r\n"],
+  "mappings": "AACA,CAAA,UACE,SAAA,MACA,IAAA,EACA,KAAA,EACA,MAAA,KACA,OAAA,IACA,QAAA,EACA,eAAA",
+  "names": []
+}

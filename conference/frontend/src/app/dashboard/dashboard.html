@@ -1,0 +1,177 @@
+<main class="h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch"
+      [class.chat-open]="!chatCollapsed">
+
+  <!-- Stage -->
+  <section class="stage flex-1 flex flex-col relative min-h-0">
+    <div class="stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0">
+      <div class="text-sm text-sky-100">Room: <strong>#{{ roomName }}</strong></div>
+      <button class="hr-btn flex items-center gap-2" (click)="toggleChat()">
+        <i class="ph ph-users"></i> Menu
+      </button>
+    </div>
+
+    <div class="tile-grid-container flex-1 min-h-0 p-4 gap-6 border border-sky-700/40 rounded-xl bg-slate-900/40 flex flex-col overflow-hidden">
+      <!-- Full Video (when one person has video on)
+      <div *ngIf="fullParticipant" class="full-video-container flex-1 min-h-0">
+        <div class="tile group rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300">
+          <video *ngIf="fullParticipant.stream"
+                 [appSrcObject]="fullParticipant.stream"
+                 [muted]="!!fullParticipant.isYou"
+                 autoplay playsinline
+                 class="absolute inset-0 w-full h-full object-cover"></video>
+          <audio *ngIf="fullParticipant.stream && !fullParticipant.isYou"
+                 [appSrcObject]="fullParticipant.stream" autoplay></audio>
+          <div class="placeholder flex items-center justify-center w-full h-full"
+               *ngIf="!fullParticipant.stream">
+            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white">
+              {{ fullParticipant.initials }}
+            </div>
+          </div>
+          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
+            <span class="badge w-2 h-2 rounded-full"
+                  [ngClass]="{ 'bg-green-400': fullParticipant.mic==='on', 'bg-red-400': fullParticipant.mic==='off' }"></span>
+            {{ fullParticipant.name }}
+          </div>
+        </div>
+      </div> -->
+
+      <!-- Video Tiles Grid -->
+      <div class="tile-grid min-h-0 overflow-y-auto no-scrollbar"
+           [ngClass]="{
+             'layout-1': gridParticipants.length === 1,
+             'layout-2': gridParticipants.length === 2,
+             'layout-3': gridParticipants.length === 3,
+             'layout-4': gridParticipants.length === 4,
+             'layout-more': gridParticipants.length > 4
+           }"
+           *ngIf="gridParticipants.length > 0">
+        <div class="tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300"
+             *ngFor="let p of gridParticipants; let i = index; trackBy: trackByParticipant"
+             [class.video-on]="p.videoOn"
+             [class.hide-when-pip]="p.isYou && shouldShowSelfVideo && gridParticipants.length > 1">
+
+             <video *ngIf="p.stream && p.videoOn"
+             [appSrcObject]="p.stream"
+             [muted]="!!p.isYou"
+             autoplay playsinline
+             class="absolute inset-0 w-full h-full object-cover"></video>
+
+             <audio *ngIf="p.stream && !p.isYou"
+             [appSrcObject]="p.stream" autoplay></audio>
+
+          <div class="placeholder flex items-center justify-center w-full h-full"
+               *ngIf="!p.stream || !p.videoOn">
+            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white">
+              {{ p.initials }}
+            </div>
+          </div>
+
+          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
+            <span class="badge w-2 h-2 rounded-full"
+                  [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
+            {{ p.name }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls shrink-0 bg-slate-900/60 backdrop-blur-sm p-4 rounded-lg border-t border-sky-700/30 flex flex-wrap gap-3 justify-center">
+        <button (click)="toggleMic()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph" [ngClass]="you?.mic === 'on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>
+          <span>Mic</span>
+        </button>
+        <button (click)="toggleCam()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph" [ngClass]="you?.cam === 'on' ? 'ph-video-camera' : 'ph-camera-slash'"></i>
+          <span>Video</span>
+        </button>
+        <button (click)="shareScreen()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-monitor"></i><span>Share</span>
+        </button>
+        <button (click)="raiseHand()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-hand"></i><span>Hand</span>
+        </button>
+        <button (click)="cycleLayout()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-grid-four"></i><span>Layout</span>
+        </button>
+        <button (click)="leaveCall()" class="ctrl danger flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-sign-out"></i><span>Leave</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Self Video (PiP) -->
+    <div class="self-video-floating"
+         *ngIf="shouldShowSelfVideo"
+         cdkDrag
+         cdkDragBoundary=".stage">
+         <video *ngIf="you?.stream"
+         [appSrcObject]="you?.stream"
+         [muted]="true"
+         autoplay playsinline
+         class="w-full h-full object-cover rounded-lg shadow-lg"></video>
+    </div>
+  </section>
+
+  <!-- Side Panel with Tabs -->
+  <aside class="chat-panel frosted lg:static fixed inset-y-0 right-0 w-full max-w-sm transform transition-transform duration-300 flex flex-col z-50 min-h-0 shadow-2xl"
+         [ngClass]="{ 'translate-x-full': chatCollapsed && !isDesktop, 'translate-x-0': !chatCollapsed || isDesktop }">
+
+    <!-- Username -->
+    <div class="shrink-0 p-3">
+      <div class="relative floating mt-2">
+        <i class="ph ph-user icon-left text-sky-300"></i>
+        <input
+          id="username"
+          type="text"
+          [value]="you?.name || 'You'"
+          (change)="updateName($event)"
+          class="floating-input pl-10 pr-3 py-2 text-sm rounded-md w-full dark-input"
+        />
+        <label for="username" class="floating-label">update display name from here.</label>
+      </div>
+    </div>
+
+    <div class="chat-header flex items-center justify-between px-4 py-3 border-b border-sky-700/20 shrink-0">
+      <div class="flex gap-4">
+        <button class="tab-btn" [class.active]="activeTab==='participants'" (click)="activeTab='participants'">Participants</button>
+        <button class="tab-btn" [class.active]="activeTab==='chat'" (click)="activeTab='chat'">Chat</button>
+      </div>
+      <button (click)="closeChat()" class="hr-btn px-3 py-1 text-xs">Close</button>
+    </div>
+
+    <div class="flex-1 min-h-0 flex flex-col">
+      <!-- Participants Tab -->
+      <div class="flex-1 max-h-full overflow-y-auto participants-scroll p-4"
+           *ngIf="activeTab==='participants'">
+        <h3 class="text-sky-100 text-sm mb-2">Participants</h3>
+        <div *ngFor="let p of participants" class="flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-sky-700/40 flex items-center justify-center">{{ p.initials }}</div>
+            <span>{{ p.name }}</span>
+          </div>
+          <div>
+            <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>
+            <i class="ph" [ngClass]="p.cam==='on' ? 'ph-video-camera' : 'ph-camera-slash'"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Tab -->
+      <div class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"
+           *ngIf="activeTab==='chat'">
+        <h3 class="text-sky-100 text-sm mb-2">Chat</h3>
+        <div *ngFor="let m of chatMessages" class="p-2 bg-slate-800/60 rounded mb-1">
+          <div class="text-xs font-semibold text-sky-200">{{ m.by }}</div>
+          <div class="text-sm text-sky-100">{{ m.text }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input (only show when chat tab is active) -->
+    <form *ngIf="activeTab==='chat'" (ngSubmit)="sendChat()" class="flex border-t border-sky-700/10 p-2">
+      <input [(ngModel)]="chatText" name="chatText" type="text" placeholder="Message the room..."
+             class="flex-1 rounded-l-full px-3 py-2 text-sm dark-input"/>
+      <button type="submit" class="px-4 py-2 rounded-r-full hr-btn">Send</button>
+    </form>
+  </aside>
+</main>

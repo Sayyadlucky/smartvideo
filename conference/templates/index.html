@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{% static 'browser/favicon.ico' %}">
+</head>
+<body>
+
+    <div>
+        <app-root></app-root>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+   <script src="{% static 'frontend/browser/polyfills.js' %}" type="module"></script>
+<script src="{% static 'frontend/browser/main.js' %}" type="module"></script>
+<link rel="stylesheet" href="{% static 'frontend/browser/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<style>
+     :root { --c1:#09162b;--c2:#1a3463;--c3:#23293b; }
+    body { margin:0;font-family:'Inter',sans-serif;color:#dbedff;
+      background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));
+      background-size:400% 400%;animation:gradientShift 12s ease infinite;
+      min-height:100vh; }
+    h1,h2,h3,h4,h5,h6 { color:#ffffff; }
+    @keyframes gradientShift { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
+</style>
+</html>
