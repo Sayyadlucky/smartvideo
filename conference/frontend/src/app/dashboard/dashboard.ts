@@ -710,6 +710,7 @@ export class Dashboard implements OnInit, OnDestroy {
   
 }
 
+
 function attachDebugVideo(stream: MediaStream, chan: string) {
   const vid = document.createElement("video");
   vid.autoplay = true;
