@@ -46910,9 +46910,18 @@ var init_signaling_service = __esm({
       messagesSubject = new Subject();
       messages$ = this.messagesSubject.asObservable();
       room;
+      buildUrl(room) {
+        const override = window.__SIGNALING_URL__;
+        if (override) {
+          return `${override.replace(/\/$/, "")}/${encodeURIComponent(room)}/`;
+        }
+        const scheme = location.protocol === "https:" ? "wss" : "ws";
+        return `${scheme}://${location.host}/ws/signaling/${encodeURIComponent(room)}/`;
+      }
       connect(room) {
         this.room = room;
-        const url = `wss://127.0.0.1:8000/ws/signaling/${room}/`;
+        const url = this.buildUrl(room);
+        console.log("[SignalingService] connecting \u2192", url);
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
           console.log("[SignalingService] \u2705 WebSocket connected");

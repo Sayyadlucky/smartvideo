@@ -14,11 +14,26 @@ export class SignalingService {
 
   private room?: string;
 
+  private buildUrl(room: string): string {
+    // If you want to override manually, set window.__SIGNALING_URL__ before Angular boots
+    const override = (window as any).__SIGNALING_URL__ as string | undefined;
+
+    if (override) {
+      return `${override.replace(/\/$/, '')}/${encodeURIComponent(room)}/`;
+    }
+
+    // Derive from page’s location
+    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${scheme}://${location.host}/ws/signaling/${encodeURIComponent(room)}/`;
+  }
+
   connect(room: string): void {
     this.room = room;
-    const url = `wss://127.0.0.1:8000/ws/signaling/${room}/`;
+    const url = this.buildUrl(room);
 
+    console.log('[SignalingService] connecting →', url);
     this.ws = new WebSocket(url);
+
     this.ws.onopen = () => {
       console.log('[SignalingService] ✅ WebSocket connected');
     };
