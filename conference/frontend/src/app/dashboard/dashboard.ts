@@ -216,13 +216,21 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private upsertParticipantFromPayload(row: any) {
-    const ch = this.participantChan(row); if (!ch) return;
-    const prev = this.participantsMap.get(ch);
-
-    // Never trust payload.videoOn; derive from cam + stream (prev.stream kept)
+    const ch = this.participantChan(row);
+    if (!ch) return;
+  
+    // 🚫 Skip self
+    if (this.myServerChan && ch === this.myServerChan) return;
+  
+    // 🚫 Deduplicate by name (fallback if server sends multiple channels)
+    const existingByName = Array.from(this.participantsMap.values())
+      .find(p => p.name === row?.name && !p.isYou);
+  
+    const prev = existingByName ?? this.participantsMap.get(ch);
+  
     const nextCam: CamState = (row?.cam as CamState) ?? prev?.cam ?? 'off';
     const nextMic: MicState = (row?.mic as MicState) ?? prev?.mic ?? 'off';
-
+  
     const next: Participant = {
       name: (row?.name ?? prev?.name ?? 'Guest'),
       mic: nextMic,
@@ -230,13 +238,18 @@ export class Dashboard implements OnInit, OnDestroy {
       videoOn: this.computeVideoOn(nextCam, prev?.stream),
       initials: this.initialsFromName(row?.name ?? prev?.name ?? 'Guest'),
       isYou: false,
-      channel: ch,
+      channel: prev?.channel ?? ch, // ✅ stick to the first channel we saw
       stream: prev?.stream ?? null,
-      handRaised: (typeof row?.handRaised === 'boolean') ? row.handRaised : (prev?.handRaised ?? false),
+      handRaised: (typeof row?.handRaised === 'boolean')
+        ? row.handRaised
+        : (prev?.handRaised ?? false),
     };
-    this.participantsMap.set(ch, next);
+  
+    this.participantsMap.set(next.channel, next);
     this.syncParticipantsArray();
   }
+  
+  
 
   private ensureParticipantStream(ch: string): MediaStream {
     const p = this.participantsMap.get(ch);
@@ -329,47 +342,47 @@ export class Dashboard implements OnInit, OnDestroy {
     // ontrack: always reuse the same MediaStream per participant
     pc.ontrack = (ev: RTCTrackEvent) => {
       console.log('📡 ontrack from', remoteChan, ev);
-      const kind = ev.track?.kind;
-
-      // Some browsers pass no streams — ensure we have one
+    
+      // Always ensure we have a participant entry
+      let pPrev = this.participantsMap.get(remoteChan);
+    
+      if (!pPrev) {
+        // If no entry yet, create a shell participant with "Unknown"
+        pPrev = {
+          name: 'Unknown',
+          initials: '?',
+          mic: 'off',
+          cam: 'off',
+          videoOn: false,
+          channel: remoteChan,
+          isYou: false,
+          stream: null,
+          handRaised: false,
+        };
+      }
+    
+      // Always reuse the same MediaStream
       const ms = this.ensureParticipantStream(remoteChan);
-
-      // add track if not already present
+    
       const already = ms.getTracks().some(t => t.id === ev.track.id);
       if (!already) ms.addTrack(ev.track);
-
-      // track end -> update flags/stream
-      ev.track.onended = () => {
-        const p = this.participantsMap.get(remoteChan); if (!p) return;
-        // remove the ended track from the stream
-        const rest = new MediaStream(ms.getTracks().filter(t => t.id !== ev.track.id));
-        const updated: Participant = {
-          ...p,
-          stream: rest.getTracks().length ? rest : null,
-          cam: kind === 'video' ? 'off' : p.cam,
-          mic: kind === 'audio' ? 'off' : p.mic,
-          videoOn: this.computeVideoOn(kind === 'video' ? 'off' : p.cam, rest.getTracks().length ? rest : null),
-        };
-        this.participantsMap.set(remoteChan, updated);
-        this.syncParticipantsArray();
-      };
-
-      // Update participant flags from stream contents
-      const pPrev = this.participantsMap.get(remoteChan);
+    
+      // Merge with existing participant info (name from server if it came earlier)
       const updated: Participant = {
-        name: pPrev?.name ?? 'Guest',
-        initials: pPrev?.initials ?? 'G',
-        isYou: false,
-        channel: remoteChan,
+        ...pPrev,
         stream: ms,
         mic: ms.getAudioTracks().length > 0 ? 'on' : 'off',
         cam: ms.getVideoTracks().length > 0 ? 'on' : 'off',
-        videoOn: this.computeVideoOn(ms.getVideoTracks().length > 0 ? 'on' : 'off', ms),
-        handRaised: pPrev?.handRaised ?? false,
+        videoOn: this.computeVideoOn(
+          ms.getVideoTracks().length > 0 ? 'on' : 'off',
+          ms
+        ),
       };
+    
       this.participantsMap.set(remoteChan, updated);
       this.syncParticipantsArray();
     };
+    
 
     pc.onicecandidate = ({ candidate }) => {
       if (!candidate) return;
@@ -427,10 +440,11 @@ export class Dashboard implements OnInit, OnDestroy {
         const list: any[] = msg.participants || [];
         list.forEach(row => {
           const ch = this.participantChan(row); if (!ch) return;
-          // skip self entry from server
           if (this.myServerChan && ch === this.myServerChan) return;
-          this.upsertParticipantFromPayload(row);
-          this.getOrCreatePeer(ch);
+          if (!this.participantsMap.has(ch)) {
+            this.upsertParticipantFromPayload(row);
+            this.getOrCreatePeer(ch);
+          }
         });
         break;
       }
@@ -438,8 +452,10 @@ export class Dashboard implements OnInit, OnDestroy {
       case 'participant_joined': {
         const row = msg.participant; const ch = this.participantChan(row); if (!ch) return;
         if (this.myServerChan && ch === this.myServerChan) return; // skip self
-        this.upsertParticipantFromPayload(row);
-        this.getOrCreatePeer(ch);
+        if (!this.participantsMap.has(ch)) {
+          this.upsertParticipantFromPayload(row);
+          this.getOrCreatePeer(ch);
+        }
         break;
       }
 

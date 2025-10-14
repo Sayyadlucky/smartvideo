@@ -171,10 +171,7 @@ canvas#particles {
   align-items: center;
   justify-content: center;
 }
-.tile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(40,75,255,0.25);
-}
+
 .tile video,
 .tile .placeholder {
   position: absolute;
