@@ -8,6 +8,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      PROJECT_ID: stellar-chemist-475005-v0
+      REPO_NAME: smartvideo   # <-- change this to your repo/app name
+      REGION: us-central1     # <-- change if you want a different region
+      VPC_CONNECTOR: YOUR_VPC_CONNECTOR  # <-- replace with actual connector name
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -19,13 +25,15 @@ jobs:
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Build & Push image
-        run: gcloud builds submit --tag gcr.io/$PROJECT_ID/$REPO_NAME
+        run: gcloud builds submit --tag gcr.io/${PROJECT_ID}/${REPO_NAME}
 
       - name: Deploy to Cloud Run
-        run: gcloud run deploy $REPO_NAME \
-              --image gcr.io/$PROJECT_ID/$REPO_NAME \
-              --region us-central1 \
-              --vpc-connector YOUR_VPC_CONNECTOR \
+        run: gcloud run deploy ${REPO_NAME} \
+              --image gcr.io/${PROJECT_ID}/${REPO_NAME} \
+              --region ${REGION} \
+              --vpc-connector ${VPC_CONNECTOR} \
               --allow-unauthenticated
