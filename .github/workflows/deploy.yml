@@ -1,4 +1,4 @@
-name: Deploy to GCP VM
+name: Deploy to VM
 
 on:
   push:
@@ -9,19 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Deploy to VM via SSH
+      - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 34.14.169.152        # VM External IP
-          username: sayyadlucky           # Your VM username
-          key: ${{ secrets.GCP_SSH_KEY }}   # Private key from ~/.ssh/id_ed25519
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd ~/videocall_project
+            git reset --hard
             git pull origin main
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate --noinput
-            sudo systemctl restart gunicorn
+            python manage.py collectstatic --noinput
+            sudo systemctl restart daphne
+            sudo systemctl restart nginx
