@@ -2,44 +2,36 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: ["main"]   # deploy whenever you push to main
+    branches: ["main"]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Authenticate with service account
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      # Install gcloud
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: stellar-chemist-475005-v0
 
-      # Explicitly set project
       - name: Set project
         run: gcloud config set project stellar-chemist-475005-v0
 
-      # Build & Push Docker image
       - name: Build & Push image
-        run: gcloud builds submit \
-                --project=stellar-chemist-475005-v0 \
-                --tag gcr.io/stellar-chemist-475005-v0/smartvideo
+        run: gcloud builds submit --project=stellar-chemist-475005-v0 --tag=gcr.io/stellar-chemist-475005-v0/smartvideo
 
-      # Deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: gcloud run deploy smartvideo \
-                --image gcr.io/stellar-chemist-475005-v0/smartvideo \
-                --region us-central1 \
-                --project=stellar-chemist-475005-v0 \
-                --vpc-connector YOUR_VPC_CONNECTOR \
-                --allow-unauthenticated
+              --image=gcr.io/stellar-chemist-475005-v0/smartvideo \
+              --region=us-central1 \
+              --project=stellar-chemist-475005-v0 \
+              --vpc-connector=YOUR_VPC_CONNECTOR \
+              --allow-unauthenticated
