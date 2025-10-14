@@ -1,20 +1,20 @@
 # Use official Python runtime
 FROM python:3.10-slim
 
-# Set working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy everything into the container
+# Copy project files
 COPY . .
 
-# Change directory where manage.py and requirements.txt are located
+# Set working directory where manage.py and requirements.txt are located
 WORKDIR /app/videocall_project/videocall_project/
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Collect static files (optional, for Django)
+# Collect static files (ignore errors if no static)
 RUN python manage.py collectstatic --noinput || true
 
-# Start Daphne on Cloud Run's PORT (fallback to 8000 locally)
-CMD exec daphne -b 0.0.0.0 -p ${PORT:-8000} videocall_project.asgi:application
+# Run Daphne with Cloud Run-compatible port
+CMD ["daphne", "-b", "0.0.0.0", "-p", "${PORT:-8000}", "videocall_project.asgi:application"]
