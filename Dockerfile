@@ -18,4 +18,5 @@ WORKDIR /app/videocall_project/videocall_project/
 RUN python manage.py collectstatic --noinput || true
 
 # Run Daphne with Django ASGI (Cloud Run expects PORT env)
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8080", "videocall_project.asgi:application"]
+CMD exec daphne -b 0.0.0.0 -p ${PORT:-8080} videocall_project.asgi:application
+
