@@ -2,38 +2,41 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: ["main"]   # deploys whenever you push to main
+    branches: ["main"]   # deploy when you push to main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      PROJECT_ID: stellar-chemist-475005-v0
-      REPO_NAME: smartvideo   # <-- change this to your repo/app name
-      REGION: us-central1     # <-- change if you want a different region
-      VPC_CONNECTOR: YOUR_VPC_CONNECTOR  # <-- replace with actual connector name
-
     steps:
+      # Checkout your repo
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Authenticate to Google Cloud with your service account key
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
+      # Set up gcloud with correct project
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ env.PROJECT_ID }}
+          project_id: stellar-chemist-475005-v0
 
+      # Explicitly set project again to avoid defaulting to 791287901283
+      - name: Set project
+        run: gcloud config set project stellar-chemist-475005-v0
+
+      # Build & Push container to Artifact Registry / Container Registry
       - name: Build & Push image
-        run: gcloud builds submit --tag gcr.io/${PROJECT_ID}/${REPO_NAME}
+        run: gcloud builds submit --tag gcr.io/stellar-chemist-475005-v0/smartvideo
 
+      # Deploy to Cloud Run
       - name: Deploy to Cloud Run
-        run: gcloud run deploy ${REPO_NAME} \
-              --image gcr.io/${PROJECT_ID}/${REPO_NAME} \
-              --region ${REGION} \
-              --vpc-connector ${VPC_CONNECTOR} \
+        run: gcloud run deploy smartvideo \
+              --image gcr.io/stellar-chemist-475005-v0/smartvideo \
+              --region us-central1 \
+              --vpc-connector YOUR_VPC_CONNECTOR \
               --allow-unauthenticated
