@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'your-new-secret-key-here-change-this-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # Set to True for local development
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'smartvideo.pythonanywhere.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
