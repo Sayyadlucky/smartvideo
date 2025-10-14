@@ -15,9 +15,9 @@ jobs:
       - name: Deploy to VM via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 34.14.169.152
-          username: Lucky
-          key: ${{ secrets.GCP_SSH_KEY }}
+          host: 34.14.169.152        # VM External IP
+          username: Lucky            # Your VM username
+          key: ${{ secrets.GCP_SSH_KEY }}   # Private key from ~/.ssh/id_ed25519
           script: |
             cd ~/videocall_project
             git pull origin main
