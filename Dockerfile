@@ -1,22 +1,23 @@
 # Use official Python runtime
 FROM python:3.10-slim
 
+# Set working directory in container
 WORKDIR /app
 
-# Copy only requirements first (for caching layers)
+# Copy requirements first
 COPY requirements.txt .
 
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the whole project
 COPY . .
 
-# Move into the folder where manage.py is located
-WORKDIR /app/videocall_project/videocall_project/
-
-# Collect static files (optional for Django)
+# Collect static files (ignore errors if no static)
 RUN python manage.py collectstatic --noinput || true
 
-# Run Daphne with Django ASGI (Cloud Run expects PORT env)
-CMD exec daphne -b 0.0.0.0 -p ${PORT:-8080} videocall_project.asgi:application
+# Expose Cloud Run default port
+EXPOSE 8080
 
+# Run Daphne (ASGI server) on Cloud Run-compatible port
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8080", "videocall_project.asgi:application"]
