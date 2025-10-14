@@ -1,32 +1,27 @@
-name: Deploy to Cloud Run
+name: Deploy to GCP VM
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+      - name: Deploy to VM via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: stellar-chemist-475005-v0
-
-      - name: Set project
-        run: gcloud config set project stellar-chemist-475005-v0
-
-      - name: Build & Push image
-        run: gcloud builds submit --project=stellar-chemist-475005-v0 --tag=gcr.io/stellar-chemist-475005-v0/smartvideo --async
-
-      - name: Deploy to Cloud Run
-        run: gcloud run deploy smartvideo --image gcr.io/stellar-chemist-475005-v0/smartvideo --region us-central1 --project stellar-chemist-475005-v0 --allow-unauthenticated
+          host: 34.14.169.152
+          username: Lucky
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            cd ~/videocall_project
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate --noinput
+            sudo systemctl restart gunicorn
