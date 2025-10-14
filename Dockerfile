@@ -17,4 +17,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python manage.py collectstatic --noinput
 
 # Run Daphne with Cloud Run's expected $PORT
-CMD exec daphne -b 0.0.0.0 -p ${PORT:-8080} videocall_project.asgi:application
+CMD exec daphne -b 0.0.0.0 -p 8080 videocall_project.asgi:application
