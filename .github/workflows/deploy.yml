@@ -29,4 +29,4 @@ jobs:
         run: gcloud builds submit --project=stellar-chemist-475005-v0 --tag=gcr.io/stellar-chemist-475005-v0/smartvideo --async
 
       - name: Deploy to Cloud Run
-        run: gcloud run deploy smartvideo --image gcr.io/stellar-chemist-475005-v0/smartvideo --region us-central1 --project stellar-chemist-475005-v0 --vpc-connector YOUR_VPC_CONNECTOR --allow-unauthenticated
+        run: gcloud run deploy smartvideo --image gcr.io/stellar-chemist-475005-v0/smartvideo --region us-central1 --project stellar-chemist-475005-v0 --allow-unauthenticated
