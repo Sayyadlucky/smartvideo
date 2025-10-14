@@ -1,4 +1,4 @@
-// src/app/dashboard/dashboard.ts
+// src/app/dashboard/dashboard.ts (refactor — stable media, clearer state)
 import {
   Component,
   OnInit,
@@ -15,6 +15,16 @@ import { Subscription } from 'rxjs';
 import { SrcObjectDirective } from './src-object.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
+/**
+ * Goals of this refactor
+ * - One participant object per remote channel, always keyed by channel id
+ * - "videoOn" is a pure UI-derived flag (from tracks + cam), never trusted from server
+ * - Mic toggle never touches video state; Cam toggle never touches mic state
+ * - ontrack always reuses the same MediaStream per participant and only adds/removes tracks
+ * - replaceTrack for senders instead of remove/add to avoid renegotiation churn
+ * - Clear separation: local state helpers, peer signaling helpers, participant store helpers
+ */
+
 type MicState = 'on' | 'off';
 type CamState = 'on' | 'off';
 
@@ -22,7 +32,7 @@ interface Participant {
   name: string;
   mic: MicState;
   cam: CamState;
-  videoOn: boolean;
+  videoOn: boolean; // derived: cam === 'on' && has enabled video track
   initials: string;
   isYou?: boolean;
   channel: string;
@@ -32,15 +42,11 @@ interface Participant {
 
 interface ChatMessage { by: string; text: string; }
 
-@Directive({
-  selector: 'video[appSrcObject],audio[appSrcObject]',
-  standalone: true,
-})
+@Directive({ selector: 'video[appSrcObject],audio[appSrcObject]', standalone: true })
 export class MediaSrcObjectDirective {
   @Input() muted: boolean = false;
   constructor(private el: ElementRef<HTMLVideoElement | HTMLAudioElement>) {}
   @Input() set appSrcObject(stream: MediaStream | undefined | null) {
-    console.log("🎥 appSrcObject set for", this.el.nativeElement.tagName, "stream:", !!stream, "tracks:", stream?.getTracks().length);
     const media = this.el.nativeElement as HTMLMediaElement;
     media.autoplay = true;
     (media as any).playsInline = true;
@@ -50,16 +56,15 @@ export class MediaSrcObjectDirective {
     if (stream) {
       media.play().catch((e: any) => {
         if (e?.name === 'NotAllowedError') {
-          const oneClick = () => {
-            media.play().catch(() => {});
-            document.removeEventListener('click', oneClick);
-          };
+          const oneClick = () => { media.play().catch(() => {}); document.removeEventListener('click', oneClick); };
           document.addEventListener('click', oneClick, { once: true });
         }
       });
     }
   }
 }
+
+// ====== Peer state ======
 
 type PeerState = {
   pc: RTCPeerConnection;
@@ -81,6 +86,7 @@ type PeerState = {
   providers: [SignalingService],
 })
 export class Dashboard implements OnInit, OnDestroy {
+  // ====== UI state ======
   isDesktop = window.innerWidth >= 1024;
   chatCollapsed = true;
   participants: Participant[] = [];
@@ -90,25 +96,25 @@ export class Dashboard implements OnInit, OnDestroy {
   public roomName = 'testroom';
   activeTab: 'participants' | 'chat' = 'chat';
 
+  // ====== Signaling ======
   private signalingSub: Subscription | null = null;
   private myServerChan: string | null = null;
   private myPolite: boolean = true;
 
-  private participantsMap = new Map<string, Participant>();
-  private peers = new Map<string, PeerState>();
-  private iceQueue = new Map<string, RTCIceCandidateInit[]>();
+  // ====== Stores ======
+  private participantsMap = new Map<string, Participant>(); // key: channel id; '__you__' for local
+  private peers = new Map<string, PeerState>(); // key: remote channel id
+  private iceQueue = new Map<string, RTCIceCandidateInit[]>(); // queued ICE per remote channel
 
+  // ====== Local media ======
   private localVideoTrack: MediaStreamTrack | null = null;
   private localAudioTrack: MediaStreamTrack | null = null;
-  private localPreviewStream = new MediaStream();
+  private localPreviewStream: MediaStream = new MediaStream(); // stable instance
 
+  // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
   get tileCount(): number { return this.participants.length; }
-  get tileCols(): number {
-    if (this.tileColsManual) return this.tileColsManual;
-    return Math.min(4, Math.max(1, Math.ceil(Math.sqrt(this.tileCount || 1))));
-  }
-
+  get tileCols(): number { if (this.tileColsManual) return this.tileColsManual; return Math.min(4, Math.max(1, Math.ceil(Math.sqrt(this.tileCount || 1)))); }
   get layoutCount(): number { return this.participants.length; }
 
   get fullParticipant(): Participant | undefined {
@@ -120,48 +126,24 @@ export class Dashboard implements OnInit, OnDestroy {
   get gridParticipants(): Participant[] {
     const remotes = this.participants.filter(p => !p.isYou);
     const self = this.you;
-
-    if (remotes.length === 0 && self) {
-      return [self];
-    }
-
+    if (remotes.length === 0 && self) return [self];
     return remotes;
   }
 
   constructor(private signaling: SignalingService) {}
 
+  // ====== Lifecycle ======
   async ngOnInit(): Promise<void> {
-    console.log("DASHBOARD BUILD MARKER v7 name-fix");
-    this.participantsMap.set('__you__', {
-      name: 'You',
-      mic: 'off',
-      cam: 'off',
-      videoOn: false,
-      initials: this.initialsFromName('You'),
-      isYou: true,
-      channel: '__you__',
-      stream: this.localPreviewStream,
-      handRaised: false,
-    });
+    console.log('DASHBOARD BUILD MARKER v8 — stable-media');
+    // Create a single stable preview stream instance
+    this.localPreviewStream = new MediaStream();
+
+    this.participantsMap.set('__you__', this.makeLocalParticipant('You'));
     this.syncParticipantsArray();
-  
+
     // connect to signaling server
     this.signaling.connect(this.roomName);
     this.signalingSub = this.signaling.messages$.subscribe((msg: any) => this.onSignal(msg));
-  
-  }
-  
-  @HostListener('window:resize')
-  onResize() {
-    this.isDesktop = window.innerWidth >= 1024;
-  }
-
-  private isScreenSharing(p: any): boolean {
-    return !!(p?.isSharing ?? p?.screenOn ?? p?.isPresenting ?? p?.screenShareOn ?? p?.sharingScreen ?? p?.presenting);
-  }
-
-  get shouldShowSelfVideo(): boolean {
-    return this.you?.videoOn ?? false;
   }
 
   ngOnDestroy(): void {
@@ -172,23 +154,17 @@ export class Dashboard implements OnInit, OnDestroy {
     this.peers.forEach(st => { try { st.pc.close(); } catch {} });
     this.peers.clear();
 
-    this.localVideoTrack?.stop();
-    this.localAudioTrack?.stop();
-    this.localPreviewStream.getTracks().forEach(t => t.stop());
+    this.stopAndClearLocalTracks();
 
     this.participantsMap.clear();
     this.iceQueue.clear();
   }
 
-  @HostListener('window:beforeunload')
-  onBeforeUnload() { try { this.sendSig({ type: 'bye' }); } catch {} }
+  @HostListener('window:beforeunload') onBeforeUnload() { try { this.sendSig({ type: 'bye' }); } catch {} }
+  @HostListener('window:resize') onResize() { this.isDesktop = window.innerWidth >= 1024; }
 
-  // ========== Utilities ==========
-
-  private sendSig(payload: any & { to?: string }) {
-    const out = { ...payload };
-    this.signaling.sendMessage(out);
-  }
+  // ====== Utilities ======
+  private sendSig(payload: any & { to?: string }) { this.signaling.sendMessage({ ...payload }); }
 
   private initialsFromName(name: string): string {
     const parts = (name || '').trim().split(/\s+/);
@@ -203,73 +179,121 @@ export class Dashboard implements OnInit, OnDestroy {
   private senderChan(msg: any): string | undefined { return msg?.sender_channel || msg?.from; }
   private messageIsForMe(msg: any): boolean { return msg?.to ? msg.to === this.myServerChan : true; }
 
-  private queueIce(remoteChan: string, cand: RTCIceCandidateInit) {
-    const q = this.iceQueue.get(remoteChan) ?? [];
-    q.push(cand);
-    this.iceQueue.set(remoteChan, q);
-  }
-
-  private async flushIce(remoteChan: string) {
-    const st = this.peers.get(remoteChan);
-    if (!st || !st.pc.remoteDescription) return;
-    const q = this.iceQueue.get(remoteChan);
-    if (!q?.length) return;
-    for (const c of q) {
-      try { await st.pc.addIceCandidate(c); } catch {}
-    }
-    this.iceQueue.delete(remoteChan);
-  }
-
+  // ====== Participants store helpers ======
   private syncParticipantsArray() {
+    // locals last, so self is at the end
     this.participants = Array.from(this.participantsMap.values())
       .filter(p => p.channel !== '__you__')
       .concat(this.you ? [this.you] : []);
-    console.log("🔄 syncParticipantsArray:", this.participants.map(p => ({ name: p.name, stream: !!p.stream, videoOn: p.videoOn, tracks: p.stream?.getTracks().length })));
+
+    // Debug view
+    console.log('🔄 syncParticipantsArray:', this.participants.map(p => ({
+      name: p.name,
+      stream: !!p.stream,
+      videoOn: p.videoOn,
+      tracks: p.stream?.getTracks().length,
+    })));
+  }
+
+  private makeLocalParticipant(name: string): Participant {
+    return {
+      name,
+      mic: 'off',
+      cam: 'off',
+      videoOn: false,
+      initials: this.initialsFromName(name),
+      isYou: true,
+      channel: '__you__',
+      stream: null, // preview stream will be attached when camera turns on
+      handRaised: false,
+    };
+  }
+
+  private computeVideoOn(cam: CamState, stream?: MediaStream | null): boolean {
+    if (cam !== 'on' || !stream) return false;
+    const vt = stream.getVideoTracks();
+    return vt.length > 0 && vt.some(t => t.enabled !== false);
   }
 
   private upsertParticipantFromPayload(row: any) {
     const ch = this.participantChan(row); if (!ch) return;
     const prev = this.participantsMap.get(ch);
-    const payloadVideoOn = typeof row?.videoOn === 'boolean' ? row.videoOn : undefined;
-    const payloadCamOn = row?.cam === 'on';
-    const streamHasVideo = prev?.stream ? prev.stream.getVideoTracks().length > 0 : false;
-    const fallbackVideoOn = prev?.videoOn ?? false;
+
+    // Never trust payload.videoOn; derive from cam + stream (prev.stream kept)
+    const nextCam: CamState = (row?.cam as CamState) ?? prev?.cam ?? 'off';
+    const nextMic: MicState = (row?.mic as MicState) ?? prev?.mic ?? 'off';
+
     const next: Participant = {
       name: (row?.name ?? prev?.name ?? 'Guest'),
-      mic: (row?.mic as MicState) ?? prev?.mic ?? 'off',
-      cam: (row?.cam as CamState) ?? prev?.cam ?? 'off',
-      videoOn: payloadVideoOn !== undefined ? payloadVideoOn : (payloadCamOn ? true : (streamHasVideo ? true : fallbackVideoOn)),
+      mic: nextMic,
+      cam: nextCam,
+      videoOn: this.computeVideoOn(nextCam, prev?.stream),
       initials: this.initialsFromName(row?.name ?? prev?.name ?? 'Guest'),
       isYou: false,
       channel: ch,
-      stream: prev?.stream,
+      stream: prev?.stream ?? null,
       handRaised: (typeof row?.handRaised === 'boolean') ? row.handRaised : (prev?.handRaised ?? false),
     };
     this.participantsMap.set(ch, next);
     this.syncParticipantsArray();
   }
 
-  private refreshLocalPreview() {
+  private ensureParticipantStream(ch: string): MediaStream {
+    const p = this.participantsMap.get(ch);
+    if (p?.stream) return p.stream;
+    const ms = new MediaStream();
+    if (p) { const updated = { ...p, stream: ms, videoOn: this.computeVideoOn(p.cam, ms) }; this.participantsMap.set(ch, updated); }
+    return ms;
+  }
+
+  // ====== Local media helpers ======
+  private stopAndClearLocalTracks() {
+    try { this.localVideoTrack?.stop(); } catch {}
+    try { this.localAudioTrack?.stop(); } catch {}
+    this.localVideoTrack = null;
+    this.localAudioTrack = null;
+    this.localPreviewStream.getTracks().forEach(t => { try { t.stop(); } catch {} });
     this.localPreviewStream = new MediaStream();
-    if (this.localVideoTrack) this.localPreviewStream.addTrack(this.localVideoTrack);
-    // Do not add audio track to preview stream to prevent local echo
+
+    // update local participant
+    const me = this.participantsMap.get('__you__');
+    if (me) {
+      const updated: Participant = { ...me, cam: 'off', mic: 'off', stream: null, videoOn: false };
+      this.participantsMap.set('__you__', updated);
+      this.syncParticipantsArray();
+    }
+  }
+
+  private refreshLocalPreview() {
+    // Keep a stable stream instance; remove then add tracks to it
+    const next = new MediaStream();
+    if (this.localVideoTrack) next.addTrack(this.localVideoTrack);
+    // intentionally not adding audio to preview to avoid echo
+
+    this.localPreviewStream = next;
 
     const me = this.participantsMap.get('__you__');
     if (me) {
-      const hasVideo = !!this.localVideoTrack;
-      this.participantsMap.set('__you__', { ...me, stream: hasVideo ? this.localPreviewStream : null, videoOn: hasVideo });
+      const hasCam = this.localVideoTrack != null;
+      const updated: Participant = {
+        ...me,
+        stream: hasCam ? this.localPreviewStream : null,
+        videoOn: this.computeVideoOn(hasCam ? 'on' : 'off', hasCam ? this.localPreviewStream : null),
+        cam: hasCam ? 'on' : 'off',
+      };
+      this.participantsMap.set('__you__', updated);
     }
 
+    // Keep senders wired with replaceTrack
     this.peers.forEach(st => {
-      st.audioSender.replaceTrack(this.localAudioTrack);
-      st.videoSender.replaceTrack(this.localVideoTrack);
+      try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {}
+      try { st.videoSender.replaceTrack(this.localVideoTrack); } catch {}
     });
 
     this.syncParticipantsArray();
   }
 
-  // ========== Peer creation & negotiation ==========
-
+  // ====== Peer creation & negotiation ======
   private getOrCreatePeer(remoteChan: string): PeerState {
     let st = this.peers.get(remoteChan);
     if (st) return st;
@@ -298,128 +322,68 @@ export class Dashboard implements OnInit, OnDestroy {
       isSettingRemoteAnswerPending: false,
     };
 
-    if (this.localAudioTrack) st.audioSender.replaceTrack(this.localAudioTrack);
-    if (this.localVideoTrack) st.videoSender.replaceTrack(this.localVideoTrack);
+    // Wire current local tracks
+    try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {}
+    try { st.videoSender.replaceTrack(this.localVideoTrack); } catch {}
 
+    // ontrack: always reuse the same MediaStream per participant
     pc.ontrack = (ev: RTCTrackEvent) => {
-      console.log("📡 ontrack from", remoteChan, ev);
-      console.log("➡️ streams length =", ev.streams?.length, "track kind =", ev.track?.kind);
-      ev.track.enabled = true;
+      console.log('📡 ontrack from', remoteChan, ev);
+      const kind = ev.track?.kind;
 
-      let remoteStream: MediaStream;
+      // Some browsers pass no streams — ensure we have one
+      const ms = this.ensureParticipantStream(remoteChan);
 
-      if (ev.streams && ev.streams[0]) {
-        // Browser provided a MediaStream directly
-        remoteStream = ev.streams[0];
-      } else {
-        // Fallback: create new MediaStream with track
-        console.warn("⚠️ no ev.streams[0], creating new MediaStream with track");
-        remoteStream = new MediaStream([ev.track]);
-      }
+      // add track if not already present
+      const already = ms.getTracks().some(t => t.id === ev.track.id);
+      if (!already) ms.addTrack(ev.track);
 
-      // --- merge additional tracks if we already have a stream for this peer ---
-      const prev = this.participantsMap.get(remoteChan);
-      if (prev?.stream) {
-        // avoid duplicates: only add if track not already present
-        const already = prev.stream.getTracks().find(t => t.id === ev.track.id);
-        if (!already) {
-          const existingTracks = prev.stream.getTracks();
-          remoteStream = new MediaStream([...existingTracks, ev.track]);
-          // Add onended listener to update flags when track ends
-          ev.track.onended = () => {
-            const p = this.participantsMap.get(remoteChan);
-            if (p) {
-              if (ev.track.kind === 'video') {
-                this.participantsMap.set(remoteChan, { ...p, videoOn: false, cam: 'off' });
-              } else if (ev.track.kind === 'audio') {
-                this.participantsMap.set(remoteChan, { ...p, mic: 'off' });
-              }
-              this.syncParticipantsArray();
-            }
-          };
-        } else {
-          // If already present, use the existing stream
-          remoteStream = prev.stream;
-        }
-        console.log("🔄 Added track to existing stream for", remoteChan, ev.track.kind);
-
-        // update mic/cam flags
+      // track end -> update flags/stream
+      ev.track.onended = () => {
+        const p = this.participantsMap.get(remoteChan); if (!p) return;
+        // remove the ended track from the stream
+        const rest = new MediaStream(ms.getTracks().filter(t => t.id !== ev.track.id));
         const updated: Participant = {
-          ...prev,
-          mic: remoteStream.getAudioTracks().length > 0 ? 'on' : 'off',
-          cam: remoteStream.getVideoTracks().length > 0 ? 'on' : 'off',
-          videoOn: remoteStream.getVideoTracks().length > 0,
-          stream: remoteStream,
+          ...p,
+          stream: rest.getTracks().length ? rest : null,
+          cam: kind === 'video' ? 'off' : p.cam,
+          mic: kind === 'audio' ? 'off' : p.mic,
+          videoOn: this.computeVideoOn(kind === 'video' ? 'off' : p.cam, rest.getTracks().length ? rest : null),
         };
         this.participantsMap.set(remoteChan, updated);
-        console.log("📡 ontrack: updated participant", remoteChan, "stream:", !!updated.stream, "videoOn:", updated.videoOn, "tracks:", updated.stream?.getTracks().length);
-      } else {
-        // first time we see this peer → new participant entry
-        // Add onended listener to the track
-        ev.track.onended = () => {
-          const p = this.participantsMap.get(remoteChan);
-          if (p) {
-            if (ev.track.kind === 'video') {
-              this.participantsMap.set(remoteChan, { ...p, videoOn: false, cam: 'off' });
-            } else if (ev.track.kind === 'audio') {
-              this.participantsMap.set(remoteChan, { ...p, mic: 'off' });
-            }
-            this.syncParticipantsArray();
-          }
-        };
-        const next: Participant = {
-          name: prev?.name ?? 'Guest',
-          mic: remoteStream.getAudioTracks().length > 0 ? 'on' : 'off',
-          cam: remoteStream.getVideoTracks().length > 0 ? 'on' : 'off',
-          videoOn: remoteStream.getVideoTracks().length > 0,
-          initials: prev?.initials ?? 'G',
-          isYou: false,
-          channel: remoteChan,
-          stream: remoteStream,
-          handRaised: prev?.handRaised ?? false,
-        };
-        this.participantsMap.set(remoteChan, next);
-      }
+        this.syncParticipantsArray();
+      };
 
+      // Update participant flags from stream contents
+      const pPrev = this.participantsMap.get(remoteChan);
+      const updated: Participant = {
+        name: pPrev?.name ?? 'Guest',
+        initials: pPrev?.initials ?? 'G',
+        isYou: false,
+        channel: remoteChan,
+        stream: ms,
+        mic: ms.getAudioTracks().length > 0 ? 'on' : 'off',
+        cam: ms.getVideoTracks().length > 0 ? 'on' : 'off',
+        videoOn: this.computeVideoOn(ms.getVideoTracks().length > 0 ? 'on' : 'off', ms),
+        handRaised: pPrev?.handRaised ?? false,
+      };
+      this.participantsMap.set(remoteChan, updated);
       this.syncParticipantsArray();
     };
 
     pc.onicecandidate = ({ candidate }) => {
       if (!candidate) return;
-      console.log("ICE → sending candidate to", remoteChan, candidate);
-      this.sendSig({
-        type: 'ice_candidate',
-        ice_candidate: candidate.toJSON?.() ?? candidate,
-        to: remoteChan,
-      });
+      this.sendSig({ type: 'ice_candidate', ice_candidate: candidate.toJSON?.() ?? candidate, to: remoteChan });
     };
 
-    pc.onconnectionstatechange = () => {
-      console.log("pc.connectionState for", remoteChan, "=", pc.connectionState);
-    };
-
-    // Disabled onnegotiationneeded to avoid offers on join; offers only when media is turned on
-    // pc.onnegotiationneeded = async () => {
-    //   if (st!.makingOffer || pc.signalingState !== 'stable') return;
-    //   try {
-    //     st!.makingOffer = true;
-    //     console.log('onnegotiationneeded -> creating offer for', remoteChan);
-    //     await pc.setLocalDescription(await pc.createOffer());
-    //     this.sendSig({ type: 'offer', offer: pc.localDescription, to: remoteChan });
-    //   } catch (err) {
-    //     console.error('onnegotiationneeded error', err);
-    //   } finally {
-    //     st!.makingOffer = false;
-    //   }
-    // };
+    pc.onconnectionstatechange = () => { console.log('pc.connectionState for', remoteChan, '=', pc.connectionState); };
 
     this.peers.set(remoteChan, st);
     return st;
   }
 
   private async renegotiate(remoteChan: string) {
-    const st = this.peers.get(remoteChan);
-    if (!st) return;
+    const st = this.peers.get(remoteChan); if (!st) return;
     const pc = st.pc;
     if (st.makingOffer || pc.signalingState !== 'stable') return;
     try {
@@ -434,19 +398,27 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  // ========== Incoming signaling ==========
+  private queueIce(remoteChan: string, cand: RTCIceCandidateInit) {
+    const q = this.iceQueue.get(remoteChan) ?? []; q.push(cand); this.iceQueue.set(remoteChan, q);
+  }
+  private async flushIce(remoteChan: string) {
+    const st = this.peers.get(remoteChan);
+    if (!st || !st.pc.remoteDescription) return;
+    const q = this.iceQueue.get(remoteChan); if (!q?.length) return;
+    for (const c of q) { try { await st.pc.addIceCandidate(c); } catch {} }
+    this.iceQueue.delete(remoteChan);
+  }
 
+  // ====== Incoming signaling ======
   private onSignal(msg: any) {
     if (!msg) return;
 
     if (msg.type === 'welcome') {
       this.myServerChan = msg.channel || msg.myServerChan || null;
       this.myPolite = !!msg.polite;
-      console.log('welcome received, myServerChan:', this.myServerChan, 'polite:', this.myPolite);
       const myName = this.you?.name || 'You';
-      // ✅ safe to send now
       this.sendSig({ type: 'name_update', name: myName });
-      console.log("✔️ Received welcome. My channel =", this.myServerChan, "Polite =", this.myPolite);
+      console.log('✔️ Received welcome. My channel =', this.myServerChan, 'Polite =', this.myPolite);
       return;
     }
 
@@ -454,86 +426,62 @@ export class Dashboard implements OnInit, OnDestroy {
       case 'participants': {
         const list: any[] = msg.participants || [];
         list.forEach(row => {
-          const ch = this.participantChan(row);
-          // 🚫 skip my own server-side entry
-          if (ch && this.myServerChan && ch === this.myServerChan) return;
-
+          const ch = this.participantChan(row); if (!ch) return;
+          // skip self entry from server
+          if (this.myServerChan && ch === this.myServerChan) return;
           this.upsertParticipantFromPayload(row);
-          if (ch && this.myServerChan && ch !== this.myServerChan) {
-            this.getOrCreatePeer(ch);
-          }
+          this.getOrCreatePeer(ch);
         });
         break;
       }
 
       case 'participant_joined': {
-        const row = msg.participant;
-        const ch = this.participantChan(row);
-        // 🚫 skip self
-        if (ch && this.myServerChan && ch === this.myServerChan) return;
-
-        if (ch && this.myServerChan) {
-          this.upsertParticipantFromPayload(row);
-          this.getOrCreatePeer(ch);
-        }
+        const row = msg.participant; const ch = this.participantChan(row); if (!ch) return;
+        if (this.myServerChan && ch === this.myServerChan) return; // skip self
+        this.upsertParticipantFromPayload(row);
+        this.getOrCreatePeer(ch);
         break;
       }
 
       case 'participant_left': {
-        const ch = msg.channel;
-        if (ch) {
-          this.participantsMap.delete(ch);
-          const st = this.peers.get(ch);
-          if (st) { try { st.pc.close(); } catch {} this.peers.delete(ch); }
-          this.syncParticipantsArray();
-        }
+        const ch = msg.channel; if (!ch) break;
+        this.participantsMap.delete(ch);
+        const st = this.peers.get(ch); if (st) { try { st.pc.close(); } catch {} this.peers.delete(ch); }
+        this.syncParticipantsArray();
         break;
       }
 
       case 'participant_updated': {
-        const row = msg.participant;
-        const ch = this.participantChan(row);
-        // 🚫 skip self
-        if (ch && this.myServerChan && ch === this.myServerChan) return;
-
+        const row = msg.participant; const ch = this.participantChan(row); if (!ch) return;
+        if (this.myServerChan && ch === this.myServerChan) return; // skip self
         this.upsertParticipantFromPayload(row);
         break;
       }
 
       case 'chat_message': {
-        const payload = msg.message ?? {};
-        const text = payload.text ?? '';
-        if (text) {
-          const by = payload.by ?? 'Guest';
-          this.chatMessages = [...this.chatMessages, { by, text }];
-        }
+        const payload = msg.message ?? {}; const text = payload.text ?? '';
+        if (text) { const by = payload.by ?? 'Guest'; this.chatMessages = [...this.chatMessages, { by, text }]; }
         break;
       }
 
       case 'offer': {
         if (!this.messageIsForMe(msg)) return;
         const from = this.senderChan(msg); if (!from) return;
-        const offer = this.asOffer(msg);   if (!offer) return;
-
-        const st = this.getOrCreatePeer(from);
-        const pc = st.pc;
+        const offer = this.asOffer(msg); if (!offer) return;
+        const st = this.getOrCreatePeer(from); const pc = st.pc;
 
         (async () => {
           const offerCollision = (st.makingOffer || pc.signalingState !== 'stable');
           st.ignoreOffer = !st.polite && offerCollision;
-          if (st.ignoreOffer) {
-            console.log('ignoring offer from', from);
-            return;
-          }
+          if (st.ignoreOffer) { console.log('ignoring offer from', from); return; }
 
           try {
             if (pc.signalingState !== 'stable') {
-              console.log('rollback before applying remote offer');
               await pc.setLocalDescription({ type: 'rollback' });
             }
             await pc.setRemoteDescription(offer);
-            st.audioSender.replaceTrack(this.localAudioTrack);
-            st.videoSender.replaceTrack(this.localVideoTrack);
+            try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {}
+            try { st.videoSender.replaceTrack(this.localVideoTrack); } catch {}
             await pc.setLocalDescription(await pc.createAnswer());
             this.sendSig({ type: 'answer', answer: pc.localDescription, to: from });
             await this.flushIce(from);
@@ -548,9 +496,7 @@ export class Dashboard implements OnInit, OnDestroy {
         if (!this.messageIsForMe(msg)) return;
         const from = this.senderChan(msg); if (!from) return;
         const answer = this.asAnswer(msg); if (!answer) return;
-        const st = this.peers.get(from);   if (!st) return;
-        const pc = st.pc;
-
+        const st = this.peers.get(from); if (!st) return; const pc = st.pc;
         (async () => {
           try {
             st.isSettingRemoteAnswerPending = true;
@@ -584,8 +530,7 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  // ========== UI actions ==========
-
+  // ====== UI actions ======
   toggleChat(): void { this.chatCollapsed = !this.chatCollapsed; }
   closeChat(): void { this.chatCollapsed = true; }
 
@@ -600,26 +545,27 @@ export class Dashboard implements OnInit, OnDestroy {
   updateName(e: Event): void {
     const v = (e.target as HTMLInputElement).value.trim() || 'You';
     const me = this.participantsMap.get('__you__');
-    if (me) {
-      this.participantsMap.set('__you__', { ...me, name: v, initials: this.initialsFromName(v) });
-      this.syncParticipantsArray();
-    }
+    if (me) { this.participantsMap.set('__you__', { ...me, name: v, initials: this.initialsFromName(v) }); this.syncParticipantsArray(); }
     this.sendSig({ type: 'name_update', name: v });
   }
 
   async toggleMic(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
     const next: MicState = me.mic === 'on' ? 'off' : 'on';
+
     if (next === 'on') {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         this.localAudioTrack = s.getAudioTracks()[0] || null;
       } catch { alert('Microphone access denied.'); return; }
     } else {
-      this.localAudioTrack?.stop();
-      this.localAudioTrack = null;
+      try { this.localAudioTrack?.stop(); } finally { this.localAudioTrack = null; }
     }
-    this.refreshLocalPreview();
+
+    // Update senders only; do not touch video flags
+    this.peers.forEach(st => { try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {} });
+
+    // Update local participant mic flag only
     this.participantsMap.set('__you__', { ...me, mic: next });
     this.syncParticipantsArray();
     this.sendSig({ type: 'mic_toggle', mic: next });
@@ -627,56 +573,72 @@ export class Dashboard implements OnInit, OnDestroy {
 
   async toggleCam(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
-    const next: CamState = me.cam === 'on' ? 'off' : 'on';
-    if (next === 'on') {
+    const turningOn = me.cam === 'off';
+
+    if (turningOn) {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         this.localVideoTrack = s.getVideoTracks()[0] || null;
-        if (this.localVideoTrack) this.localVideoTrack.enabled = true;
         if (this.localVideoTrack) {
+          this.localVideoTrack.enabled = true;
           this.localVideoTrack.onended = () => {
             this.localVideoTrack = null;
             this.refreshLocalPreview();
+            this.participantsMap.set('__you__', { ...this.participantsMap.get('__you__')!, cam: 'off' });
+            this.syncParticipantsArray();
             this.sendSig({ type: 'cam_toggle', cam: 'off' });
-            const me2 = this.participantsMap.get('__you__');
-            if (me2) {
-              this.participantsMap.set('__you__', { ...me2, cam: 'off', videoOn: false });
-              this.syncParticipantsArray();
-            }
             this.peers.forEach((_st, ch) => this.renegotiate(ch));
           };
         }
       } catch (e: any) { alert('Camera access error: ' + (e?.message || e)); return; }
     } else {
-      this.localVideoTrack?.stop();
-      this.localVideoTrack = null;
+      try { this.localVideoTrack?.stop(); } finally { this.localVideoTrack = null; }
     }
+
+    // Update preview stream + senders and derive UI flags
     this.refreshLocalPreview();
-    this.participantsMap.set('__you__', { ...me, cam: next, videoOn: next === 'on', stream: this.localPreviewStream });
+
+    const me2 = this.participantsMap.get('__you__')!;
+    const nextCam: CamState = turningOn ? 'on' : 'off';
+    const updated: Participant = {
+      ...me2,
+      cam: nextCam,
+      videoOn: this.computeVideoOn(nextCam, me2.stream),
+    };
+    this.participantsMap.set('__you__', updated);
     this.syncParticipantsArray();
-    this.sendSig({ type: 'cam_toggle', cam: next });
+
+    this.sendSig({ type: 'cam_toggle', cam: nextCam });
     this.peers.forEach((_st, ch) => this.renegotiate(ch));
   }
 
   async shareScreen(): Promise<void> {
     try {
       const screenStream: MediaStream = await (navigator.mediaDevices as any).getDisplayMedia({ video: true });
-      const screenTrack = screenStream.getVideoTracks()[0];
-      if (!screenTrack) return;
-      this.localVideoTrack?.stop();
+      const screenTrack = screenStream.getVideoTracks()[0]; if (!screenTrack) return;
+
+      try { this.localVideoTrack?.stop(); } catch {}
       this.localVideoTrack = screenTrack;
-      this.refreshLocalPreview();
+
+      // when screen share ends, fall back to camera-off state
       screenTrack.onended = () => {
         this.localVideoTrack = null;
         this.refreshLocalPreview();
-        this.sendSig({ type: 'cam_toggle', cam: 'off' });
-        const me = this.participantsMap.get('__you__');
-        if (me) {
+        const me = this.participantsMap.get('__you__'); if (me) {
           this.participantsMap.set('__you__', { ...me, cam: 'off', videoOn: false });
           this.syncParticipantsArray();
         }
+        this.sendSig({ type: 'cam_toggle', cam: 'off' });
         this.peers.forEach((_st, ch) => this.renegotiate(ch));
       };
+
+      this.refreshLocalPreview();
+      const me = this.participantsMap.get('__you__'); if (me) {
+        const up = { ...me, cam: 'on', videoOn: this.computeVideoOn('on', this.localPreviewStream) } as Participant;
+        this.participantsMap.set('__you__', up);
+        this.syncParticipantsArray();
+      }
+
       this.sendSig({ type: 'cam_toggle', cam: 'on' });
       this.peers.forEach((_st, ch) => this.renegotiate(ch));
     } catch { alert('Screen share failed.'); }
@@ -698,26 +660,24 @@ export class Dashboard implements OnInit, OnDestroy {
 
   raiseHand(): void {
     const me = this.participantsMap.get('__you__'); if (!me) return;
-    const next = !me.handRaised;
-    this.participantsMap.set('__you__', { ...me, handRaised: next });
+    const next = !me.handRaised; this.participantsMap.set('__you__', { ...me, handRaised: next });
     this.syncParticipantsArray();
     this.sendSig({ type: 'hand_toggle', handRaised: next });
   }
 
-  trackByParticipant(index: number, item: Participant): string {
-    return item.channel;
+  get shouldShowSelfVideo(): boolean {
+    // Show PiP if you have a self video stream
+    // and there are other participants (so you’re not alone in the call)
+    return !!this.you?.videoOn && !!this.you?.stream && this.gridParticipants.length > 0;
   }
-  
-}
-function attachDebugVideo(stream: MediaStream, chan: string) {
-  const vid = document.createElement("video");
-  vid.autoplay = true;
-  vid.playsInline = true;
-  vid.muted = false;
-  (vid as HTMLVideoElement).srcObject = stream as any;
-  vid.style.width = "200px";
-  vid.style.border = "2px solid red";
-  document.body.appendChild(vid);
 
-  console.log("✅ Attached debug video for", chan, "stream:", stream);
+  trackByParticipant(index: number, item: Participant): string { return item.channel; }
+}
+
+// Optional debug hook for attaching raw video elements (manual testing)
+function attachDebugVideo(stream: MediaStream, chan: string) {
+  const vid = document.createElement('video');
+  vid.autoplay = true; (vid as any).playsInline = true; (vid as any).srcObject = stream as any; vid.muted = false;
+  vid.style.width = '200px'; vid.style.border = '2px solid red'; document.body.appendChild(vid);
+  console.log('✅ Attached debug video for', chan, 'stream:', stream);
 }

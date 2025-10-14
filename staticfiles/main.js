@@ -46906,97 +46906,63 @@ var init_signaling_service = __esm({
     init_esm();
     init_core();
     SignalingService = class _SignalingService {
-      zone;
       ws = null;
       messagesSubject = new Subject();
       messages$ = this.messagesSubject.asObservable();
-      reconnectDelay = 2e3;
-      // ms
-      roomName = null;
-      constructor(zone) {
-        this.zone = zone;
-      }
-      /**
-       * Connect to signaling server with a given roomName
-       */
-      connect(roomName) {
-        this.roomName = roomName;
-        const url = this.buildWsUrl(roomName);
-        console.log("[SignalingService] Connecting to", url);
+      room;
+      connect(room) {
+        this.room = room;
+        const url = `wss://127.0.0.1:8000/ws/signaling/${room}/`;
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
           console.log("[SignalingService] \u2705 WebSocket connected");
         };
-        this.ws.onmessage = (event) => {
+        this.ws.onmessage = (ev) => {
           try {
-            const msg = JSON.parse(event.data);
-            this.zone.run(() => {
-              this.messagesSubject.next(msg);
-            });
-          } catch (e) {
-            console.warn("[SignalingService] Failed to parse message", e);
+            const data = JSON.parse(ev.data);
+            this.messagesSubject.next(data);
+          } catch (err) {
+            console.error("[SignalingService] JSON parse error", err, ev.data);
           }
         };
-        this.ws.onclose = (ev) => {
-          console.warn("[SignalingService] \u274C WebSocket closed", ev.code, ev.reason);
-          this.ws = null;
-          if (this.roomName) {
-            setTimeout(() => {
-              console.log("[SignalingService] \u{1F504} Reconnecting\u2026");
-              this.connect(this.roomName);
-            }, this.reconnectDelay);
-          }
+        this.ws.onclose = () => {
+          console.warn("[SignalingService] WebSocket closed, attempting reconnect\u2026");
+          setTimeout(() => this.reconnect(), 1e3);
         };
         this.ws.onerror = (err) => {
           console.error("[SignalingService] WebSocket error", err);
+          this.ws?.close();
         };
       }
-      /**
-       * Build correct WS URL depending on http/https
-       */
-      buildWsUrl(roomName) {
-        const loc = window.location;
-        const scheme = loc.protocol === "https:" ? "wss:" : "ws:";
-        const base = `${scheme}//${loc.host}`;
-        return `${base}/ws/signaling/${roomName}/`;
+      reconnect() {
+        if (this.room)
+          this.connect(this.room);
       }
-      /**
-       * Send a signaling message
-       */
+      disconnect() {
+        this.ws?.close();
+        this.ws = null;
+      }
       sendMessage(msg) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-          console.warn("[SignalingService] Cannot send, WebSocket not open", msg);
+          console.warn("[SignalingService] sendMessage failed, socket not open");
           return;
         }
         try {
           this.ws.send(JSON.stringify(msg));
-        } catch (e) {
-          console.error("[SignalingService] Send error", e);
+        } catch (err) {
+          console.error("[SignalingService] sendMessage error", err, msg);
         }
-      }
-      /**
-       * Disconnect cleanly
-       */
-      disconnect() {
-        if (this.ws) {
-          console.log("[SignalingService] Closing WebSocket");
-          this.ws.close(1e3, "Client disconnect");
-          this.ws = null;
-        }
-        this.roomName = null;
       }
       static \u0275fac = function SignalingService_Factory(__ngFactoryType__) {
-        return new (__ngFactoryType__ || _SignalingService)(\u0275\u0275inject(NgZone));
+        return new (__ngFactoryType__ || _SignalingService)();
       };
       static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _SignalingService, factory: _SignalingService.\u0275fac, providedIn: "root" });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(SignalingService, [{
         type: Injectable,
-        args: [{
-          providedIn: "root"
-        }]
-      }], () => [{ type: NgZone }], null);
+        args: [{ providedIn: "root" }]
+      }], null, null);
     })();
   }
 });
@@ -53554,7 +53520,6 @@ var init_dashboard = __esm({
         this.el = el;
       }
       set appSrcObject(stream) {
-        console.log("\u{1F3A5} appSrcObject set for", this.el.nativeElement.tagName, "stream:", !!stream, "tracks:", stream?.getTracks().length);
         const media = this.el.nativeElement;
         media.autoplay = true;
         media.playsInline = true;
@@ -53581,10 +53546,7 @@ var init_dashboard = __esm({
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(MediaSrcObjectDirective, [{
         type: Directive,
-        args: [{
-          selector: "video[appSrcObject],audio[appSrcObject]",
-          standalone: true
-        }]
+        args: [{ selector: "video[appSrcObject],audio[appSrcObject]", standalone: true }]
       }], () => [{ type: ElementRef }], { muted: [{
         type: Input
       }], appSrcObject: [{
@@ -53593,6 +53555,7 @@ var init_dashboard = __esm({
     })();
     Dashboard = class _Dashboard {
       signaling;
+      // ====== UI state ======
       isDesktop = window.innerWidth >= 1024;
       chatCollapsed = true;
       participants = [];
@@ -53601,15 +53564,23 @@ var init_dashboard = __esm({
       tileColsManual = null;
       roomName = "testroom";
       activeTab = "chat";
+      // ====== Signaling ======
       signalingSub = null;
       myServerChan = null;
       myPolite = true;
+      // ====== Stores ======
       participantsMap = /* @__PURE__ */ new Map();
+      // key: channel id; '__you__' for local
       peers = /* @__PURE__ */ new Map();
+      // key: remote channel id
       iceQueue = /* @__PURE__ */ new Map();
+      // queued ICE per remote channel
+      // ====== Local media ======
       localVideoTrack = null;
       localAudioTrack = null;
       localPreviewStream = new MediaStream();
+      // stable instance
+      // ====== Derived getters ======
       get you() {
         return this.participantsMap.get("__you__");
       }
@@ -53633,41 +53604,23 @@ var init_dashboard = __esm({
       get gridParticipants() {
         const remotes = this.participants.filter((p) => !p.isYou);
         const self = this.you;
-        if (remotes.length === 0 && self) {
+        if (remotes.length === 0 && self)
           return [self];
-        }
         return remotes;
       }
       constructor(signaling) {
         this.signaling = signaling;
       }
+      // ====== Lifecycle ======
       ngOnInit() {
         return __async(this, null, function* () {
-          console.log("DASHBOARD BUILD MARKER v7 name-fix");
-          this.participantsMap.set("__you__", {
-            name: "You",
-            mic: "off",
-            cam: "off",
-            videoOn: false,
-            initials: this.initialsFromName("You"),
-            isYou: true,
-            channel: "__you__",
-            stream: this.localPreviewStream,
-            handRaised: false
-          });
+          console.log("DASHBOARD BUILD MARKER v8 \u2014 stable-media");
+          this.localPreviewStream = new MediaStream();
+          this.participantsMap.set("__you__", this.makeLocalParticipant("You"));
           this.syncParticipantsArray();
           this.signaling.connect(this.roomName);
           this.signalingSub = this.signaling.messages$.subscribe((msg) => this.onSignal(msg));
         });
-      }
-      onResize() {
-        this.isDesktop = window.innerWidth >= 1024;
-      }
-      isScreenSharing(p) {
-        return !!(p?.isSharing ?? p?.screenOn ?? p?.isPresenting ?? p?.screenShareOn ?? p?.sharingScreen ?? p?.presenting);
-      }
-      get shouldShowSelfVideo() {
-        return this.you?.videoOn ?? false;
       }
       ngOnDestroy() {
         try {
@@ -53683,9 +53636,7 @@ var init_dashboard = __esm({
           }
         });
         this.peers.clear();
-        this.localVideoTrack?.stop();
-        this.localAudioTrack?.stop();
-        this.localPreviewStream.getTracks().forEach((t) => t.stop());
+        this.stopAndClearLocalTracks();
         this.participantsMap.clear();
         this.iceQueue.clear();
       }
@@ -53695,10 +53646,12 @@ var init_dashboard = __esm({
         } catch {
         }
       }
-      // ========== Utilities ==========
+      onResize() {
+        this.isDesktop = window.innerWidth >= 1024;
+      }
+      // ====== Utilities ======
       sendSig(payload) {
-        const out = __spreadValues({}, payload);
-        this.signaling.sendMessage(out);
+        this.signaling.sendMessage(__spreadValues({}, payload));
       }
       initialsFromName(name) {
         const parts = (name || "").trim().split(/\s+/);
@@ -53723,71 +53676,122 @@ var init_dashboard = __esm({
       messageIsForMe(msg) {
         return msg?.to ? msg.to === this.myServerChan : true;
       }
-      queueIce(remoteChan, cand) {
-        const q = this.iceQueue.get(remoteChan) ?? [];
-        q.push(cand);
-        this.iceQueue.set(remoteChan, q);
-      }
-      flushIce(remoteChan) {
-        return __async(this, null, function* () {
-          const st = this.peers.get(remoteChan);
-          if (!st || !st.pc.remoteDescription)
-            return;
-          const q = this.iceQueue.get(remoteChan);
-          if (!q?.length)
-            return;
-          for (const c of q) {
-            try {
-              yield st.pc.addIceCandidate(c);
-            } catch {
-            }
-          }
-          this.iceQueue.delete(remoteChan);
-        });
-      }
+      // ====== Participants store helpers ======
       syncParticipantsArray() {
         this.participants = Array.from(this.participantsMap.values()).filter((p) => p.channel !== "__you__").concat(this.you ? [this.you] : []);
-        console.log("\u{1F504} syncParticipantsArray:", this.participants.map((p) => ({ name: p.name, stream: !!p.stream, videoOn: p.videoOn, tracks: p.stream?.getTracks().length })));
+        console.log("\u{1F504} syncParticipantsArray:", this.participants.map((p) => ({
+          name: p.name,
+          stream: !!p.stream,
+          videoOn: p.videoOn,
+          tracks: p.stream?.getTracks().length
+        })));
+      }
+      makeLocalParticipant(name) {
+        return {
+          name,
+          mic: "off",
+          cam: "off",
+          videoOn: false,
+          initials: this.initialsFromName(name),
+          isYou: true,
+          channel: "__you__",
+          stream: null,
+          // preview stream will be attached when camera turns on
+          handRaised: false
+        };
+      }
+      computeVideoOn(cam, stream) {
+        if (cam !== "on" || !stream)
+          return false;
+        const vt = stream.getVideoTracks();
+        return vt.length > 0 && vt.some((t) => t.enabled !== false);
       }
       upsertParticipantFromPayload(row) {
         const ch = this.participantChan(row);
         if (!ch)
           return;
         const prev = this.participantsMap.get(ch);
-        const payloadVideoOn = typeof row?.videoOn === "boolean" ? row.videoOn : void 0;
-        const payloadCamOn = row?.cam === "on";
-        const streamHasVideo = prev?.stream ? prev.stream.getVideoTracks().length > 0 : false;
-        const fallbackVideoOn = prev?.videoOn ?? false;
+        const nextCam = row?.cam ?? prev?.cam ?? "off";
+        const nextMic = row?.mic ?? prev?.mic ?? "off";
         const next = {
           name: row?.name ?? prev?.name ?? "Guest",
-          mic: row?.mic ?? prev?.mic ?? "off",
-          cam: row?.cam ?? prev?.cam ?? "off",
-          videoOn: payloadVideoOn !== void 0 ? payloadVideoOn : payloadCamOn ? true : streamHasVideo ? true : fallbackVideoOn,
+          mic: nextMic,
+          cam: nextCam,
+          videoOn: this.computeVideoOn(nextCam, prev?.stream),
           initials: this.initialsFromName(row?.name ?? prev?.name ?? "Guest"),
           isYou: false,
           channel: ch,
-          stream: prev?.stream,
+          stream: prev?.stream ?? null,
           handRaised: typeof row?.handRaised === "boolean" ? row.handRaised : prev?.handRaised ?? false
         };
         this.participantsMap.set(ch, next);
         this.syncParticipantsArray();
       }
-      refreshLocalPreview() {
+      ensureParticipantStream(ch) {
+        const p = this.participantsMap.get(ch);
+        if (p?.stream)
+          return p.stream;
+        const ms = new MediaStream();
+        if (p) {
+          const updated = __spreadProps(__spreadValues({}, p), { stream: ms, videoOn: this.computeVideoOn(p.cam, ms) });
+          this.participantsMap.set(ch, updated);
+        }
+        return ms;
+      }
+      // ====== Local media helpers ======
+      stopAndClearLocalTracks() {
+        try {
+          this.localVideoTrack?.stop();
+        } catch {
+        }
+        try {
+          this.localAudioTrack?.stop();
+        } catch {
+        }
+        this.localVideoTrack = null;
+        this.localAudioTrack = null;
+        this.localPreviewStream.getTracks().forEach((t) => {
+          try {
+            t.stop();
+          } catch {
+          }
+        });
         this.localPreviewStream = new MediaStream();
-        if (this.localVideoTrack)
-          this.localPreviewStream.addTrack(this.localVideoTrack);
         const me = this.participantsMap.get("__you__");
         if (me) {
-          const hasVideo = !!this.localVideoTrack;
-          this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me), { stream: hasVideo ? this.localPreviewStream : null, videoOn: hasVideo }));
+          const updated = __spreadProps(__spreadValues({}, me), { cam: "off", mic: "off", stream: null, videoOn: false });
+          this.participantsMap.set("__you__", updated);
+          this.syncParticipantsArray();
+        }
+      }
+      refreshLocalPreview() {
+        const next = new MediaStream();
+        if (this.localVideoTrack)
+          next.addTrack(this.localVideoTrack);
+        this.localPreviewStream = next;
+        const me = this.participantsMap.get("__you__");
+        if (me) {
+          const hasCam = this.localVideoTrack != null;
+          const updated = __spreadProps(__spreadValues({}, me), {
+            stream: hasCam ? this.localPreviewStream : null,
+            videoOn: this.computeVideoOn(hasCam ? "on" : "off", hasCam ? this.localPreviewStream : null),
+            cam: hasCam ? "on" : "off"
+          });
+          this.participantsMap.set("__you__", updated);
         }
         this.peers.forEach((st) => {
-          st.audioSender.replaceTrack(this.localAudioTrack);
-          st.videoSender.replaceTrack(this.localVideoTrack);
+          try {
+            st.audioSender.replaceTrack(this.localAudioTrack);
+          } catch {
+          }
+          try {
+            st.videoSender.replaceTrack(this.localVideoTrack);
+          } catch {
+          }
         });
         this.syncParticipantsArray();
       }
-      // ========== Peer creation & negotiation ==========
+      // ====== Peer creation & negotiation ======
       getOrCreatePeer(remoteChan) {
         let st = this.peers.get(remoteChan);
         if (st)
@@ -53813,86 +53817,54 @@ var init_dashboard = __esm({
           remoteChan,
           isSettingRemoteAnswerPending: false
         };
-        if (this.localAudioTrack)
+        try {
           st.audioSender.replaceTrack(this.localAudioTrack);
-        if (this.localVideoTrack)
+        } catch {
+        }
+        try {
           st.videoSender.replaceTrack(this.localVideoTrack);
+        } catch {
+        }
         pc.ontrack = (ev) => {
           console.log("\u{1F4E1} ontrack from", remoteChan, ev);
-          console.log("\u27A1\uFE0F streams length =", ev.streams?.length, "track kind =", ev.track?.kind);
-          ev.track.enabled = true;
-          let remoteStream;
-          if (ev.streams && ev.streams[0]) {
-            remoteStream = ev.streams[0];
-          } else {
-            console.warn("\u26A0\uFE0F no ev.streams[0], creating new MediaStream with track");
-            remoteStream = new MediaStream([ev.track]);
-          }
-          const prev = this.participantsMap.get(remoteChan);
-          if (prev?.stream) {
-            const already = prev.stream.getTracks().find((t) => t.id === ev.track.id);
-            if (!already) {
-              const existingTracks = prev.stream.getTracks();
-              remoteStream = new MediaStream([...existingTracks, ev.track]);
-              ev.track.onended = () => {
-                const p = this.participantsMap.get(remoteChan);
-                if (p) {
-                  if (ev.track.kind === "video") {
-                    this.participantsMap.set(remoteChan, __spreadProps(__spreadValues({}, p), { videoOn: false, cam: "off" }));
-                  } else if (ev.track.kind === "audio") {
-                    this.participantsMap.set(remoteChan, __spreadProps(__spreadValues({}, p), { mic: "off" }));
-                  }
-                  this.syncParticipantsArray();
-                }
-              };
-            } else {
-              remoteStream = prev.stream;
-            }
-            console.log("\u{1F504} Added track to existing stream for", remoteChan, ev.track.kind);
-            const updated = __spreadProps(__spreadValues({}, prev), {
-              mic: remoteStream.getAudioTracks().length > 0 ? "on" : "off",
-              cam: remoteStream.getVideoTracks().length > 0 ? "on" : "off",
-              videoOn: remoteStream.getVideoTracks().length > 0,
-              stream: remoteStream
+          const kind = ev.track?.kind;
+          const ms = this.ensureParticipantStream(remoteChan);
+          const already = ms.getTracks().some((t) => t.id === ev.track.id);
+          if (!already)
+            ms.addTrack(ev.track);
+          ev.track.onended = () => {
+            const p = this.participantsMap.get(remoteChan);
+            if (!p)
+              return;
+            const rest = new MediaStream(ms.getTracks().filter((t) => t.id !== ev.track.id));
+            const updated2 = __spreadProps(__spreadValues({}, p), {
+              stream: rest.getTracks().length ? rest : null,
+              cam: kind === "video" ? "off" : p.cam,
+              mic: kind === "audio" ? "off" : p.mic,
+              videoOn: this.computeVideoOn(kind === "video" ? "off" : p.cam, rest.getTracks().length ? rest : null)
             });
-            this.participantsMap.set(remoteChan, updated);
-            console.log("\u{1F4E1} ontrack: updated participant", remoteChan, "stream:", !!updated.stream, "videoOn:", updated.videoOn, "tracks:", updated.stream?.getTracks().length);
-          } else {
-            ev.track.onended = () => {
-              const p = this.participantsMap.get(remoteChan);
-              if (p) {
-                if (ev.track.kind === "video") {
-                  this.participantsMap.set(remoteChan, __spreadProps(__spreadValues({}, p), { videoOn: false, cam: "off" }));
-                } else if (ev.track.kind === "audio") {
-                  this.participantsMap.set(remoteChan, __spreadProps(__spreadValues({}, p), { mic: "off" }));
-                }
-                this.syncParticipantsArray();
-              }
-            };
-            const next = {
-              name: prev?.name ?? "Guest",
-              mic: remoteStream.getAudioTracks().length > 0 ? "on" : "off",
-              cam: remoteStream.getVideoTracks().length > 0 ? "on" : "off",
-              videoOn: remoteStream.getVideoTracks().length > 0,
-              initials: prev?.initials ?? "G",
-              isYou: false,
-              channel: remoteChan,
-              stream: remoteStream,
-              handRaised: prev?.handRaised ?? false
-            };
-            this.participantsMap.set(remoteChan, next);
-          }
+            this.participantsMap.set(remoteChan, updated2);
+            this.syncParticipantsArray();
+          };
+          const pPrev = this.participantsMap.get(remoteChan);
+          const updated = {
+            name: pPrev?.name ?? "Guest",
+            initials: pPrev?.initials ?? "G",
+            isYou: false,
+            channel: remoteChan,
+            stream: ms,
+            mic: ms.getAudioTracks().length > 0 ? "on" : "off",
+            cam: ms.getVideoTracks().length > 0 ? "on" : "off",
+            videoOn: this.computeVideoOn(ms.getVideoTracks().length > 0 ? "on" : "off", ms),
+            handRaised: pPrev?.handRaised ?? false
+          };
+          this.participantsMap.set(remoteChan, updated);
           this.syncParticipantsArray();
         };
         pc.onicecandidate = ({ candidate }) => {
           if (!candidate)
             return;
-          console.log("ICE \u2192 sending candidate to", remoteChan, candidate);
-          this.sendSig({
-            type: "ice_candidate",
-            ice_candidate: candidate.toJSON?.() ?? candidate,
-            to: remoteChan
-          });
+          this.sendSig({ type: "ice_candidate", ice_candidate: candidate.toJSON?.() ?? candidate, to: remoteChan });
         };
         pc.onconnectionstatechange = () => {
           console.log("pc.connectionState for", remoteChan, "=", pc.connectionState);
@@ -53920,14 +53892,35 @@ var init_dashboard = __esm({
           }
         });
       }
-      // ========== Incoming signaling ==========
+      queueIce(remoteChan, cand) {
+        const q = this.iceQueue.get(remoteChan) ?? [];
+        q.push(cand);
+        this.iceQueue.set(remoteChan, q);
+      }
+      flushIce(remoteChan) {
+        return __async(this, null, function* () {
+          const st = this.peers.get(remoteChan);
+          if (!st || !st.pc.remoteDescription)
+            return;
+          const q = this.iceQueue.get(remoteChan);
+          if (!q?.length)
+            return;
+          for (const c of q) {
+            try {
+              yield st.pc.addIceCandidate(c);
+            } catch {
+            }
+          }
+          this.iceQueue.delete(remoteChan);
+        });
+      }
+      // ====== Incoming signaling ======
       onSignal(msg) {
         if (!msg)
           return;
         if (msg.type === "welcome") {
           this.myServerChan = msg.channel || msg.myServerChan || null;
           this.myPolite = !!msg.polite;
-          console.log("welcome received, myServerChan:", this.myServerChan, "polite:", this.myPolite);
           const myName = this.you?.name || "You";
           this.sendSig({ type: "name_update", name: myName });
           console.log("\u2714\uFE0F Received welcome. My channel =", this.myServerChan, "Polite =", this.myPolite);
@@ -53938,46 +53931,48 @@ var init_dashboard = __esm({
             const list = msg.participants || [];
             list.forEach((row) => {
               const ch = this.participantChan(row);
-              if (ch && this.myServerChan && ch === this.myServerChan)
+              if (!ch)
+                return;
+              if (this.myServerChan && ch === this.myServerChan)
                 return;
               this.upsertParticipantFromPayload(row);
-              if (ch && this.myServerChan && ch !== this.myServerChan) {
-                this.getOrCreatePeer(ch);
-              }
+              this.getOrCreatePeer(ch);
             });
             break;
           }
           case "participant_joined": {
             const row = msg.participant;
             const ch = this.participantChan(row);
-            if (ch && this.myServerChan && ch === this.myServerChan)
+            if (!ch)
               return;
-            if (ch && this.myServerChan) {
-              this.upsertParticipantFromPayload(row);
-              this.getOrCreatePeer(ch);
-            }
+            if (this.myServerChan && ch === this.myServerChan)
+              return;
+            this.upsertParticipantFromPayload(row);
+            this.getOrCreatePeer(ch);
             break;
           }
           case "participant_left": {
             const ch = msg.channel;
-            if (ch) {
-              this.participantsMap.delete(ch);
-              const st = this.peers.get(ch);
-              if (st) {
-                try {
-                  st.pc.close();
-                } catch {
-                }
-                this.peers.delete(ch);
+            if (!ch)
+              break;
+            this.participantsMap.delete(ch);
+            const st = this.peers.get(ch);
+            if (st) {
+              try {
+                st.pc.close();
+              } catch {
               }
-              this.syncParticipantsArray();
+              this.peers.delete(ch);
             }
+            this.syncParticipantsArray();
             break;
           }
           case "participant_updated": {
             const row = msg.participant;
             const ch = this.participantChan(row);
-            if (ch && this.myServerChan && ch === this.myServerChan)
+            if (!ch)
+              return;
+            if (this.myServerChan && ch === this.myServerChan)
               return;
             this.upsertParticipantFromPayload(row);
             break;
@@ -54011,12 +54006,17 @@ var init_dashboard = __esm({
               }
               try {
                 if (pc.signalingState !== "stable") {
-                  console.log("rollback before applying remote offer");
                   yield pc.setLocalDescription({ type: "rollback" });
                 }
                 yield pc.setRemoteDescription(offer);
-                st.audioSender.replaceTrack(this.localAudioTrack);
-                st.videoSender.replaceTrack(this.localVideoTrack);
+                try {
+                  st.audioSender.replaceTrack(this.localAudioTrack);
+                } catch {
+                }
+                try {
+                  st.videoSender.replaceTrack(this.localVideoTrack);
+                } catch {
+                }
                 yield pc.setLocalDescription(yield pc.createAnswer());
                 this.sendSig({ type: "answer", answer: pc.localDescription, to: from2 });
                 yield this.flushIce(from2);
@@ -54081,7 +54081,7 @@ var init_dashboard = __esm({
           }
         }
       }
-      // ========== UI actions ==========
+      // ====== UI actions ======
       toggleChat() {
         this.chatCollapsed = !this.chatCollapsed;
       }
@@ -54121,10 +54121,18 @@ var init_dashboard = __esm({
               return;
             }
           } else {
-            this.localAudioTrack?.stop();
-            this.localAudioTrack = null;
+            try {
+              this.localAudioTrack?.stop();
+            } finally {
+              this.localAudioTrack = null;
+            }
           }
-          this.refreshLocalPreview();
+          this.peers.forEach((st) => {
+            try {
+              st.audioSender.replaceTrack(this.localAudioTrack);
+            } catch {
+            }
+          });
           this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me), { mic: next }));
           this.syncParticipantsArray();
           this.sendSig({ type: "mic_toggle", mic: next });
@@ -54135,23 +54143,19 @@ var init_dashboard = __esm({
           const me = this.participantsMap.get("__you__");
           if (!me)
             return;
-          const next = me.cam === "on" ? "off" : "on";
-          if (next === "on") {
+          const turningOn = me.cam === "off";
+          if (turningOn) {
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ video: true, audio: false });
               this.localVideoTrack = s.getVideoTracks()[0] || null;
-              if (this.localVideoTrack)
-                this.localVideoTrack.enabled = true;
               if (this.localVideoTrack) {
+                this.localVideoTrack.enabled = true;
                 this.localVideoTrack.onended = () => {
                   this.localVideoTrack = null;
                   this.refreshLocalPreview();
+                  this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, this.participantsMap.get("__you__")), { cam: "off" }));
+                  this.syncParticipantsArray();
                   this.sendSig({ type: "cam_toggle", cam: "off" });
-                  const me2 = this.participantsMap.get("__you__");
-                  if (me2) {
-                    this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me2), { cam: "off", videoOn: false }));
-                    this.syncParticipantsArray();
-                  }
                   this.peers.forEach((_st, ch) => this.renegotiate(ch));
                 };
               }
@@ -54160,13 +54164,22 @@ var init_dashboard = __esm({
               return;
             }
           } else {
-            this.localVideoTrack?.stop();
-            this.localVideoTrack = null;
+            try {
+              this.localVideoTrack?.stop();
+            } finally {
+              this.localVideoTrack = null;
+            }
           }
           this.refreshLocalPreview();
-          this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me), { cam: next, videoOn: next === "on", stream: this.localPreviewStream }));
+          const me2 = this.participantsMap.get("__you__");
+          const nextCam = turningOn ? "on" : "off";
+          const updated = __spreadProps(__spreadValues({}, me2), {
+            cam: nextCam,
+            videoOn: this.computeVideoOn(nextCam, me2.stream)
+          });
+          this.participantsMap.set("__you__", updated);
           this.syncParticipantsArray();
-          this.sendSig({ type: "cam_toggle", cam: next });
+          this.sendSig({ type: "cam_toggle", cam: nextCam });
           this.peers.forEach((_st, ch) => this.renegotiate(ch));
         });
       }
@@ -54177,20 +54190,29 @@ var init_dashboard = __esm({
             const screenTrack = screenStream.getVideoTracks()[0];
             if (!screenTrack)
               return;
-            this.localVideoTrack?.stop();
+            try {
+              this.localVideoTrack?.stop();
+            } catch {
+            }
             this.localVideoTrack = screenTrack;
-            this.refreshLocalPreview();
             screenTrack.onended = () => {
               this.localVideoTrack = null;
               this.refreshLocalPreview();
-              this.sendSig({ type: "cam_toggle", cam: "off" });
-              const me = this.participantsMap.get("__you__");
-              if (me) {
-                this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me), { cam: "off", videoOn: false }));
+              const me2 = this.participantsMap.get("__you__");
+              if (me2) {
+                this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me2), { cam: "off", videoOn: false }));
                 this.syncParticipantsArray();
               }
+              this.sendSig({ type: "cam_toggle", cam: "off" });
               this.peers.forEach((_st, ch) => this.renegotiate(ch));
             };
+            this.refreshLocalPreview();
+            const me = this.participantsMap.get("__you__");
+            if (me) {
+              const up = __spreadProps(__spreadValues({}, me), { cam: "on", videoOn: this.computeVideoOn("on", this.localPreviewStream) });
+              this.participantsMap.set("__you__", up);
+              this.syncParticipantsArray();
+            }
             this.sendSig({ type: "cam_toggle", cam: "on" });
             this.peers.forEach((_st, ch) => this.renegotiate(ch));
           } catch {
@@ -54230,6 +54252,9 @@ var init_dashboard = __esm({
         this.syncParticipantsArray();
         this.sendSig({ type: "hand_toggle", handRaised: next });
       }
+      get shouldShowSelfVideo() {
+        return !!this.you?.videoOn && !!this.you?.stream && this.gridParticipants.length > 0;
+      }
       trackByParticipant(index, item) {
         return item.channel;
       }
@@ -54238,10 +54263,10 @@ var init_dashboard = __esm({
       };
       static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Dashboard, selectors: [["app-dashboard"]], hostBindings: function Dashboard_HostBindings(rf, ctx) {
         if (rf & 1) {
-          \u0275\u0275listener("resize", function Dashboard_resize_HostBindingHandler() {
-            return ctx.onResize();
-          }, \u0275\u0275resolveWindow)("beforeunload", function Dashboard_beforeunload_HostBindingHandler() {
+          \u0275\u0275listener("beforeunload", function Dashboard_beforeunload_HostBindingHandler() {
             return ctx.onBeforeUnload();
+          }, \u0275\u0275resolveWindow)("resize", function Dashboard_resize_HostBindingHandler() {
+            return ctx.onResize();
           }, \u0275\u0275resolveWindow);
         }
       }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 57, vars: 19, consts: [[1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
@@ -54554,16 +54579,16 @@ var init_dashboard = __esm({
   </aside>\r
 </main>\r
 `, styles: ['/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full {\n  grid-column: span 2;\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile video,\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
-      }], () => [{ type: SignalingService }], { onResize: [{
-        type: HostListener,
-        args: ["window:resize"]
-      }], onBeforeUnload: [{
+      }], () => [{ type: SignalingService }], { onBeforeUnload: [{
         type: HostListener,
         args: ["window:beforeunload"]
+      }], onResize: [{
+        type: HostListener,
+        args: ["window:resize"]
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 83 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 88 });
     })();
   }
 });

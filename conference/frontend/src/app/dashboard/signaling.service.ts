@@ -1,96 +1,66 @@
-import { Injectable, NgZone } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+interface SignalMessage {
+  type: string;
+  [key: string]: any;
+}
+
+@Injectable({ providedIn: 'root' })
 export class SignalingService {
   private ws: WebSocket | null = null;
-  private messagesSubject = new Subject<any>();
-  public messages$: Observable<any> = this.messagesSubject.asObservable();
+  private messagesSubject = new Subject<SignalMessage>();
+  public messages$ = this.messagesSubject.asObservable();
 
-  private reconnectDelay = 2000; // ms
-  private roomName: string | null = null;
+  private room?: string;
 
-  constructor(private zone: NgZone) {}
+  connect(room: string): void {
+    this.room = room;
+    const url = `wss://127.0.0.1:8000/ws/signaling/${room}/`;
 
-  /**
-   * Connect to signaling server with a given roomName
-   */
-  connect(roomName: string) {
-    this.roomName = roomName;
-    const url = this.buildWsUrl(roomName);
-
-    console.log('[SignalingService] Connecting to', url);
     this.ws = new WebSocket(url);
-
     this.ws.onopen = () => {
       console.log('[SignalingService] ✅ WebSocket connected');
     };
 
-    this.ws.onmessage = (event) => {
+    this.ws.onmessage = (ev) => {
       try {
-        const msg = JSON.parse(event.data);
-        this.zone.run(() => {
-          this.messagesSubject.next(msg);
-        });
-      } catch (e) {
-        console.warn('[SignalingService] Failed to parse message', e);
+        const data: SignalMessage = JSON.parse(ev.data);
+        this.messagesSubject.next(data);
+      } catch (err) {
+        console.error('[SignalingService] JSON parse error', err, ev.data);
       }
     };
 
-    this.ws.onclose = (ev) => {
-      console.warn('[SignalingService] ❌ WebSocket closed', ev.code, ev.reason);
-      this.ws = null;
-
-      // Auto-reconnect
-      if (this.roomName) {
-        setTimeout(() => {
-          console.log('[SignalingService] 🔄 Reconnecting…');
-          this.connect(this.roomName!);
-        }, this.reconnectDelay);
-      }
+    this.ws.onclose = () => {
+      console.warn('[SignalingService] WebSocket closed, attempting reconnect…');
+      setTimeout(() => this.reconnect(), 1000);
     };
 
     this.ws.onerror = (err) => {
       console.error('[SignalingService] WebSocket error', err);
+      this.ws?.close();
     };
   }
 
-  /**
-   * Build correct WS URL depending on http/https
-   */
-  private buildWsUrl(roomName: string): string {
-    const loc = window.location;
-    const scheme = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-    const base = `${scheme}//${loc.host}`;
-    return `${base}/ws/signaling/${roomName}/`;
+  private reconnect(): void {
+    if (this.room) this.connect(this.room);
   }
 
-  /**
-   * Send a signaling message
-   */
-  sendMessage(msg: any) {
+  disconnect(): void {
+    this.ws?.close();
+    this.ws = null;
+  }
+
+  sendMessage(msg: SignalMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('[SignalingService] Cannot send, WebSocket not open', msg);
+      console.warn('[SignalingService] sendMessage failed, socket not open');
       return;
     }
     try {
       this.ws.send(JSON.stringify(msg));
-    } catch (e) {
-      console.error('[SignalingService] Send error', e);
+    } catch (err) {
+      console.error('[SignalingService] sendMessage error', err, msg);
     }
-  }
-
-  /**
-   * Disconnect cleanly
-   */
-  disconnect() {
-    if (this.ws) {
-      console.log('[SignalingService] Closing WebSocket');
-      this.ws.close(1000, 'Client disconnect');
-      this.ws = null;
-    }
-    this.roomName = null;
   }
 }
