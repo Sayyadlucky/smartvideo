@@ -1,20 +1,19 @@
 # Use official Python runtime
 FROM python:3.10-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy only requirements first (for caching layers)
+COPY videocall_project/videocall_project/requirements.txt .
 
-# Set working directory where manage.py and requirements.txt are located
-WORKDIR /app/videocall_project/videocall_project/
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Collect static files (ignore errors if no static)
+# Now copy the rest of the code
+COPY . .
+
+# Set working directory where manage.py lives
+WORKDIR /app/videocall_project/videocall_project/
+
 RUN python manage.py collectstatic --noinput || true
 
-# Run Daphne with Cloud Run-compatible port
-CMD ["daphne", "-b", "0.0.0.0", "-p", "${PORT:-8000}", "videocall_project.asgi:application"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "videocall_project.asgi:application"]
