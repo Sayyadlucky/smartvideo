@@ -136,7 +136,7 @@
         <button class="tab-btn" [class.active]="activeTab==='participants'" (click)="activeTab='participants'">Participants</button>
         <button class="tab-btn" [class.active]="activeTab==='chat'" (click)="activeTab='chat'">Chat</button>
       </div>
-      <button (click)="closeChat()" class="hr-btn px-3 py-1 text-xs">Close</button>
+      <button (click)="closeChat()" *ngIf="!isDesktop" class="hr-btn px-3 py-1 text-xs">Close</button>
     </div>
 
     <div class="flex-1 min-h-0 flex flex-col">

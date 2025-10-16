@@ -53432,9 +53432,22 @@ function Dashboard_div_30_Template(rf, ctx) {
     \u0275\u0275property("ngIf", ctx_r1.you == null ? null : ctx_r1.you.stream);
   }
 }
-function Dashboard_div_47_div_3_Template(rf, ctx) {
+function Dashboard_button_44_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 50)(1, "div", 51)(2, "div", 52);
+    const _r4 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 47);
+    \u0275\u0275listener("click", function Dashboard_button_44_Template_button_click_0_listener() {
+      \u0275\u0275restoreView(_r4);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.closeChat());
+    });
+    \u0275\u0275text(1, "Close");
+    \u0275\u0275elementEnd();
+  }
+}
+function Dashboard_div_46_div_3_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 51)(1, "div", 52)(2, "div", 53);
     \u0275\u0275text(3);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(4, "span");
@@ -53445,23 +53458,23 @@ function Dashboard_div_47_div_3_Template(rf, ctx) {
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r4 = ctx.$implicit;
+    const p_r5 = ctx.$implicit;
     \u0275\u0275advance(3);
-    \u0275\u0275textInterpolate(p_r4.initials);
+    \u0275\u0275textInterpolate(p_r5.initials);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(p_r4.name);
+    \u0275\u0275textInterpolate(p_r5.name);
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", p_r4.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
+    \u0275\u0275property("ngClass", p_r5.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", p_r4.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
+    \u0275\u0275property("ngClass", p_r5.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
   }
 }
-function Dashboard_div_47_Template(rf, ctx) {
+function Dashboard_div_46_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 47)(1, "h3", 48);
+    \u0275\u0275elementStart(0, "div", 48)(1, "h3", 49);
     \u0275\u0275text(2, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_div_47_div_3_Template, 9, 4, "div", 49);
+    \u0275\u0275template(3, Dashboard_div_46_div_3_Template, 9, 4, "div", 50);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -53470,9 +53483,9 @@ function Dashboard_div_47_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.participants);
   }
 }
-function Dashboard_div_48_div_3_Template(rf, ctx) {
+function Dashboard_div_47_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 55)(1, "div", 56);
+    \u0275\u0275elementStart(0, "div", 56)(1, "div", 57);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(3, "div", 29);
@@ -53480,19 +53493,19 @@ function Dashboard_div_48_div_3_Template(rf, ctx) {
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const m_r5 = ctx.$implicit;
+    const m_r6 = ctx.$implicit;
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r5.by);
+    \u0275\u0275textInterpolate(m_r6.by);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r5.text);
+    \u0275\u0275textInterpolate(m_r6.text);
   }
 }
-function Dashboard_div_48_Template(rf, ctx) {
+function Dashboard_div_47_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 53)(1, "h3", 48);
+    \u0275\u0275elementStart(0, "div", 54)(1, "h3", 49);
     \u0275\u0275text(2, "Chat");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_div_48_div_3_Template, 5, 2, "div", 54);
+    \u0275\u0275template(3, Dashboard_div_47_div_3_Template, 5, 2, "div", 55);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -53501,24 +53514,24 @@ function Dashboard_div_48_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.chatMessages);
   }
 }
-function Dashboard_form_49_Template(rf, ctx) {
+function Dashboard_form_48_Template(rf, ctx) {
   if (rf & 1) {
-    const _r6 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "form", 57);
-    \u0275\u0275listener("ngSubmit", function Dashboard_form_49_Template_form_ngSubmit_0_listener() {
-      \u0275\u0275restoreView(_r6);
+    const _r7 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "form", 58);
+    \u0275\u0275listener("ngSubmit", function Dashboard_form_48_Template_form_ngSubmit_0_listener() {
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.sendChat());
     });
-    \u0275\u0275elementStart(1, "input", 58);
-    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_form_49_Template_input_ngModelChange_1_listener($event) {
-      \u0275\u0275restoreView(_r6);
+    \u0275\u0275elementStart(1, "input", 59);
+    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_form_48_Template_input_ngModelChange_1_listener($event) {
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r1.chatText, $event) || (ctx_r1.chatText = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(2, "button", 59);
+    \u0275\u0275elementStart(2, "button", 60);
     \u0275\u0275text(3, "Send");
     \u0275\u0275elementEnd()();
   }
@@ -54319,7 +54332,7 @@ var init_dashboard = __esm({
             return ctx.onResize();
           }, \u0275\u0275resolveWindow);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 50, vars: 19, consts: [[1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 49, vars: 20, consts: [[1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
           \u0275\u0275elementStart(0, "main", 0)(1, "section", 1);
           \u0275\u0275template(2, Dashboard_div_2_Template, 8, 1, "div", 2);
@@ -54397,16 +54410,12 @@ var init_dashboard = __esm({
           });
           \u0275\u0275text(43, "Chat");
           \u0275\u0275elementEnd()();
-          \u0275\u0275elementStart(44, "button", 23);
-          \u0275\u0275listener("click", function Dashboard_Template_button_click_44_listener() {
-            return ctx.closeChat();
-          });
-          \u0275\u0275text(45, "Close");
-          \u0275\u0275elementEnd()();
-          \u0275\u0275elementStart(46, "div", 24);
-          \u0275\u0275template(47, Dashboard_div_47_Template, 4, 1, "div", 25)(48, Dashboard_div_48_Template, 4, 1, "div", 26);
+          \u0275\u0275template(44, Dashboard_button_44_Template, 2, 0, "button", 23);
           \u0275\u0275elementEnd();
-          \u0275\u0275template(49, Dashboard_form_49_Template, 4, 1, "form", 27);
+          \u0275\u0275elementStart(45, "div", 24);
+          \u0275\u0275template(46, Dashboard_div_46_Template, 4, 1, "div", 25)(47, Dashboard_div_47_Template, 4, 1, "div", 26);
+          \u0275\u0275elementEnd();
+          \u0275\u0275template(48, Dashboard_form_48_Template, 4, 1, "form", 27);
           \u0275\u0275elementEnd()();
         }
         if (rf & 2) {
@@ -54422,14 +54431,16 @@ var init_dashboard = __esm({
           \u0275\u0275advance(19);
           \u0275\u0275property("ngIf", ctx.shouldShowSelfVideo);
           \u0275\u0275advance();
-          \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(16, _c02, ctx.chatCollapsed && !ctx.isDesktop, !ctx.chatCollapsed || ctx.isDesktop));
+          \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c02, ctx.chatCollapsed && !ctx.isDesktop, !ctx.chatCollapsed || ctx.isDesktop));
           \u0275\u0275advance(4);
           \u0275\u0275property("value", (ctx.you == null ? null : ctx.you.name) || "You");
           \u0275\u0275advance(5);
           \u0275\u0275classProp("active", ctx.activeTab === "participants");
           \u0275\u0275advance(2);
           \u0275\u0275classProp("active", ctx.activeTab === "chat");
-          \u0275\u0275advance(5);
+          \u0275\u0275advance(2);
+          \u0275\u0275property("ngIf", !ctx.isDesktop);
+          \u0275\u0275advance(2);
           \u0275\u0275property("ngIf", ctx.activeTab === "participants");
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.activeTab === "chat");
@@ -54579,7 +54590,7 @@ var init_dashboard = __esm({
         <button class="tab-btn" [class.active]="activeTab==='participants'" (click)="activeTab='participants'">Participants</button>\r
         <button class="tab-btn" [class.active]="activeTab==='chat'" (click)="activeTab='chat'">Chat</button>\r
       </div>\r
-      <button (click)="closeChat()" class="hr-btn px-3 py-1 text-xs">Close</button>\r
+      <button (click)="closeChat()" *ngIf="!isDesktop" class="hr-btn px-3 py-1 text-xs">Close</button>\r
     </div>\r
 \r
     <div class="flex-1 min-h-0 flex flex-col">\r
