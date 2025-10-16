@@ -16,7 +16,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VM_HOST }}
-          username: github-deploy
+          username: sayyadlucky
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd ~/videocall_project
