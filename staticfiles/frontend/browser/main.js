@@ -46910,9 +46910,18 @@ var init_signaling_service = __esm({
       messagesSubject = new Subject();
       messages$ = this.messagesSubject.asObservable();
       room;
+      buildUrl(room) {
+        const override = window.__SIGNALING_URL__;
+        if (override) {
+          return `${override.replace(/\/$/, "")}/${encodeURIComponent(room)}/`;
+        }
+        const scheme = location.protocol === "https:" ? "wss" : "ws";
+        return `${scheme}://${location.host}/ws/signaling/${encodeURIComponent(room)}/`;
+      }
       connect(room) {
         this.room = room;
-        const url = `wss://127.0.0.1:8000/ws/signaling/${room}/`;
+        const url = this.buildUrl(room);
+        console.log("[SignalingService] connecting \u2192", url);
         this.ws = new WebSocket(url);
         this.ws.onopen = () => {
           console.log("[SignalingService] \u2705 WebSocket connected");
@@ -53802,15 +53811,31 @@ var init_dashboard = __esm({
           return st;
         const pc = new RTCPeerConnection({
           iceServers: [
+            // Google STUN (optional fallback)
             { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun3.l.google.com:19302" },
-            { urls: "stun:stun4.l.google.com:19302" }
+            // Your own STUN
+            { urls: "stun:smartvid.live:3478" },
+            // Your TURN with UDP/TCP/TLS
+            {
+              urls: [
+                "turn:smartvid.live:3478?transport=udp",
+                "turn:smartvid.live:5349?transport=tcp",
+                "turns:smartvid.live:5349?transport=tcp"
+              ],
+              username: "test",
+              credential: "test123"
+            }
           ]
         });
         const at = pc.addTransceiver("audio", { direction: "sendrecv" });
         const vt = pc.addTransceiver("video", { direction: "sendrecv" });
+        const h264Codecs = RTCRtpSender.getCapabilities("video")?.codecs.filter((c) => c.mimeType.toLowerCase() === "video/h264").filter((c) => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
+        if (h264Codecs?.length && vt.setCodecPreferences) {
+          vt.setCodecPreferences(h264Codecs);
+          console.log("\u{1F3A5} Forcing baseline H.264 codec:", h264Codecs);
+        } else {
+          console.warn("\u26A0\uFE0F H.264 baseline not available, using defaults");
+        }
         st = {
           pc,
           makingOffer: false,
