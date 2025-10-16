@@ -313,16 +313,36 @@ export class Dashboard implements OnInit, OnDestroy {
 
     const pc = new RTCPeerConnection({
       iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
+        // Google STUN (optional fallback)
+        { urls: "stun:stun.l.google.com:19302" },
+        // Your own STUN
+        { urls: "stun:smartvid.live:3478" },
+        // Your TURN with UDP/TCP/TLS
+        {
+          urls: [
+            "turn:smartvid.live:3478?transport=udp",
+            "turn:smartvid.live:5349?transport=tcp",
+            "turns:smartvid.live:5349?transport=tcp"
+          ],
+          username: "test",
+          credential: "test123"
+        }
       ],
     });
 
     const at = pc.addTransceiver('audio', { direction: 'sendrecv' });
     const vt = pc.addTransceiver('video', { direction: 'sendrecv' });
+
+    const h264Codecs = RTCRtpSender.getCapabilities('video')?.codecs
+  .filter(c => c.mimeType.toLowerCase() === 'video/h264')
+  .filter(c => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
+
+    if (h264Codecs?.length && vt.setCodecPreferences) {
+      vt.setCodecPreferences(h264Codecs);
+      console.log("🎥 Forcing baseline H.264 codec:", h264Codecs);
+    } else {
+      console.warn("⚠️ H.264 baseline not available, using defaults");
+    }
 
     st = {
       pc,
