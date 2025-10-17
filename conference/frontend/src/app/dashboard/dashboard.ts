@@ -95,7 +95,7 @@ export class Dashboard implements OnInit, OnDestroy {
   tileColsManual: number | null = null;
   public roomName = 'testroom';
   activeTab: 'participants' | 'chat' = 'chat';
-
+  isNameUpdated = false;
   // ====== Signaling ======
   private signalingSub: Subscription | null = null;
   private myServerChan: string | null = null;
@@ -110,6 +110,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private localVideoTrack: MediaStreamTrack | null = null;
   private localAudioTrack: MediaStreamTrack | null = null;
   private localPreviewStream: MediaStream = new MediaStream(); // stable instance
+  userName: any;
+  termsCheckbox: any;
 
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
@@ -134,18 +136,21 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // ====== Lifecycle ======
   async ngOnInit(): Promise<void> {
+    }
+
+  joinRoom(){
     console.log('DASHBOARD BUILD MARKER v8 — stable-media');
     // Create a single stable preview stream instance
     this.localPreviewStream = new MediaStream();
 
-    this.participantsMap.set('__you__', this.makeLocalParticipant('You'));
+    this.participantsMap.set('__you__', this.makeLocalParticipant(this.userName));
     this.syncParticipantsArray();
 
     // connect to signaling server
     this.signaling.connect(this.roomName);
     this.signalingSub = this.signaling.messages$.subscribe((msg: any) => this.onSignal(msg));
-  }
-
+  
+  } 
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
     this.signalingSub?.unsubscribe();
@@ -578,6 +583,19 @@ export class Dashboard implements OnInit, OnDestroy {
     this.chatText = '';
   }
 
+  updateNameFirst(){
+    if(!this.userName){
+      alert("Please Enter User Name");
+      return;
+    }
+    if(!this.termsCheckbox){
+      alert("Please Enter User Name");
+      return;
+    }
+    this.isNameUpdated = true;
+    this.joinRoom();
+  }
+
   updateName(e: Event): void {
     const v = (e.target as HTMLInputElement).value.trim() || 'You';
     const me = this.participantsMap.get('__you__');
@@ -691,7 +709,9 @@ export class Dashboard implements OnInit, OnDestroy {
     this.peers.forEach(({ pc }) => { try { pc.close(); } catch {} });
     this.peers.clear();
     this.participantsMap.forEach((_p, ch) => { if (ch !== '__you__') this.participantsMap.delete(ch); });
+    this.participantsMap.delete('__you__');
     this.syncParticipantsArray();
+    this.isNameUpdated = false; 
   }
 
   raiseHand(): void {

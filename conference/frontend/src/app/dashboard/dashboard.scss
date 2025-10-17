@@ -133,9 +133,18 @@ canvas#particles {
   grid-template-columns: 1fr;
 }
 
+/* Default: mobile first (1 column) */
 .tile-grid.layout-2 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
 }
+
+/* For desktop and larger screens */
+@media (min-width: 768px) {
+  .tile-grid.layout-2 {
+    grid-template-columns: 1fr 1fr; /* two columns */
+  }
+}
+
 
 .tile-grid.layout-3 {
   grid-template-columns: 1fr 1fr;

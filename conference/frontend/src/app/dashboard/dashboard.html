@@ -1,4 +1,28 @@
-<main class="h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch"
+<main *ngIf="!isNameUpdated">
+<div class="h-screen flex items-center justify-center bg-slate-900 text-white">
+  <div class="bg-slate-800 p-6 rounded-xl shadow-xl w-96">
+    <h2 class="text-xl font-bold mb-4">Join the Room</h2>
+
+    <label class="block mb-3">
+      <span class="text-sm">Enter your name</span>
+      <input id="nameInput" type="text" placeholder="Enter Your name" [(ngModel)]="userName"
+        class="mt-1 w-full px-3 py-2 rounded-md bg-slate-700 text-white" />
+    </label>
+
+    <label class="flex items-center gap-2 mb-4">
+      <input id="termsCheckbox" type="checkbox" [(ngModel)]="termsCheckbox" class="w-4 h-4"/>
+      <span class="text-sm">I agree to the Terms & Conditions</span>
+    </label>
+
+    <button id="joinBtn" (click)="updateNameFirst()"
+      class="w-full px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:opacity-50">
+      Join Room
+    </button>
+  </div>
+</div>
+</main>
+
+<main *ngIf="isNameUpdated" class="h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch"
       [class.chat-open]="!chatCollapsed">
 
   <!-- Stage -->
@@ -101,7 +125,7 @@
 
     <!-- Floating Self Video (PiP) -->
     <div class="self-video-floating"
-         *ngIf="shouldShowSelfVideo"
+         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 1"
          cdkDrag
          cdkDragBoundary=".stage">
          <video *ngIf="you?.stream"
