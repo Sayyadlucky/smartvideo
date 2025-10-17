@@ -54125,6 +54125,20 @@ var init_dashboard = __esm({
           st.videoSender.replaceTrack(this.localVideoTrack);
         } catch {
         }
+        pc.onnegotiationneeded = () => __async(this, null, function* () {
+          if (st.makingOffer || pc.signalingState !== "stable")
+            return;
+          try {
+            st.makingOffer = true;
+            console.log("\u{1F9ED} onnegotiationneeded \u2192 createOffer for", remoteChan);
+            yield pc.setLocalDescription(yield pc.createOffer());
+            this.sendSig({ type: "offer", offer: pc.localDescription, to: remoteChan });
+          } catch (err) {
+            console.error("onnegotiationneeded error", err);
+          } finally {
+            st.makingOffer = false;
+          }
+        });
         pc.ontrack = (ev) => {
           console.log("\u{1F4E1} ontrack from", remoteChan, ev);
           let pPrev = this.participantsMap.get(remoteChan);

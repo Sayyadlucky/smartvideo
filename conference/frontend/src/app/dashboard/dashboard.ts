@@ -366,6 +366,22 @@ export class Dashboard implements OnInit, OnDestroy {
     try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {}
     try { st.videoSender.replaceTrack(this.localVideoTrack); } catch {}
 
+    pc.onnegotiationneeded = async () => {
+      // Prevent glare / re-entrancy
+      if (st.makingOffer || pc.signalingState !== 'stable') return;
+      try {
+        st.makingOffer = true;
+        console.log('🧭 onnegotiationneeded → createOffer for', remoteChan);
+        await pc.setLocalDescription(await pc.createOffer());
+        this.sendSig({ type: 'offer', offer: pc.localDescription, to: remoteChan });
+      } catch (err) {
+        console.error('onnegotiationneeded error', err);
+      } finally {
+        st.makingOffer = false;
+      }
+    };
+   
+
     // ontrack: always reuse the same MediaStream per participant
     pc.ontrack = (ev: RTCTrackEvent) => {
       console.log('📡 ontrack from', remoteChan, ev);
