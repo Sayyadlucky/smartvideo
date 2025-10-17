@@ -354,3 +354,14 @@ textarea:focus {
 .self-video-floating:hover {
   box-shadow: 0 6px 24px rgba(40,75,255,0.25);
 }
+
+/* Hand Raised Styles */
+.tile.hand-raised {
+  border-color: #FFD700; /* Golden border */
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); /* Golden glow */
+}
+
+.hand-emoji {
+  font-size: 1.2em;
+  margin-left: 0.2em;
+}

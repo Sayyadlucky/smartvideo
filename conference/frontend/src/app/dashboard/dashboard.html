@@ -72,7 +72,8 @@
         <div class="tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300"
              *ngFor="let p of gridParticipants; let i = index; trackBy: trackByParticipant"
              [class.video-on]="p.videoOn"
-             [class.hide-when-pip]="p.isYou && shouldShowSelfVideo && gridParticipants.length > 1">
+             [class.hide-when-pip]="p.isYou && shouldShowSelfVideo && gridParticipants.length > 1"
+             [class.hand-raised]="p.handRaised">
 
              <video *ngIf="p.stream && p.videoOn"
              [appSrcObject]="p.stream"
@@ -85,8 +86,10 @@
 
           <div class="placeholder flex items-center justify-center w-full h-full"
                *ngIf="!p.stream || !p.videoOn">
-            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white">
-              {{ p.initials }}
+            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white"
+                 [class.hand-raised]="p.handRaised">
+              <span *ngIf="!p.handRaised">{{ p.initials }}</span>
+              <span *ngIf="p.handRaised" class="hand-emoji">✋</span>
             </div>
           </div>
 
@@ -170,7 +173,11 @@
         <h3 class="text-sky-100 text-sm mb-2">Participants</h3>
         <div *ngFor="let p of participants" class="flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-sky-700/40 flex items-center justify-center">{{ p.initials }}</div>
+            <div class="w-8 h-8 rounded-full bg-sky-700/40 flex items-center justify-center"
+                 [class.hand-raised]="p.handRaised">
+              <span *ngIf="!p.handRaised">{{ p.initials }}</span>
+              <span *ngIf="p.handRaised" class="hand-emoji">✋</span>
+            </div>
             <span>{{ p.name }}</span>
           </div>
           <div>
