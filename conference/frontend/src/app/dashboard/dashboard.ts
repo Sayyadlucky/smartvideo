@@ -706,11 +706,16 @@ export class Dashboard implements OnInit, OnDestroy {
 
   leaveCall(): void {
     this.sendSig({ type: 'bye' });
+    // 3. Stop your local media tracks
+    if (this.you?.stream) {
+      this.you.stream.getTracks().forEach(track => track.stop());
+    }
     this.peers.forEach(({ pc }) => { try { pc.close(); } catch {} });
     this.peers.clear();
     this.participantsMap.forEach((_p, ch) => { if (ch !== '__you__') this.participantsMap.delete(ch); });
     this.participantsMap.delete('__you__');
     this.syncParticipantsArray();
+
     this.isNameUpdated = false; 
   }
 

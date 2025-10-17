@@ -54491,6 +54491,9 @@ var init_dashboard = __esm({
       }
       leaveCall() {
         this.sendSig({ type: "bye" });
+        if (this.you?.stream) {
+          this.you.stream.getTracks().forEach((track) => track.stop());
+        }
         this.peers.forEach(({ pc }) => {
           try {
             pc.close();
