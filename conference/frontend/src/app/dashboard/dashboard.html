@@ -128,7 +128,7 @@
 
     <!-- Floating Self Video (PiP) -->
     <div class="self-video-floating"
-         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 1"
+         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 2"
          cdkDrag
          cdkDragBoundary=".stage">
          <video *ngIf="you?.stream"
@@ -188,7 +188,7 @@
       </div>
 
       <!-- Chat Tab -->
-      <div class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"
+      <div #chatScroll class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"
            *ngIf="activeTab==='chat'">
         <h3 class="text-sky-100 text-sm mb-2">Chat</h3>
         <div *ngFor="let m of chatMessages" class="p-2 bg-slate-800/60 rounded mb-1">

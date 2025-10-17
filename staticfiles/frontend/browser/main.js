@@ -53322,13 +53322,13 @@ var init_drag_drop = __esm({
 function Dashboard_main_0_Template(rf, ctx) {
   if (rf & 1) {
     const _r1 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "main")(1, "div", 2)(2, "div", 3)(3, "h2", 4);
+    \u0275\u0275elementStart(0, "main")(1, "div", 3)(2, "div", 4)(3, "h2", 5);
     \u0275\u0275text(4, "Join the Room");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(5, "label", 5)(6, "span", 6);
+    \u0275\u0275elementStart(5, "label", 6)(6, "span", 7);
     \u0275\u0275text(7, "Enter your name");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(8, "input", 7);
+    \u0275\u0275elementStart(8, "input", 8);
     \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_0_Template_input_ngModelChange_8_listener($event) {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -53336,7 +53336,7 @@ function Dashboard_main_0_Template(rf, ctx) {
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(9, "label", 8)(10, "input", 9);
+    \u0275\u0275elementStart(9, "label", 9)(10, "input", 10);
     \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_0_Template_input_ngModelChange_10_listener($event) {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -53344,10 +53344,10 @@ function Dashboard_main_0_Template(rf, ctx) {
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(11, "span", 6);
+    \u0275\u0275elementStart(11, "span", 7);
     \u0275\u0275text(12, "I agree to the Terms & Conditions");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(13, "button", 10);
+    \u0275\u0275elementStart(13, "button", 11);
     \u0275\u0275listener("click", function Dashboard_main_0_Template_button_click_13_listener() {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -53367,18 +53367,18 @@ function Dashboard_main_0_Template(rf, ctx) {
 function Dashboard_main_1_div_2_Template(rf, ctx) {
   if (rf & 1) {
     const _r4 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 39)(1, "div", 40);
+    \u0275\u0275elementStart(0, "div", 40)(1, "div", 41);
     \u0275\u0275text(2, "Room: ");
     \u0275\u0275elementStart(3, "strong");
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(5, "button", 41);
+    \u0275\u0275elementStart(5, "button", 42);
     \u0275\u0275listener("click", function Dashboard_main_1_div_2_Template_button_click_5_listener() {
       \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.toggleChat());
     });
-    \u0275\u0275element(6, "i", 42);
+    \u0275\u0275element(6, "i", 43);
     \u0275\u0275text(7, " Menu ");
     \u0275\u0275elementEnd()();
   }
@@ -53390,7 +53390,7 @@ function Dashboard_main_1_div_2_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_4_div_1_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 51);
+    \u0275\u0275element(0, "video", 52);
   }
   if (rf & 2) {
     const p_r5 = \u0275\u0275nextContext().$implicit;
@@ -53399,7 +53399,7 @@ function Dashboard_main_1_div_4_div_1_video_1_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_4_div_1_audio_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "audio", 52);
+    \u0275\u0275element(0, "audio", 53);
   }
   if (rf & 2) {
     const p_r5 = \u0275\u0275nextContext().$implicit;
@@ -53420,15 +53420,15 @@ function Dashboard_main_1_div_4_div_1_div_3_span_2_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_4_div_1_div_3_span_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 56);
+    \u0275\u0275elementStart(0, "span", 57);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_1_div_4_div_1_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 53)(1, "div", 54);
-    \u0275\u0275template(2, Dashboard_main_1_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 0)(3, Dashboard_main_1_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 55);
+    \u0275\u0275elementStart(0, "div", 54)(1, "div", 55);
+    \u0275\u0275template(2, Dashboard_main_1_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 1)(3, Dashboard_main_1_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 56);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -53443,10 +53443,10 @@ function Dashboard_main_1_div_4_div_1_div_3_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_4_div_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 45);
-    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_video_1_Template, 1, 2, "video", 46)(2, Dashboard_main_1_div_4_div_1_audio_2_Template, 1, 1, "audio", 47)(3, Dashboard_main_1_div_4_div_1_div_3_Template, 4, 4, "div", 48);
-    \u0275\u0275elementStart(4, "div", 49);
-    \u0275\u0275element(5, "span", 50);
+    \u0275\u0275elementStart(0, "div", 46);
+    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_video_1_Template, 1, 2, "video", 47)(2, Dashboard_main_1_div_4_div_1_audio_2_Template, 1, 1, "audio", 48)(3, Dashboard_main_1_div_4_div_1_div_3_Template, 4, 4, "div", 49);
+    \u0275\u0275elementStart(4, "div", 50);
+    \u0275\u0275element(5, "span", 51);
     \u0275\u0275text(6);
     \u0275\u0275elementEnd()();
   }
@@ -53461,27 +53461,27 @@ function Dashboard_main_1_div_4_div_1_Template(rf, ctx) {
     \u0275\u0275advance();
     \u0275\u0275property("ngIf", !p_r5.stream || !p_r5.videoOn);
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(11, _c2, p_r5.mic === "on", p_r5.mic === "off"));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(11, _c3, p_r5.mic === "on", p_r5.mic === "off"));
     \u0275\u0275advance();
     \u0275\u0275textInterpolate1(" ", p_r5.name, " ");
   }
 }
 function Dashboard_main_1_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 43);
-    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_Template, 7, 14, "div", 44);
+    \u0275\u0275elementStart(0, "div", 44);
+    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_Template, 7, 14, "div", 45);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c12, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c2, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
     \u0275\u0275advance();
     \u0275\u0275property("ngForOf", ctx_r1.gridParticipants)("ngForTrackBy", ctx_r1.trackByParticipant);
   }
 }
 function Dashboard_main_1_div_30_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 59);
+    \u0275\u0275element(0, "video", 60);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(3);
@@ -53490,8 +53490,8 @@ function Dashboard_main_1_div_30_video_1_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_30_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 57);
-    \u0275\u0275template(1, Dashboard_main_1_div_30_video_1_Template, 1, 2, "video", 58);
+    \u0275\u0275elementStart(0, "div", 58);
+    \u0275\u0275template(1, Dashboard_main_1_div_30_video_1_Template, 1, 2, "video", 59);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -53503,7 +53503,7 @@ function Dashboard_main_1_div_30_Template(rf, ctx) {
 function Dashboard_main_1_button_44_Template(rf, ctx) {
   if (rf & 1) {
     const _r6 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "button", 60);
+    \u0275\u0275elementStart(0, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_1_button_44_Template_button_click_0_listener() {
       \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext(2);
@@ -53527,21 +53527,21 @@ function Dashboard_main_1_div_46_div_3_span_3_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_46_div_3_span_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 56);
+    \u0275\u0275elementStart(0, "span", 57);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_1_div_46_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 64)(1, "div", 65)(2, "div", 66);
-    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_span_3_Template, 2, 1, "span", 0)(4, Dashboard_main_1_div_46_div_3_span_4_Template, 2, 0, "span", 55);
+    \u0275\u0275elementStart(0, "div", 65)(1, "div", 66)(2, "div", 67);
+    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_span_3_Template, 2, 1, "span", 1)(4, Dashboard_main_1_div_46_div_3_span_4_Template, 2, 0, "span", 56);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(5, "span");
     \u0275\u0275text(6);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "div");
-    \u0275\u0275element(8, "i", 18)(9, "i", 18);
+    \u0275\u0275element(8, "i", 19)(9, "i", 19);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -53562,10 +53562,10 @@ function Dashboard_main_1_div_46_div_3_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_46_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 61)(1, "h3", 62);
+    \u0275\u0275elementStart(0, "div", 62)(1, "h3", 63);
     \u0275\u0275text(2, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_Template, 10, 7, "div", 63);
+    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_Template, 10, 7, "div", 64);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -53574,12 +53574,12 @@ function Dashboard_main_1_div_46_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.participants);
   }
 }
-function Dashboard_main_1_div_47_div_3_Template(rf, ctx) {
+function Dashboard_main_1_div_47_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 69)(1, "div", 70);
+    \u0275\u0275elementStart(0, "div", 70)(1, "div", 71);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "div", 40);
+    \u0275\u0275elementStart(3, "div", 41);
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
   }
@@ -53593,28 +53593,28 @@ function Dashboard_main_1_div_47_div_3_Template(rf, ctx) {
 }
 function Dashboard_main_1_div_47_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 67)(1, "h3", 62);
-    \u0275\u0275text(2, "Chat");
+    \u0275\u0275elementStart(0, "div", 68, 0)(2, "h3", 63);
+    \u0275\u0275text(3, "Chat");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_main_1_div_47_div_3_Template, 5, 2, "div", 68);
+    \u0275\u0275template(4, Dashboard_main_1_div_47_div_4_Template, 5, 2, "div", 69);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(2);
-    \u0275\u0275advance(3);
+    \u0275\u0275advance(4);
     \u0275\u0275property("ngForOf", ctx_r1.chatMessages);
   }
 }
 function Dashboard_main_1_form_48_Template(rf, ctx) {
   if (rf & 1) {
     const _r9 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "form", 71);
+    \u0275\u0275elementStart(0, "form", 72);
     \u0275\u0275listener("ngSubmit", function Dashboard_main_1_form_48_Template_form_ngSubmit_0_listener() {
       \u0275\u0275restoreView(_r9);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.sendChat());
     });
-    \u0275\u0275elementStart(1, "input", 72);
+    \u0275\u0275elementStart(1, "input", 73);
     \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_form_48_Template_input_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r9);
       const ctx_r1 = \u0275\u0275nextContext(2);
@@ -53622,7 +53622,7 @@ function Dashboard_main_1_form_48_Template(rf, ctx) {
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(2, "button", 73);
+    \u0275\u0275elementStart(2, "button", 74);
     \u0275\u0275text(3, "Send");
     \u0275\u0275elementEnd()();
   }
@@ -53635,85 +53635,85 @@ function Dashboard_main_1_form_48_Template(rf, ctx) {
 function Dashboard_main_1_Template(rf, ctx) {
   if (rf & 1) {
     const _r3 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "main", 11)(1, "section", 12);
-    \u0275\u0275template(2, Dashboard_main_1_div_2_Template, 8, 1, "div", 13);
-    \u0275\u0275elementStart(3, "div", 14);
-    \u0275\u0275template(4, Dashboard_main_1_div_4_Template, 2, 9, "div", 15);
-    \u0275\u0275elementStart(5, "div", 16)(6, "button", 17);
+    \u0275\u0275elementStart(0, "main", 12)(1, "section", 13);
+    \u0275\u0275template(2, Dashboard_main_1_div_2_Template, 8, 1, "div", 14);
+    \u0275\u0275elementStart(3, "div", 15);
+    \u0275\u0275template(4, Dashboard_main_1_div_4_Template, 2, 9, "div", 16);
+    \u0275\u0275elementStart(5, "div", 17)(6, "button", 18);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_6_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleMic());
     });
-    \u0275\u0275element(7, "i", 18);
+    \u0275\u0275element(7, "i", 19);
     \u0275\u0275elementStart(8, "span");
     \u0275\u0275text(9, "Mic");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(10, "button", 17);
+    \u0275\u0275elementStart(10, "button", 18);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_10_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleCam());
     });
-    \u0275\u0275element(11, "i", 18);
+    \u0275\u0275element(11, "i", 19);
     \u0275\u0275elementStart(12, "span");
     \u0275\u0275text(13, "Video");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(14, "button", 17);
+    \u0275\u0275elementStart(14, "button", 18);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_14_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.shareScreen());
     });
-    \u0275\u0275element(15, "i", 19);
+    \u0275\u0275element(15, "i", 20);
     \u0275\u0275elementStart(16, "span");
     \u0275\u0275text(17, "Share");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(18, "button", 17);
+    \u0275\u0275elementStart(18, "button", 18);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_18_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.raiseHand());
     });
-    \u0275\u0275element(19, "i", 20);
+    \u0275\u0275element(19, "i", 21);
     \u0275\u0275elementStart(20, "span");
     \u0275\u0275text(21, "Hand");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(22, "button", 17);
+    \u0275\u0275elementStart(22, "button", 18);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_22_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.cycleLayout());
     });
-    \u0275\u0275element(23, "i", 21);
+    \u0275\u0275element(23, "i", 22);
     \u0275\u0275elementStart(24, "span");
     \u0275\u0275text(25, "Layout");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(26, "button", 22);
+    \u0275\u0275elementStart(26, "button", 23);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_26_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.leaveCall());
     });
-    \u0275\u0275element(27, "i", 23);
+    \u0275\u0275element(27, "i", 24);
     \u0275\u0275elementStart(28, "span");
     \u0275\u0275text(29, "Leave");
     \u0275\u0275elementEnd()()()();
-    \u0275\u0275template(30, Dashboard_main_1_div_30_Template, 2, 1, "div", 24);
+    \u0275\u0275template(30, Dashboard_main_1_div_30_Template, 2, 1, "div", 25);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(31, "aside", 25)(32, "div", 26)(33, "div", 27);
-    \u0275\u0275element(34, "i", 28);
-    \u0275\u0275elementStart(35, "input", 29);
+    \u0275\u0275elementStart(31, "aside", 26)(32, "div", 27)(33, "div", 28);
+    \u0275\u0275element(34, "i", 29);
+    \u0275\u0275elementStart(35, "input", 30);
     \u0275\u0275listener("change", function Dashboard_main_1_Template_input_change_35_listener($event) {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.updateName($event));
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(36, "label", 30);
+    \u0275\u0275elementStart(36, "label", 31);
     \u0275\u0275text(37, "update display name from here.");
     \u0275\u0275elementEnd()()();
-    \u0275\u0275elementStart(38, "div", 31)(39, "div", 32)(40, "button", 33);
+    \u0275\u0275elementStart(38, "div", 32)(39, "div", 33)(40, "button", 34);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_40_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -53721,7 +53721,7 @@ function Dashboard_main_1_Template(rf, ctx) {
     });
     \u0275\u0275text(41, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(42, "button", 33);
+    \u0275\u0275elementStart(42, "button", 34);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_42_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -53729,12 +53729,12 @@ function Dashboard_main_1_Template(rf, ctx) {
     });
     \u0275\u0275text(43, "Chat");
     \u0275\u0275elementEnd()();
-    \u0275\u0275template(44, Dashboard_main_1_button_44_Template, 2, 0, "button", 34);
+    \u0275\u0275template(44, Dashboard_main_1_button_44_Template, 2, 0, "button", 35);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(45, "div", 35);
-    \u0275\u0275template(46, Dashboard_main_1_div_46_Template, 4, 1, "div", 36)(47, Dashboard_main_1_div_47_Template, 4, 1, "div", 37);
+    \u0275\u0275elementStart(45, "div", 36);
+    \u0275\u0275template(46, Dashboard_main_1_div_46_Template, 4, 1, "div", 37)(47, Dashboard_main_1_div_47_Template, 5, 1, "div", 38);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(48, Dashboard_main_1_form_48_Template, 4, 1, "form", 38);
+    \u0275\u0275template(48, Dashboard_main_1_form_48_Template, 4, 1, "form", 39);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -53749,9 +53749,9 @@ function Dashboard_main_1_Template(rf, ctx) {
     \u0275\u0275advance(4);
     \u0275\u0275property("ngClass", (ctx_r1.you == null ? null : ctx_r1.you.cam) === "on" ? "ph-video-camera" : "ph-camera-slash");
     \u0275\u0275advance(19);
-    \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo)("ngIfAnd", !ctx_r1.gridParticipants.length === 1);
+    \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo)("ngIfAnd", !ctx_r1.gridParticipants.length === 2);
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(18, _c02, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(18, _c12, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
     \u0275\u0275advance(4);
     \u0275\u0275property("value", (ctx_r1.you == null ? null : ctx_r1.you.name) || "You");
     \u0275\u0275advance(5);
@@ -53768,7 +53768,7 @@ function Dashboard_main_1_Template(rf, ctx) {
     \u0275\u0275property("ngIf", ctx_r1.activeTab === "chat");
   }
 }
-var _c02, _c12, _c2, MediaSrcObjectDirective, Dashboard;
+var _c02, _c12, _c2, _c3, MediaSrcObjectDirective, Dashboard;
 var init_dashboard = __esm({
   "src/app/dashboard/dashboard.ts"() {
     "use strict";
@@ -53783,9 +53783,10 @@ var init_dashboard = __esm({
     init_common();
     init_forms();
     init_drag_drop();
-    _c02 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
-    _c12 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
-    _c2 = (a0, a1) => ({ "bg-green-400": a0, "bg-red-400": a1 });
+    _c02 = ["chatScroll"];
+    _c12 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
+    _c2 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
+    _c3 = (a0, a1) => ({ "bg-green-400": a0, "bg-red-400": a1 });
     MediaSrcObjectDirective = class _MediaSrcObjectDirective {
       el;
       muted = false;
@@ -53838,6 +53839,7 @@ var init_dashboard = __esm({
       roomName = "testroom";
       activeTab = "chat";
       isNameUpdated = false;
+      chatScroll;
       // ====== Signaling ======
       signalingSub = null;
       myServerChan = null;
@@ -54278,6 +54280,7 @@ var init_dashboard = __esm({
             if (text) {
               const by = payload.by ?? "Guest";
               this.chatMessages = [...this.chatMessages, { by, text }];
+              setTimeout(() => this.scrollToBottom(), 0);
             }
             break;
           }
@@ -54391,6 +54394,12 @@ var init_dashboard = __esm({
         this.chatMessages = [...this.chatMessages, { by, text }];
         this.sendSig({ type: "chat", by, text });
         this.chatText = "";
+        setTimeout(() => this.scrollToBottom(), 0);
+      }
+      scrollToBottom() {
+        if (this.chatScroll) {
+          this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
+        }
       }
       updateNameFirst() {
         if (!this.userName) {
@@ -54573,7 +54582,15 @@ var init_dashboard = __esm({
       static \u0275fac = function Dashboard_Factory(__ngFactoryType__) {
         return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService));
       };
-      static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Dashboard, selectors: [["app-dashboard"]], hostBindings: function Dashboard_HostBindings(rf, ctx) {
+      static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Dashboard, selectors: [["app-dashboard"]], viewQuery: function Dashboard_Query(rf, ctx) {
+        if (rf & 1) {
+          \u0275\u0275viewQuery(_c02, 5);
+        }
+        if (rf & 2) {
+          let _t;
+          \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.chatScroll = _t.first);
+        }
+      }, hostBindings: function Dashboard_HostBindings(rf, ctx) {
         if (rf & 1) {
           \u0275\u0275listener("beforeunload", function Dashboard_beforeunload_HostBindingHandler() {
             return ctx.onBeforeUnload();
@@ -54581,16 +54598,16 @@ var init_dashboard = __esm({
             return ctx.onResize();
           }, \u0275\u0275resolveWindow);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 2, vars: 2, consts: [[4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf", "ngIfAnd"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 2, vars: 2, consts: [["chatScroll", ""], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf", "ngIfAnd"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
-          \u0275\u0275template(0, Dashboard_main_0_Template, 15, 2, "main", 0)(1, Dashboard_main_1_Template, 49, 21, "main", 1);
+          \u0275\u0275template(0, Dashboard_main_0_Template, 15, 2, "main", 1)(1, Dashboard_main_1_Template, 49, 21, "main", 2);
         }
         if (rf & 2) {
           \u0275\u0275property("ngIf", !ctx.isNameUpdated);
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.isNameUpdated);
         }
-      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag], styles: ['\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full[_ngcontent-%COMP%] {\n  grid-column: span 2;\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
+      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag], styles: ['\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full[_ngcontent-%COMP%] {\n  grid-column: span 2;\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 1/1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Dashboard, [{
@@ -54725,7 +54742,7 @@ var init_dashboard = __esm({
 \r
     <!-- Floating Self Video (PiP) -->\r
     <div class="self-video-floating"\r
-         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 1"\r
+         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 2"\r
          cdkDrag\r
          cdkDragBoundary=".stage">\r
          <video *ngIf="you?.stream"\r
@@ -54785,7 +54802,7 @@ var init_dashboard = __esm({
       </div>\r
 \r
       <!-- Chat Tab -->\r
-      <div class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"\r
+      <div #chatScroll class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"\r
            *ngIf="activeTab==='chat'">\r
         <h3 class="text-sky-100 text-sm mb-2">Chat</h3>\r
         <div *ngFor="let m of chatMessages" class="p-2 bg-slate-800/60 rounded mb-1">\r
@@ -54803,8 +54820,11 @@ var init_dashboard = __esm({
     </form>\r
   </aside>\r
 </main>\r
-`, styles: ['/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full {\n  grid-column: span 2;\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video,\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
-      }], () => [{ type: SignalingService }], { onBeforeUnload: [{
+`, styles: ['/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full {\n  grid-column: span 2;\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 1/1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video,\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
+      }], () => [{ type: SignalingService }], { chatScroll: [{
+        type: ViewChild,
+        args: ["chatScroll"]
+      }], onBeforeUnload: [{
         type: HostListener,
         args: ["window:beforeunload"]
       }], onResize: [{
@@ -54813,7 +54833,7 @@ var init_dashboard = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 88 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 89 });
     })();
   }
 });

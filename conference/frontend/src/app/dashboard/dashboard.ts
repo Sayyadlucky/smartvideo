@@ -7,6 +7,7 @@ import {
   Directive,
   ElementRef,
   Input,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -96,6 +97,7 @@ export class Dashboard implements OnInit, OnDestroy {
   public roomName = 'testroom';
   activeTab: 'participants' | 'chat' = 'chat';
   isNameUpdated = false;
+  @ViewChild('chatScroll') chatScroll!: ElementRef;
   // ====== Signaling ======
   private signalingSub: Subscription | null = null;
   private myServerChan: string | null = null;
@@ -501,7 +503,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
       case 'chat_message': {
         const payload = msg.message ?? {}; const text = payload.text ?? '';
-        if (text) { const by = payload.by ?? 'Guest'; this.chatMessages = [...this.chatMessages, { by, text }]; }
+        if (text) { const by = payload.by ?? 'Guest'; this.chatMessages = [...this.chatMessages, { by, text }]; setTimeout(() => this.scrollToBottom(), 0); }
         break;
       }
 
@@ -581,6 +583,13 @@ export class Dashboard implements OnInit, OnDestroy {
     this.chatMessages = [...this.chatMessages, { by, text }];
     this.sendSig({ type: 'chat', by, text });
     this.chatText = '';
+    setTimeout(() => this.scrollToBottom(), 0);
+  }
+
+  private scrollToBottom(): void {
+    if (this.chatScroll) {
+      this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
+    }
   }
 
   updateNameFirst(){
