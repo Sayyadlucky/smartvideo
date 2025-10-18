@@ -69,36 +69,46 @@
              'layout-more': gridParticipants.length > 4
            }"
            *ngIf="gridParticipants.length > 0">
-        <div class="tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300"
-             *ngFor="let p of gridParticipants; let i = index; trackBy: trackByParticipant"
-             [class.video-on]="p.videoOn"
-             [class.hide-when-pip]="p.isYou && shouldShowSelfVideo && gridParticipants.length > 1"
-             [class.hand-raised]="p.handRaised">
+           <div class="tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md"
+     *ngFor="let p of gridParticipants; trackBy: trackByParticipant"
+     [class.video-on]="p.videoOn"
+     [class.hand-raised]="p.handRaised">
 
-             <video *ngIf="p.stream && p.videoOn"
-             [appSrcObject]="p.stream"
-             [muted]="!!p.isYou"
-             autoplay playsinline
-             class="absolute inset-0 w-full h-full object-cover"></video>
+  <!-- Keep video & canvas as siblings in same stacking context -->
+  <video
+    [appSrcObject]="p.stream"
+    [muted]="!!p.isYou"
+    autoplay playsinline
+    class="video-el w-full h-full"
+    [attr.data-chan]="p.channel"
+    [hidden]="!p.stream || !p.videoOn"
+    data-role="tile">
+  </video>
 
-             <audio *ngIf="p.stream && !p.isYou"
-             [appSrcObject]="p.stream" autoplay></audio>
+  <canvas
+    class="overlay-el"
+    [attr.data-chan]="p.channel"
+    data-role="overlay">
+  </canvas>
 
-          <div class="placeholder flex items-center justify-center w-full h-full"
-               *ngIf="!p.stream || !p.videoOn">
-            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white"
-                 [class.hand-raised]="p.handRaised">
-              <span *ngIf="!p.handRaised">{{ p.initials }}</span>
-              <span *ngIf="p.handRaised" class="hand-emoji">✋</span>
-            </div>
-          </div>
+  <!-- Placeholder initials when no video -->
+  <div class="placeholder absolute inset-0 flex items-center justify-center bg-slate-800"
+       *ngIf="!p.stream || !p.videoOn">
+    <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white">
+      {{ p.initials }}
+    </div>
+  </div>
 
-          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
-            <span class="badge w-2 h-2 rounded-full"
-                  [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
-            {{ p.name }}
-          </div>
-        </div>
+  <!-- Nameplate -->
+  <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
+    <span class="badge w-2 h-2 rounded-full"
+          [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
+    {{ p.name }}
+  </div>
+</div>
+
+      
+      
       </div>
 
       <!-- Controls -->
@@ -128,7 +138,7 @@
 
     <!-- Floating Self Video (PiP) -->
     <div class="self-video-floating"
-         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 2"
+         *ngIf="shouldShowSelfVideo"
          cdkDrag
          cdkDragBoundary=".stage">
          <video *ngIf="you?.stream"
@@ -162,6 +172,7 @@
       <div class="flex gap-4">
         <button class="tab-btn" [class.active]="activeTab==='participants'" (click)="activeTab='participants'">Participants</button>
         <button class="tab-btn" [class.active]="activeTab==='chat'" (click)="activeTab='chat'">Chat</button>
+        <button class="tab-btn" [class.active]="activeTab==='alerts'" (click)="activeTab='alerts'">Alerts</button>
       </div>
       <button (click)="closeChat()" *ngIf="!isDesktop" class="hr-btn px-3 py-1 text-xs">Close</button>
     </div>
@@ -186,6 +197,19 @@
           </div>
         </div>
       </div>
+
+      <!-- Alerts Tab -->
+    <div class="flex-1 max-h-full overflow-y-auto alerts-scroll p-4"
+    *ngIf="activeTab==='alerts'">
+    <h3 class="text-red-400 text-sm mb-2">Suspicious Activities</h3>
+    <div *ngIf="suspiciousEvents.length === 0" class="text-sky-300 text-xs">
+    No suspicious activity detected yet.
+    </div>
+    <div *ngFor="let e of suspiciousEvents" class="p-2 bg-red-900/50 rounded mb-1">
+    <div class="text-xs font-semibold text-sky-200">{{ e.time }}</div>
+    <div class="text-sm text-red-300">{{ e.message }}</div>
+    </div>
+    </div>
 
       <!-- Chat Tab -->
       <div #chatScroll class="flex-1 max-h-full overflow-y-auto chat-scroll p-4"

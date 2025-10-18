@@ -1,6 +1,9 @@
-# TODO: Implement Auto-Scroll for Chat Div
+# Gaze Tracking Enhancement Plan
 
-## Steps to Complete
-- [x] Update dashboard.html to add #chatScroll template reference to the chat div
-- [x] Update dashboard.ts to import ViewChild and ElementRef, add ViewChild for chatScroll, implement scrollToBottom method, and call it after chatMessages updates in sendChat() and onSignal()
-- [ ] Test the auto-scroll functionality by sending and receiving chat messages
+## Tasks
+- [x] Clean up code structure: Remove global variables, consolidate calibration logic in startFaceMonitoring.
+- [x] Improve calibration: Increase to 60 frames, use median averaging for robustness.
+- [x] Add dynamic thresholds: Calculate based on calibration variance (std dev).
+- [x] Add confidence checks: Detection score > 0.8, eye openness > 0.5.
+- [x] Enhance smoothing: Increase history to 15, add hysteresis (require 3 consecutive frames for direction change).
+- [ ] Test and verify: Ensure no false positives, works in various conditions.

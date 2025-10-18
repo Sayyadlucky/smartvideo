@@ -8,6 +8,8 @@ import {
   ElementRef,
   Input,
   ViewChild,
+  ViewChildren,
+  QueryList,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +17,7 @@ import { SignalingService } from './signaling.service';
 import { Subscription } from 'rxjs';
 import { SrcObjectDirective } from './src-object.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import * as faceapi from 'face-api.js';
 
 /**
  * Goals of this refactor
@@ -41,7 +44,29 @@ interface Participant {
   handRaised?: boolean;
 }
 
+
 interface ChatMessage { by: string; text: string; }
+
+// Gaze tracking state (moved inside component for better encapsulation)
+interface GazeState {
+  baseline: { x: number; y: number } | null;
+  calibrationFrames: number;
+  maxCalibrationFrames: number;
+  gazeHistory: string[];
+  maxHistory: number;
+  lastDirection: string;
+  consecutiveCount: number;
+  calibrationBuffer?: { x: number; y: number }[];
+  stdDev: { x: number; y: number } | null;
+  hysteresisThreshold: number;
+  headPoseHistory: { pitch: number; yaw: number; roll: number }[];
+  blinkHistory: boolean[];
+  patternHistory: string[];
+  lastBlinkTime: number;
+  blinkCount: number;
+  rapidMovementCount: number;
+  prolongedAwayCount: number;
+}
 
 @Directive({ selector: 'video[appSrcObject],audio[appSrcObject]', standalone: true })
 export class MediaSrcObjectDirective {
@@ -95,9 +120,13 @@ export class Dashboard implements OnInit, OnDestroy {
   chatText = '';
   tileColsManual: number | null = null;
   public roomName = 'testroom';
-  activeTab: 'participants' | 'chat' = 'chat';
+  activeTab: 'participants' | 'alerts' | 'chat' = 'chat' ;
   isNameUpdated = false;
   @ViewChild('chatScroll') chatScroll!: ElementRef;
+  @ViewChildren('videoTile') videoTiles!: QueryList<ElementRef<HTMLVideoElement>>;
+  @ViewChildren('canvasTile') canvasTiles!: QueryList<ElementRef<HTMLCanvasElement>>;
+
+
   // ====== Signaling ======
   private signalingSub: Subscription | null = null;
   private myServerChan: string | null = null;
@@ -114,6 +143,27 @@ export class Dashboard implements OnInit, OnDestroy {
   private localPreviewStream: MediaStream = new MediaStream(); // stable instance
   userName: any;
   termsCheckbox: any;
+
+  // ====== Gaze tracking state ======
+  private gazeState: GazeState = {
+    baseline: null,
+    calibrationFrames: 0,
+    maxCalibrationFrames: 60,
+    gazeHistory: [],
+    maxHistory: 15,
+    lastDirection: '',
+    consecutiveCount: 0,
+    calibrationBuffer: [],
+    stdDev: null,
+    hysteresisThreshold: 3,
+    headPoseHistory: [],
+    blinkHistory: [],
+    patternHistory: [],
+    lastBlinkTime: 0,
+    blinkCount: 0,
+    rapidMovementCount: 0,
+    prolongedAwayCount: 0,
+  };
 
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
@@ -133,13 +183,338 @@ export class Dashboard implements OnInit, OnDestroy {
     if (remotes.length === 0 && self) return [self];
     return remotes;
   }
-
+  suspiciousEvents: { time: string, message: string }[] = [];
+  lastSuspiciousEvent: { [key: string]: number } = {}; // store last times
+  suspiciousCooldown = 5000; // 5 seconds per message type
+  
   constructor(private signaling: SignalingService) {}
+
+  private updateBaseline(landmarks: faceapi.FaceLandmarks68) {
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+  
+    const pupil = {
+      x: (leftEye[1].x + leftEye[2].x + rightEye[1].x + rightEye[2].x) / 4,
+      y: (leftEye[4].y + rightEye[4].y) / 2,
+    };
+  
+    const eyeXmin = Math.min(leftEye[0].x, rightEye[3].x);
+    const eyeXmax = Math.max(leftEye[3].x, rightEye[0].x);
+    const eyeYtop = (leftEye[1].y + rightEye[1].y) / 2;
+    const eyeYbottom = (leftEye[5].y + rightEye[5].y) / 2;
+  
+    this.gazeState.calibrationBuffer!.push({
+      x: (pupil.x - eyeXmin) / (eyeXmax - eyeXmin),
+      y: (pupil.y - eyeYtop) / (eyeYbottom - eyeYtop),
+    });
+  
+    if (this.gazeState.calibrationBuffer!.length >= this.gazeState.maxCalibrationFrames) {
+      this.gazeState.baseline = {
+        x: this.gazeState.calibrationBuffer!.reduce((a, p) => a + p.x, 0) / this.gazeState.calibrationBuffer!.length,
+        y: this.gazeState.calibrationBuffer!.reduce((a, p) => a + p.y, 0) / this.gazeState.calibrationBuffer!.length,
+      };
+    }
+  }
+    
+
+  private estimateGazeCalibrated(landmarks: faceapi.FaceLandmarks68): string {
+    if (!this.gazeState.baseline) return "Calibrating...";
+  
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+  
+    // Pupil estimate: inner corners + lower eyelids
+    const pupil = {
+      x: (leftEye[1].x + leftEye[2].x + rightEye[1].x + rightEye[2].x) / 4,
+      y: (leftEye[4].y + rightEye[4].y) / 2,
+    };
+  
+    // Eye box (for normalization)
+    const eyeXmin = Math.min(leftEye[0].x, rightEye[3].x);
+    const eyeXmax = Math.max(leftEye[3].x, rightEye[0].x);
+    const eyeYtop = (leftEye[1].y + rightEye[1].y) / 2;   // upper eyelids
+    const eyeYbottom = (leftEye[5].y + rightEye[5].y) / 2; // lower eyelids
+  
+    // Normalize pupil within eye box
+    const normX = (pupil.x - eyeXmin) / (eyeXmax - eyeXmin);
+    const normY = (pupil.y - eyeYtop) / (eyeYbottom - eyeYtop);
+  
+    const dx = normX - this.gazeState.baseline.x;
+    const dy = normY - this.gazeState.baseline.y;
+  
+    // Adaptive thresholds (tuned smaller for stricter eye-only detection)
+    const thrX = (this.gazeState.stdDev?.x ?? 0.03) * 2.5;
+    const thrY = (this.gazeState.stdDev?.y ?? 0.03) * 2.5;
+  
+    let direction = "Looking Forward";
+  
+    if (dx < -thrX) direction = "Looking Left";
+    else if (dx > thrX) direction = "Looking Right";
+    else if (dy < -thrY) direction = "Looking Up";
+    else if (dy > thrY) direction = "Looking Down";
+  
+    return direction;
+  }
+  
+  
+  // 🔍 Check suspiciousness with stricter rules
+  private checkSuspiciousGaze(finalGaze: string) {
+    const now = performance.now();
+  
+    // Track history
+    this.gazeState.gazeHistory.push(finalGaze);
+    if (this.gazeState.gazeHistory.length > this.gazeState.maxHistory) {
+      this.gazeState.gazeHistory.shift();
+    }
+  
+    // If gaze is away (not forward), track duration
+    if (finalGaze !== "Looking Forward" && finalGaze !== "Calibrating...") {
+      if (finalGaze === this.gazeState.lastDirection) {
+        this.gazeState.consecutiveCount++;
+      } else {
+        this.gazeState.lastDirection = finalGaze;
+        this.gazeState.consecutiveCount = 1;
+      }
+  
+      // Require ~10 frames (~1 sec @10fps) before firing
+      if (this.gazeState.consecutiveCount > 10) {
+        this.sendSuspiciousEvent(`⚠️ Candidate ${finalGaze} (sustained)`);
+        this.gazeState.consecutiveCount = 0;
+      }
+    } else {
+      this.gazeState.consecutiveCount = 0;
+      this.gazeState.lastDirection = "Looking Forward";
+    }
+  
+    // Rapid gaze changes = suspicious
+    if (this.gazeState.gazeHistory.length >= 5) {
+      const last5 = this.gazeState.gazeHistory.slice(-5);
+      const unique = new Set(last5);
+      if (unique.size >= 3) {
+        this.sendSuspiciousEvent("⚠️ Rapid eye movement detected");
+      }
+    }
+  }
+  
+  
+
+  private smoothGaze(newGaze: string): string {
+    this.gazeState.gazeHistory.push(newGaze);
+    if (this.gazeState.gazeHistory.length > this.gazeState.maxHistory) {
+      this.gazeState.gazeHistory.shift();
+    }
+    const counts = this.gazeState.gazeHistory.reduce((a, g) => {
+      a[g] = (a[g] || 0) + 1;
+      return a;
+    }, {} as Record<string, number>);
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }
 
   // ====== Lifecycle ======
   async ngOnInit(): Promise<void> {
-    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.sendSuspiciousEvent('⚠️ Candidate switched tab/window');
+      }
+    });
+  }
 
+  sendSuspiciousEvent(message: string) {
+    const now = Date.now();
+    const last = this.lastSuspiciousEvent[message] || 0;
+  if (now - last < this.suspiciousCooldown) return;  
+    this.lastSuspiciousEvent[message] = now;
+  
+    const event = {
+      time: new Date().toLocaleTimeString(),
+      message
+    };
+    this.suspiciousEvents.unshift({
+      time: new Date().toLocaleTimeString(),
+      message
+    });
+  
+    // Limit list length (keep only last 20)
+    if (this.suspiciousEvents.length > 30) {
+      this.suspiciousEvents.pop();
+    }
+  }
+
+  async ngAfterViewInit() {
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('/static/models'),
+      faceapi.nets.faceExpressionNet.loadFromUri('/static/models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('/static/models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('/static/models'), // ✅ for gaze
+    ]);
+    this.startFaceMonitoring();
+
+    document.addEventListener('keydown', e => {
+      this.sendSuspiciousEvent(`Key pressed: ${e.key}`);
+    });
+
+    document.addEventListener('paste', () => {
+      this.sendSuspiciousEvent('⚠️ Paste action detected');
+    });
+  }
+
+  // async startFaceMonitoring() {
+  //   const videoEl = document.querySelector('video'); // candidate’s video element
+  //   if (!videoEl) return;
+  
+  //   const detect = async () => {
+  //     const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions())
+  //                                     .withFaceExpressions();
+  
+  //     if (detections.length > 1) {
+  //       this.sendSuspiciousEvent('⚠️ Multiple faces detected');
+  //     } else if (detections.length === 0) {
+  //       this.sendSuspiciousEvent('No face detected');
+  //     }
+  
+  //     // Example: check if expression = looking away (low "neutral" + high "surprised")
+  //     if (detections[0]?.expressions?.surprised > 0.6) {
+  //       this.sendSuspiciousEvent('Candidate looking away / distracted');
+  //     }
+  
+  //     requestAnimationFrame(detect);
+  //   };
+  
+  //   detect();
+  // }
+  async startFaceMonitoring() {
+    const videos = () =>
+      Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-role="tile"]'));
+    const canvases = () =>
+      Array.from(document.querySelectorAll<HTMLCanvasElement>('canvas[data-role="overlay"]'));
+  
+    // --- Pair video + canvas by data-chan ---
+    const pairByChan = () => {
+      const vs = videos();
+      const cs = canvases();
+      const map = new Map<string, { v: HTMLVideoElement; c: HTMLCanvasElement }>();
+      vs.forEach(v => {
+        const chan = v.getAttribute('data-chan') || '';
+        const c = cs.find(x => x.getAttribute('data-chan') === chan);
+        if (chan && c) map.set(chan, { v, c });
+      });
+      return map;
+    };
+  
+    // --- Keep canvas synced with video size ---
+    const syncCanvasSize = (v: HTMLVideoElement, c: HTMLCanvasElement) => {
+      const w = v.offsetWidth || v.clientWidth || v.getBoundingClientRect().width || 0;
+      const h = v.offsetHeight || v.clientHeight || v.getBoundingClientRect().height || 0;
+      if (!w || !h) return;
+  
+      if (c.width !== Math.round(w)) c.width = Math.round(w);
+      if (c.height !== Math.round(h)) c.height = Math.round(h);
+  
+      c.style.width = `${w}px`;
+      c.style.height = `${h}px`;
+      c.style.position = 'absolute';
+      c.style.top = '0';
+      c.style.left = '0';
+      c.style.pointerEvents = 'none';
+      c.style.zIndex = '50';
+    };
+  
+    const ro = new ResizeObserver(() => {
+      pairByChan().forEach(({ v, c }) => syncCanvasSize(v, c));
+    });
+    pairByChan().forEach(({ v, c }) => {
+      syncCanvasSize(v, c);
+      ro.observe(v);
+    });
+  
+    // --- Throttle detection (~8–10 fps) ---
+    let lastT = 0;
+    const targetDt = 120;
+  
+    const loop = async (t: number) => {
+      if (t - lastT >= targetDt) {
+        lastT = t;
+        const pairs = pairByChan();
+  
+        for (const { v: videoEl, c: canvasEl } of pairs.values()) {
+          const tile = videoEl.closest('.tile') as HTMLElement | null;
+          const ctx = canvasEl.getContext('2d');
+          if (!ctx) continue;
+  
+          // 🚫 If video is off or not ready → clear + hide canvas
+          const chan = videoEl.getAttribute('data-chan') || '';
+          const participant = this.participantsMap.get(chan);
+          if (!participant?.videoOn || videoEl.readyState < 2) {
+            ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+            canvasEl.style.display = 'none';
+            tile?.classList.remove('suspicious');
+            continue;
+          } else {
+            canvasEl.style.display = 'block'; // show overlay when active
+          }
+  
+          // 🔹 Sync size this frame
+          syncCanvasSize(videoEl, canvasEl);
+  
+          // 🔹 Run detections
+          const detections = await faceapi
+            .detectAllFaces(
+              videoEl,
+              new faceapi.TinyFaceDetectorOptions({ inputSize: 192, scoreThreshold: 0.5 })
+            )
+            .withFaceLandmarks()
+            .withFaceExpressions();
+  
+          ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  
+          const resized = faceapi.resizeResults(detections, {
+            width: canvasEl.width,
+            height: canvasEl.height,
+          });
+          faceapi.draw.drawDetections(canvasEl, resized);
+          faceapi.draw.drawFaceExpressions(canvasEl, resized);
+  
+          if (detections.length !== 1) {
+            if (detections.length > 1) this.sendSuspiciousEvent("⚠️ Multiple faces detected");
+            else this.sendSuspiciousEvent("⚠️ No face detected");
+            tile?.classList.add("suspicious");
+          } else {
+            tile?.classList.remove("suspicious");
+  
+            const expr = detections[0].expressions;
+            const dom = Object.entries(expr).reduce((a, b) => (a[1] > b[1] ? a : b));
+            this.sendSuspiciousEvent(`Expression: ${dom[0]}`);
+  
+            // 👀 Gaze tracking
+            const landmarks = detections[0].landmarks as faceapi.FaceLandmarks68;
+            if (!this.gazeState.baseline) {
+              this.updateBaseline(landmarks);
+            } else {
+              if (landmarks) {
+                const rawGaze = this.estimateGazeCalibrated(landmarks);
+                const finalGaze = this.smoothGaze(rawGaze);
+  
+                this.checkSuspiciousGaze(finalGaze);
+  
+                if (finalGaze !== "Looking Forward" && finalGaze !== "Calibrating...") {
+                  this.sendSuspiciousEvent(`⚠️ Candidate ${finalGaze}`);
+                }
+  
+                ctx.fillStyle = "red";
+                ctx.font = "16px Arial";
+                ctx.fillText(`Gaze: ${finalGaze}`, 10, 20);
+              }
+            }
+          }
+        }
+      }
+      requestAnimationFrame(loop);
+    };
+  
+    requestAnimationFrame(loop);
+  }
+  
+  
   joinRoom(){
     console.log('DASHBOARD BUILD MARKER v8 — stable-media');
     // Create a single stable preview stream instance
@@ -151,8 +526,10 @@ export class Dashboard implements OnInit, OnDestroy {
     // connect to signaling server
     this.signaling.connect(this.roomName);
     this.signalingSub = this.signaling.messages$.subscribe((msg: any) => this.onSignal(msg));
-  
-  } 
+
+    // Start face monitoring after view is rendered
+    setTimeout(() => this.startFaceMonitoring(), 100);
+  }
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
     this.signalingSub?.unsubscribe();
@@ -380,7 +757,7 @@ export class Dashboard implements OnInit, OnDestroy {
         st.makingOffer = false;
       }
     };
-   
+ 
 
     // ontrack: always reuse the same MediaStream per participant
     pc.ontrack = (ev: RTCTrackEvent) => {
@@ -760,10 +1137,7 @@ export class Dashboard implements OnInit, OnDestroy {
   trackByParticipant(index: number, item: Participant): string { return item.channel; }
 }
 
-// Optional debug hook for attaching raw video elements (manual testing)
-function attachDebugVideo(stream: MediaStream, chan: string) {
-  const vid = document.createElement('video');
-  vid.autoplay = true; (vid as any).playsInline = true; (vid as any).srcObject = stream as any; vid.muted = false;
-  vid.style.width = '200px'; vid.style.border = '2px solid red'; document.body.appendChild(vid);
-  console.log('✅ Attached debug video for', chan, 'stream:', stream);
-}
+
+
+
+
