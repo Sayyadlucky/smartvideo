@@ -49,7 +49,7 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             "participants": list(room["participants"].values())
         }))
 
-        # Notify others (they’ll get real name after join)
+        # Notify others (they'll get real name after join)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -87,8 +87,12 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             data = json.loads(text_data)
         except Exception:
             return
-
+        
         msg_type = data.get("type")
+        print(f"📩 Incoming WS message: type={msg_type}, from={self.channel_id}")
+        
+        if msg_type == "gaze_status":
+            print(f"🎯 GAZE_STATUS received: user={data.get('user')}, gaze={data.get('gaze')}")
 
         # Direct signaling
         if msg_type in ("offer", "answer", "ice_candidate"):
@@ -156,6 +160,20 @@ class SignalingConsumer(AsyncWebsocketConsumer):
         if msg_type == "bye":
             await self.disconnect(1000)
 
+        if msg_type == "gaze_status":
+            print("📡 Broadcasting gaze_update to group:", self.room_group_name)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "gaze_update",
+                    "user": data.get("user", "Guest"),
+                    "gaze": data.get("gaze", "CENTER"),
+                    "ts": data.get("ts"),
+                    "sender_channel": self.channel_id,
+                }
+            )
+            return
+
     # ==== Group event handlers ====
     async def participant_joined(self, event):
         if event.get("sender_channel") != self.channel_id:
@@ -163,6 +181,15 @@ class SignalingConsumer(AsyncWebsocketConsumer):
                 "type": "participant_joined",
                 "participant": event["participant"],
             }))
+
+    async def gaze_update(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "gaze_update",
+            "user": event["user"],
+            "gaze": event["gaze"],
+            "ts": event["ts"],
+            "channel": event["sender_channel"],
+        }))
 
     async def participant_left(self, event):
         await self.send(text_data=json.dumps(event))
