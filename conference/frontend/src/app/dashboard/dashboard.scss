@@ -3,7 +3,9 @@
   --c2: #1a3463;
   --c3: #23293b;
 }
+
 html { scroll-behavior: smooth; }
+
 body {
   font-family: 'Inter', sans-serif;
   color: #fff;
@@ -12,15 +14,18 @@ body {
   background-size: 400% 400%;
   animation: gradientShift 12s ease infinite;
 }
+
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
 #mainHeader { transition: background 500ms ease; }
 #mainHeader.overlay {
   background: linear-gradient(to bottom, rgba(2,12,27,0.70), rgba(2,12,27,0));
 }
+
 .frosted {
   backdrop-filter: blur(25px);
   background-color: rgba(18, 27, 40, 0.62);
@@ -28,11 +33,13 @@ body {
   box-shadow: 0 12px 40px 0 rgba(38,112,255,0.14),
               -5px 0 25px rgba(0,191,255,0.16);
 }
+
 input:focus {
   outline: none;
   border-color: #0fd9ff;
   box-shadow: 0 0 0 3px rgba(15,217,255,0.5);
 }
+
 button, .sign-in-btn {
   background: linear-gradient(90deg, #0fd9ff 0%, #2e57ff 100%);
   box-shadow: 0 2px 30px 0 rgba(40,75,255,0.16);
@@ -44,13 +51,16 @@ button:hover, .sign-in-btn:hover {
   box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);
   color: #fff;
 }
+
 .text-xl, h1, .font-bold {
   text-shadow: 1px 1px 8px rgba(40,75,255,0.08);
 }
+
 .placeholder-gray-400::placeholder {
   color: #a8b0c5;
   opacity: 1;
 }
+
 canvas#particles {
   position: fixed;
   inset: 0;
@@ -60,6 +70,7 @@ canvas#particles {
   animation: gradientShift 12s ease infinite;
   pointer-events: none;
 }
+
 #closeLogin {
   z-index: 9999;
   position: absolute;
@@ -69,6 +80,7 @@ canvas#particles {
   border: none;
   cursor: pointer;
 }
+
 .floating { position: relative; }
 .floating input.floating-input {
   width: 100%;
@@ -107,6 +119,7 @@ canvas#particles {
   transform: translateY(-50%);
   color: #9aa6bb;
 }
+
 #openLoginBtn { z-index: 45; }
 
 /* ------------------
@@ -116,9 +129,10 @@ canvas#particles {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* prevent scrollbars */
+  overflow: hidden;
   position: relative;
 }
+
 .tile-grid {
   display: grid;
   width: 100%;
@@ -126,41 +140,21 @@ canvas#particles {
   gap: 1rem;
   justify-items: center;
   grid-auto-rows: 1fr;
-  overflow: hidden; /* no scrollbars */
+  overflow: hidden;
 }
 
-.tile-grid.layout-1 {
-  grid-template-columns: 1fr;
-}
-
-/* Default: mobile first (1 column) */
-.tile-grid.layout-2 {
-  grid-template-columns: 1fr;
-}
-
-/* For desktop and larger screens */
+.tile-grid.layout-1 { grid-template-columns: 1fr; }
+.tile-grid.layout-2 { grid-template-columns: 1fr; }
 @media (min-width: 768px) {
-  .tile-grid.layout-2 {
-    grid-template-columns: 1fr 1fr; /* two columns */
-  }
+  .tile-grid.layout-2 { grid-template-columns: 1fr 1fr; }
 }
-
-
-.tile-grid.layout-3 {
-  grid-template-columns: 1fr 1fr;
-}
-
+.tile-grid.layout-3 { grid-template-columns: 1fr 1fr; }
 .tile-grid.layout-4 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
 }
-
 .tile-grid.layout-more {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.tile.span-full {
-  grid-column: span 2;
 }
 
 .tile {
@@ -175,44 +169,69 @@ canvas#particles {
   width: 100%;
   height: 100%;
   min-height: 200px;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 16 / 9;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tile video,
-.tile .placeholder {
+/* Video, placeholder, and overlay layering */
+.tile video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: fill;  /* changed to fill to match tile width and height, stretching if necessary */
+  z-index: 1;
+  transform: translateZ(0);  /* force into same GPU layer */
+  will-change: transform;    /* stabilize rendering */
+  mix-blend-mode: normal;
+}
+
+
+.tile .placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18,27,40,0.85);
+  z-index: 15; /* above video, below canvas */
+}
+.tile .canvas[data-role="overlay"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  pointer-events: none;
+  display: block;           /* prevent inline-canvas quirks */
+  background: transparent;  /* ensure no fill */
+  border: 2px solid green;
+  transform: translateZ(0); /* force into same GPU layer */
+  will-change: transform;   /* stabilize rendering */
+}
+.nameplate {
+  border: 1px solid rgba(0,191,255,0.25);
+  transition: background 0.3s ease, transform 0.3s ease;
+  z-index: 30; /* always on top */
+}
+.nameplate:hover {
+  background: rgba(0,191,255,0.25);
+  transform: translateY(-2px);
 }
 
 /* hide scrollbars */
 .tile, .tile * { scrollbar-width: none; }
-.tile::-webkit-scrollbar,
-.tile *::-webkit-scrollbar { display: none; }
+.tile::-webkit-scrollbar, .tile *::-webkit-scrollbar { display: none; }
 
 @media (max-width: 640px) {
   .tile-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  .tile {
-    min-height: 200px;
-    max-width: 100%;
-  }
-}
-
-.nameplate {
-  border: 1px solid rgba(0,191,255,0.25);
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-.nameplate:hover {
-  background: rgba(0,191,255,0.25);
-  transform: translateY(-2px);
+  .tile { min-height: 200px; max-width: 100%; }
 }
 
 /* ------------------
@@ -287,7 +306,7 @@ textarea:focus {
 }
 
 /* ------------------
-   Scrollable Lists (Participants & Chat)
+   Scrollable Lists
 -------------------*/
 .chat-panel .participants-scroll,
 .chat-panel .chat-scroll {
@@ -300,9 +319,7 @@ textarea:focus {
   -webkit-overflow-scrolling: touch;
 }
 .chat-panel .participants-scroll::-webkit-scrollbar,
-.chat-panel .chat-scroll::-webkit-scrollbar {
-  display: none;
-}
+.chat-panel .chat-scroll::-webkit-scrollbar { display: none; }
 
 /* ------------------
    Side Panel Tabs
@@ -350,18 +367,84 @@ textarea:focus {
   border: 1px solid rgba(0,191,255,0.14);
   transition: opacity 0.3s ease;
 }
-
 .self-video-floating:hover {
   box-shadow: 0 6px 24px rgba(40,75,255,0.25);
 }
 
 /* Hand Raised Styles */
 .tile.hand-raised {
-  border-color: #FFD700; /* Golden border */
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); /* Golden glow */
+  border-color: #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+.hand-emoji { font-size: 1.2em; margin-left: 0.2em; }
+
+
+/* Suspicious activity state */
+.tile.suspicious {
+  border-color: #ff3b3b; /* bright red */
+  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8),
+              0 0 45px rgba(255, 59, 59, 0.6);
+  animation: suspiciousPulse 1.5s infinite alternate;
 }
 
-.hand-emoji {
-  font-size: 1.2em;
-  margin-left: 0.2em;
+@keyframes suspiciousPulse {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6),
+                0 0 25px rgba(255, 59, 59, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9),
+                0 0 55px rgba(255, 59, 59, 0.7);
+  }
+}
+
+
+/* Ensure .tile is the stacking context */
+.tile {
+  position: relative;
+}
+
+/* VIDEO — force same compositor layer and keep full frame (no crop) */
+.tile .video-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;       /* full stream visible, letterboxed if needed */
+  background: #000;
+  z-index: 1;                /* below overlay */
+
+  /* CRITICAL: prevent hardware overlay plane keeping video above canvas */
+  transform: translateZ(0);  /* flatten into DOM compositor */
+  will-change: transform;
+  mix-blend-mode: normal;
+}
+
+/* CANVAS — always above video; ensure it paints at layout size */
+.tile .overlay-el {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;    /* CSS box size */
+  height: 100% !important;
+  display: block;            /* avoid inline-canvas quirks */
+  background: transparent;
+  pointer-events: none;
+  z-index: 5;                /* above video */
+}
+
+/* Placeholder above video, below overlay */
+.tile .placeholder { z-index: 2; }
+
+/* Nameplate always on top */
+.tile .nameplate { z-index: 10; }
+
+/* Optional: suspicious glow */
+.tile.suspicious {
+  border-color: #ff3b3b;
+  box-shadow: 0 0 25px rgba(255,59,59,.8), 0 0 45px rgba(255,59,59,.6);
+  animation: suspiciousPulse 1.5s infinite alternate;
+}
+@keyframes suspiciousPulse {
+  0% { box-shadow: 0 0 15px rgba(255,59,59,.6), 0 0 25px rgba(255,59,59,.4); }
+  100% { box-shadow: 0 0 35px rgba(255,59,59,.9), 0 0 55px rgba(255,59,59,.7); }
 }
