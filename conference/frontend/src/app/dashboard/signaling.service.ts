@@ -77,7 +77,6 @@ export class SignalingService {
       return;
     }
     try {
-      console.log('[SignalingService] 📨 Sending message:', msg.type, msg);
       this.ws.send(JSON.stringify(msg));
     } catch (err) {
       console.error('[SignalingService] sendMessage error', err, msg);

@@ -130,21 +130,39 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   get gridParticipants(): Participant[] {
+    // Show only remote participants if there are others in the room
+    // Show yourself only if you're alone
     const remotes = this.participants.filter(p => !p.isYou);
-    const self = this.you;
-    if (remotes.length === 0 && self) return [self];
-    return remotes;
+    if (remotes.length > 0) {
+      return remotes; // Show only others when not alone
+    }
+    return this.participants; // Show yourself when alone
   }
 
   //========= GazeTracking ==============
   private gazeSocket?: WebSocket;
   private isGazeTracking = false;
+  
+  //========= Fullscreen ==============
+  private escPressCount = 0;
+  private escPressTimer: any = null;
+  private hasShownEscAlert = false;
+  private isInFullscreen = false;
+  private fullscreenChangeHandler: (() => void) | null = null;
+  
+  //========= Permissions ==============
+  showPermissionPopup = false;
+  permissionStatus = {
+    camera: false,
+    microphone: false
+  };
 
   constructor(private signaling: SignalingService) {}
 
   // ====== Lifecycle ======
   async ngOnInit(): Promise<void> {
-    }
+    await this.checkMediaPermissions();
+  }
 
   joinRoom(){
     // Create a single stable preview stream instance
@@ -156,7 +174,12 @@ export class Dashboard implements OnInit, OnDestroy {
     // connect to signaling server
     this.signaling.connect(this.roomName);
     this.signalingSub = this.signaling.messages$.subscribe((msg: any) => this.onSignal(msg));
-  
+    
+    // Setup fullscreen listener
+    this.setupFullscreenListener();
+    
+    // Enter fullscreen mode
+    this.enterFullscreen();
   }
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
@@ -171,6 +194,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.participantsMap.clear();
     this.iceQueue.clear();
+    
+    // Remove fullscreen listener
+    this.removeFullscreenListener();
   }
 
   private handleGazeStatus(status: GazeStatus) {
@@ -187,8 +213,91 @@ export class Dashboard implements OnInit, OnDestroy {
       this.sendSig({ type: 'bye' }); 
       stopGazeTracking();
       this.signaling.disconnect();
-    } catch {} }
-  @HostListener('window:resize') onResize() { this.isDesktop = window.innerWidth >= 1024; }
+    } catch {} 
+  }
+  
+  @HostListener('window:resize') onResize() { 
+    this.isDesktop = window.innerWidth >= 1024; 
+  }
+  
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    if (!this.isNameUpdated) return; // Only handle ESC when in call
+    
+    // Only handle ESC when NOT in fullscreen (browser handles it in fullscreen)
+    if (this.isInFullscreen) return;
+    
+    this.escPressCount++;
+    
+    if (this.escPressCount === 1 && !this.hasShownEscAlert) {
+      // First ESC press - show alert
+      alert('Press ESC again to exit fullscreen');
+      this.hasShownEscAlert = true;
+      
+      // Reset counter after 2 seconds
+      if (this.escPressTimer) clearTimeout(this.escPressTimer);
+      this.escPressTimer = setTimeout(() => {
+        this.escPressCount = 0;
+      }, 2000);
+    } else if (this.escPressCount >= 2) {
+      // Second ESC press - exit fullscreen
+      this.exitFullscreen();
+      this.escPressCount = 0;
+      if (this.escPressTimer) clearTimeout(this.escPressTimer);
+    }
+  }
+  
+  private setupFullscreenListener() {
+    this.fullscreenChangeHandler = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      
+      const wasFullscreen = this.isInFullscreen;
+      this.isInFullscreen = isCurrentlyFullscreen;
+      
+      // Detect when user exits fullscreen via ESC key
+      if (wasFullscreen && !isCurrentlyFullscreen && this.isNameUpdated) {
+        this.escPressCount++;
+        
+        if (this.escPressCount === 1 && !this.hasShownEscAlert) {
+          // First ESC press - show alert and re-enter fullscreen
+          alert('Press ESC again to exit fullscreen');
+          this.hasShownEscAlert = true;
+          this.enterFullscreen();
+          
+          // Reset counter after 2 seconds
+          if (this.escPressTimer) clearTimeout(this.escPressTimer);
+          this.escPressTimer = setTimeout(() => {
+            this.escPressCount = 0;
+          }, 2000);
+        } else if (this.escPressCount >= 2) {
+          // Second ESC press - allow exit
+          this.escPressCount = 0;
+          if (this.escPressTimer) clearTimeout(this.escPressTimer);
+          // Don't re-enter fullscreen, let it exit
+        }
+      }
+    };
+    
+    document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
+    document.addEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
+    document.addEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
+    document.addEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
+  }
+  
+  private removeFullscreenListener() {
+    if (this.fullscreenChangeHandler) {
+      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+      document.removeEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
+      document.removeEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
+      document.removeEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
+      this.fullscreenChangeHandler = null;
+    }
+  }
 
   // ====== Utilities ======
   private sendSig(payload: any & { to?: string }) { 
@@ -252,17 +361,20 @@ export class Dashboard implements OnInit, OnDestroy {
   
     const nextCam: CamState = (row?.cam as CamState) ?? prev?.cam ?? 'off';
     const nextMic: MicState = (row?.mic as MicState) ?? prev?.mic ?? 'off';
+    
+    // Use existing stream if available, otherwise it will be set when tracks arrive
+    const existingStream = prev?.stream ?? null;
   
     const next: Participant = {
       name: (row?.name ?? prev?.name ?? 'Guest'),
       mic: nextMic,
       cam: nextCam,
-      videoOn: this.computeVideoOn(nextCam, prev?.stream),
+      videoOn: existingStream ? this.computeVideoOn(nextCam, existingStream) : false,
       initials: this.initialsFromName(row?.name ?? prev?.name ?? 'Guest'),
       isYou: false,
       channel: prev?.channel ?? ch, // ✅ stick to the first channel we saw
-      stream: prev?.stream ?? null,
-      gaze: '',
+      stream: existingStream,
+      gaze: row?.gaze ?? prev?.gaze ?? '',
       handRaised: (typeof row?.handRaised === 'boolean')
         ? row.handRaised
         : (prev?.handRaised ?? false),
@@ -421,16 +533,16 @@ export class Dashboard implements OnInit, OnDestroy {
       const already = ms.getTracks().some(t => t.id === ev.track.id);
       if (!already) ms.addTrack(ev.track);
     
-      // Merge with existing participant info (name from server if it came earlier)
+      // DON'T override cam/mic state from server - only update if we don't have it yet
+      // The server's participant_updated messages are the source of truth for cam/mic state
       const updated: Participant = {
         ...pPrev,
         stream: ms,
-        mic: ms.getAudioTracks().length > 0 ? 'on' : 'off',
-        cam: ms.getVideoTracks().length > 0 ? 'on' : 'off',
-        videoOn: this.computeVideoOn(
-          ms.getVideoTracks().length > 0 ? 'on' : 'off',
-          ms
-        ),
+        // Only update mic/cam if they were at default 'off' (meaning we haven't received server state yet)
+        mic: pPrev.mic !== 'off' ? pPrev.mic : (ms.getAudioTracks().length > 0 ? 'on' : 'off'),
+        cam: pPrev.cam !== 'off' ? pPrev.cam : (ms.getVideoTracks().length > 0 ? 'on' : 'off'),
+        // videoOn should be based on the cam state from server, not just presence of tracks
+        videoOn: this.computeVideoOn(pPrev.cam, ms),
       };
     
       this.participantsMap.set(remoteChan, updated);
@@ -535,7 +647,25 @@ export class Dashboard implements OnInit, OnDestroy {
       case 'participant_updated': {
         const row = msg.participant; const ch = this.participantChan(row); if (!ch) return;
         if (this.myServerChan && ch === this.myServerChan) return; // skip self
+        
+        // Get previous state to detect cam/mic changes
+        const prev = this.participantsMap.get(ch);
+        const prevCam = prev?.cam;
+        const prevMic = prev?.mic;
+        
+        // Update participant state
         this.upsertParticipantFromPayload(row);
+        
+        // Get updated state
+        const updated = this.participantsMap.get(ch);
+        const camChanged = updated && prevCam !== updated.cam;
+        const micChanged = updated && prevMic !== updated.mic;
+        
+        // If cam or mic state changed, trigger renegotiation to update tracks
+        if (camChanged || micChanged) {
+          console.log(`🔄 Participant ${ch} changed cam:${prevCam}→${updated?.cam} mic:${prevMic}→${updated?.mic}, renegotiating...`);
+          setTimeout(() => this.renegotiate(ch), 100);
+        }
         break;
       }
 
@@ -827,15 +957,27 @@ export class Dashboard implements OnInit, OnDestroy {
 
   leaveCall(): void {
     this.sendSig({ type: 'bye' });
-    // 3. Stop your local media tracks
+    
+    // Stop local media tracks
     if (this.you?.stream) {
       this.you.stream.getTracks().forEach(track => track.stop());
     }
+    
+    // Close all peer connections
     this.peers.forEach(({ pc }) => { try { pc.close(); } catch {} });
     this.peers.clear();
+    
+    // Clear participants
     this.participantsMap.forEach((_p, ch) => { if (ch !== '__you__') this.participantsMap.delete(ch); });
     this.participantsMap.delete('__you__');
     this.syncParticipantsArray();
+    
+    // Exit fullscreen
+    this.exitFullscreen();
+    
+    // Reset fullscreen alert state
+    this.hasShownEscAlert = false;
+    this.escPressCount = 0;
 
     this.isNameUpdated = false; 
   }
@@ -878,6 +1020,122 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   trackByParticipant(index: number, item: Participant): string { return item.channel; }
+  
+  // ====== Permission Methods ======
+  async checkMediaPermissions(): Promise<void> {
+    try {
+      // Check if permissions API is available
+      if (navigator.permissions) {
+        const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        
+        this.permissionStatus.camera = cameraPermission.state === 'granted';
+        this.permissionStatus.microphone = micPermission.state === 'granted';
+        
+        // Show popup if either permission is not granted
+        if (!this.permissionStatus.camera || !this.permissionStatus.microphone) {
+          this.showPermissionPopup = true;
+        }
+      } else {
+        // Fallback: Try to access media to check permissions
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          stream.getTracks().forEach(track => track.stop());
+          this.permissionStatus.camera = true;
+          this.permissionStatus.microphone = true;
+        } catch (err) {
+          this.showPermissionPopup = true;
+        }
+      }
+    } catch (error) {
+      // If permission check fails, show the popup
+      this.showPermissionPopup = true;
+    }
+  }
+  
+  async requestPermissions(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      // Permissions granted, stop the stream
+      stream.getTracks().forEach(track => track.stop());
+      
+      this.permissionStatus.camera = true;
+      this.permissionStatus.microphone = true;
+      this.showPermissionPopup = false;
+      
+      alert('Permissions granted! You can now join the call.');
+    } catch (error: any) {
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        alert('Camera and microphone access denied. Please enable them in your browser settings to use this app.');
+      } else if (error.name === 'NotFoundError') {
+        alert('No camera or microphone found. Please connect a device and try again.');
+      } else {
+        alert('Error accessing camera/microphone: ' + error.message);
+      }
+    }
+  }
+  
+  closePermissionPopup(): void {
+    this.showPermissionPopup = false;
+  }
+  
+  // ====== Fullscreen Methods ======
+  private enterFullscreen(): void {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(err => {
+        console.error('Fullscreen request failed:', err);
+      });
+    } else if ((elem as any).webkitRequestFullscreen) {
+      (elem as any).webkitRequestFullscreen();
+    } else if ((elem as any).mozRequestFullScreen) {
+      (elem as any).mozRequestFullScreen();
+    } else if ((elem as any).msRequestFullscreen) {
+      (elem as any).msRequestFullscreen();
+    }
+  }
+  
+  private exitFullscreen(): void {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen();
+    } else if ((document as any).mozCancelFullScreen) {
+      (document as any).mozCancelFullScreen();
+    } else if ((document as any).msExitFullscreen) {
+      (document as any).msExitFullscreen();
+    }
+  }
+  
+  // ====== Gradient Generator for Tiles ======
+  getGradientForParticipant(channel: string): string {
+    // Lighter, more transparent gradients with opacity
+    const gradients = [
+      'linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(240, 147, 251, 0.4) 0%, rgba(245, 87, 108, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(79, 172, 254, 0.4) 0%, rgba(0, 242, 254, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(67, 233, 123, 0.4) 0%, rgba(56, 249, 215, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(250, 112, 154, 0.4) 0%, rgba(254, 225, 64, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(48, 207, 208, 0.4) 0%, rgba(51, 8, 103, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(168, 237, 234, 0.4) 0%, rgba(254, 214, 227, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(255, 154, 158, 0.4) 0%, rgba(254, 207, 239, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(255, 236, 210, 0.4) 0%, rgba(252, 182, 159, 0.4) 100%)',
+      'linear-gradient(135deg, rgba(255, 110, 127, 0.4) 0%, rgba(191, 233, 255, 0.4) 100%)',
+    ];
+    
+    // Generate consistent index based on channel string
+    let hash = 0;
+    for (let i = 0; i < channel.length; i++) {
+      hash = ((hash << 5) - hash) + channel.charCodeAt(i);
+      hash = hash & hash;
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+  }
 }
 
 // Optional debug hook for attaching raw video elements (manual testing)

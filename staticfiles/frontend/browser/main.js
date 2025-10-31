@@ -46979,7 +46979,6 @@ var init_signaling_service = __esm({
           return;
         }
         try {
-          console.log("[SignalingService] \u{1F4E8} Sending message:", msg.type, msg);
           this.ws.send(JSON.stringify(msg));
         } catch (err) {
           console.error("[SignalingService] sendMessage error", err, msg);
@@ -58593,37 +58592,111 @@ var init_gazeTracker = __esm({
 });
 
 // src/app/dashboard/dashboard.ts
-function Dashboard_main_0_Template(rf, ctx) {
+function Dashboard_div_0_span_17_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "span", 23);
+    \u0275\u0275text(1, "\u2713");
+    \u0275\u0275elementEnd();
+  }
+}
+function Dashboard_div_0_span_25_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "span", 23);
+    \u0275\u0275text(1, "\u2713");
+    \u0275\u0275elementEnd();
+  }
+}
+function Dashboard_div_0_Template(rf, ctx) {
   if (rf & 1) {
     const _r1 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "main")(1, "div", 3)(2, "div", 4)(3, "h2", 5);
+    \u0275\u0275elementStart(0, "div", 4)(1, "div", 5)(2, "div", 6)(3, "div", 7);
+    \u0275\u0275element(4, "i", 8);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(5, "h2", 9);
+    \u0275\u0275text(6, "Camera & Microphone Access");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(7, "p", 10);
+    \u0275\u0275text(8, "This app needs access to your camera and microphone to work properly.");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(9, "div", 11)(10, "div", 12);
+    \u0275\u0275element(11, "i", 13);
+    \u0275\u0275elementStart(12, "div", 14)(13, "div", 15);
+    \u0275\u0275text(14, "Camera");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(15, "div", 16);
+    \u0275\u0275text(16, "Required for video calls");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275template(17, Dashboard_div_0_span_17_Template, 2, 0, "span", 17);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(18, "div", 12);
+    \u0275\u0275element(19, "i", 18);
+    \u0275\u0275elementStart(20, "div", 14)(21, "div", 15);
+    \u0275\u0275text(22, "Microphone");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(23, "div", 16);
+    \u0275\u0275text(24, "Required for audio calls");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275template(25, Dashboard_div_0_span_25_Template, 2, 0, "span", 17);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(26, "div", 19)(27, "button", 20);
+    \u0275\u0275listener("click", function Dashboard_div_0_Template_button_click_27_listener() {
+      \u0275\u0275restoreView(_r1);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.requestPermissions());
+    });
+    \u0275\u0275text(28, " Grant Access ");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(29, "button", 21);
+    \u0275\u0275listener("click", function Dashboard_div_0_Template_button_click_29_listener() {
+      \u0275\u0275restoreView(_r1);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.closePermissionPopup());
+    });
+    \u0275\u0275text(30, " Skip ");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(31, "p", 22);
+    \u0275\u0275text(32, " You can change these permissions later in your browser settings ");
+    \u0275\u0275elementEnd()()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275advance(17);
+    \u0275\u0275property("ngIf", ctx_r1.permissionStatus.camera);
+    \u0275\u0275advance(8);
+    \u0275\u0275property("ngIf", ctx_r1.permissionStatus.microphone);
+  }
+}
+function Dashboard_main_1_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r3 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "main")(1, "div", 24)(2, "div", 25)(3, "h2", 26);
     \u0275\u0275text(4, "Join the Room");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(5, "label", 6)(6, "span", 7);
+    \u0275\u0275elementStart(5, "label", 27)(6, "span", 28);
     \u0275\u0275text(7, "Enter your name");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(8, "input", 8);
-    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_0_Template_input_ngModelChange_8_listener($event) {
-      \u0275\u0275restoreView(_r1);
+    \u0275\u0275elementStart(8, "input", 29);
+    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_Template_input_ngModelChange_8_listener($event) {
+      \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r1.userName, $event) || (ctx_r1.userName = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(9, "label", 9)(10, "input", 10);
-    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_0_Template_input_ngModelChange_10_listener($event) {
-      \u0275\u0275restoreView(_r1);
+    \u0275\u0275elementStart(9, "label", 30)(10, "input", 31);
+    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_Template_input_ngModelChange_10_listener($event) {
+      \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r1.termsCheckbox, $event) || (ctx_r1.termsCheckbox = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(11, "span", 7);
+    \u0275\u0275elementStart(11, "span", 28);
     \u0275\u0275text(12, "I agree to the Terms & Conditions");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(13, "button", 11);
-    \u0275\u0275listener("click", function Dashboard_main_0_Template_button_click_13_listener() {
-      \u0275\u0275restoreView(_r1);
+    \u0275\u0275elementStart(13, "button", 32);
+    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_13_listener() {
+      \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.updateNameFirst());
     });
@@ -58638,21 +58711,21 @@ function Dashboard_main_0_Template(rf, ctx) {
     \u0275\u0275twoWayProperty("ngModel", ctx_r1.termsCheckbox);
   }
 }
-function Dashboard_main_1_div_2_Template(rf, ctx) {
+function Dashboard_main_2_div_2_Template(rf, ctx) {
   if (rf & 1) {
-    const _r4 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 40)(1, "div", 41);
+    const _r5 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 61)(1, "div", 62);
     \u0275\u0275text(2, "Room: ");
     \u0275\u0275elementStart(3, "strong");
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(5, "button", 42);
-    \u0275\u0275listener("click", function Dashboard_main_1_div_2_Template_button_click_5_listener() {
-      \u0275\u0275restoreView(_r4);
+    \u0275\u0275elementStart(5, "button", 63);
+    \u0275\u0275listener("click", function Dashboard_main_2_div_2_Template_button_click_5_listener() {
+      \u0275\u0275restoreView(_r5);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.toggleChat());
     });
-    \u0275\u0275element(6, "i", 43);
+    \u0275\u0275element(6, "i", 64);
     \u0275\u0275text(7, " Menu ");
     \u0275\u0275elementEnd()();
   }
@@ -58662,94 +58735,96 @@ function Dashboard_main_1_div_2_Template(rf, ctx) {
     \u0275\u0275textInterpolate1("#", ctx_r1.roomName);
   }
 }
-function Dashboard_main_1_div_4_div_1_video_1_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 53);
+    \u0275\u0275element(0, "video", 74);
   }
   if (rf & 2) {
-    const p_r5 = \u0275\u0275nextContext().$implicit;
-    \u0275\u0275property("appSrcObject", p_r5.stream)("muted", !!p_r5.isYou);
-    \u0275\u0275attribute("data-chan", p_r5.isYou ? "__you__" : p_r5.channel);
+    const p_r6 = \u0275\u0275nextContext().$implicit;
+    \u0275\u0275property("appSrcObject", p_r6.stream)("muted", !!p_r6.isYou);
+    \u0275\u0275attribute("data-chan", p_r6.isYou ? "__you__" : p_r6.channel);
   }
 }
-function Dashboard_main_1_div_4_div_1_audio_2_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_audio_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "audio", 54);
+    \u0275\u0275element(0, "audio", 75);
   }
   if (rf & 2) {
-    const p_r5 = \u0275\u0275nextContext().$implicit;
-    \u0275\u0275property("appSrcObject", p_r5.stream);
+    const p_r6 = \u0275\u0275nextContext().$implicit;
+    \u0275\u0275property("appSrcObject", p_r6.stream);
   }
 }
-function Dashboard_main_1_div_4_div_1_div_3_span_2_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_div_3_span_2_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "span");
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r5 = \u0275\u0275nextContext(2).$implicit;
+    const p_r6 = \u0275\u0275nextContext(2).$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate(p_r5.initials);
+    \u0275\u0275textInterpolate(p_r6.initials);
   }
 }
-function Dashboard_main_1_div_4_div_1_div_3_span_3_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_div_3_span_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 58);
+    \u0275\u0275elementStart(0, "span", 79);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
-function Dashboard_main_1_div_4_div_1_div_3_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 55)(1, "div", 56);
-    \u0275\u0275template(2, Dashboard_main_1_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 1)(3, Dashboard_main_1_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 57);
+    \u0275\u0275elementStart(0, "div", 76)(1, "div", 77);
+    \u0275\u0275template(2, Dashboard_main_2_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 2)(3, Dashboard_main_2_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 78);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r5 = \u0275\u0275nextContext().$implicit;
+    const p_r6 = \u0275\u0275nextContext().$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r6.channel));
     \u0275\u0275advance();
-    \u0275\u0275classProp("hand-raised", p_r5.handRaised);
+    \u0275\u0275classProp("hand-raised", p_r6.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r5.handRaised);
+    \u0275\u0275property("ngIf", !p_r6.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r5.handRaised);
+    \u0275\u0275property("ngIf", p_r6.handRaised);
   }
 }
-function Dashboard_main_1_div_4_div_1_Template(rf, ctx) {
+function Dashboard_main_2_div_4_div_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 46);
-    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_video_1_Template, 1, 3, "video", 47)(2, Dashboard_main_1_div_4_div_1_audio_2_Template, 1, 1, "audio", 48)(3, Dashboard_main_1_div_4_div_1_div_3_Template, 4, 4, "div", 49);
-    \u0275\u0275elementStart(4, "span", 50);
+    \u0275\u0275elementStart(0, "div", 67);
+    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_video_1_Template, 1, 3, "video", 68)(2, Dashboard_main_2_div_4_div_1_audio_2_Template, 1, 1, "audio", 69)(3, Dashboard_main_2_div_4_div_1_div_3_Template, 4, 6, "div", 70);
+    \u0275\u0275elementStart(4, "span", 71);
     \u0275\u0275text(5);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(6, "div", 51);
-    \u0275\u0275element(7, "span", 52);
+    \u0275\u0275elementStart(6, "div", 72);
+    \u0275\u0275element(7, "span", 73);
     \u0275\u0275text(8);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r5 = ctx.$implicit;
+    const p_r6 = ctx.$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
-    \u0275\u0275classProp("video-on", p_r5.videoOn)("hide-when-pip", p_r5.isYou && ctx_r1.shouldShowSelfVideo && ctx_r1.gridParticipants.length > 1)("hand-raised", p_r5.handRaised);
+    \u0275\u0275classProp("video-on", p_r6.videoOn)("hide-when-pip", p_r6.isYou && ctx_r1.shouldShowSelfVideo && ctx_r1.gridParticipants.length > 1)("hand-raised", p_r6.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r5.stream && p_r5.videoOn);
+    \u0275\u0275property("ngIf", p_r6.stream && p_r6.videoOn);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r5.stream && !p_r5.isYou);
+    \u0275\u0275property("ngIf", p_r6.stream && !p_r6.isYou);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r5.stream || !p_r5.videoOn);
+    \u0275\u0275property("ngIf", !p_r6.videoOn);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate1(" \u{1F441}\uFE0F ", p_r5.gaze, " ");
+    \u0275\u0275textInterpolate1(" \u{1F441}\uFE0F ", p_r6.gaze, " ");
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(12, _c3, p_r5.mic === "on", p_r5.mic === "off"));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(12, _c3, p_r6.mic === "on", p_r6.mic === "off"));
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1(" ", p_r5.name, " ");
+    \u0275\u0275textInterpolate1(" ", p_r6.name, " ");
   }
 }
-function Dashboard_main_1_div_4_Template(rf, ctx) {
+function Dashboard_main_2_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 44);
-    \u0275\u0275template(1, Dashboard_main_1_div_4_div_1_Template, 9, 15, "div", 45);
+    \u0275\u0275elementStart(0, "div", 65);
+    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_Template, 9, 15, "div", 66);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -58759,19 +58834,19 @@ function Dashboard_main_1_div_4_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.gridParticipants)("ngForTrackBy", ctx_r1.trackByParticipant);
   }
 }
-function Dashboard_main_1_div_30_video_1_Template(rf, ctx) {
+function Dashboard_main_2_div_30_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 61);
+    \u0275\u0275element(0, "video", 82);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(3);
     \u0275\u0275property("appSrcObject", ctx_r1.you == null ? null : ctx_r1.you.stream)("muted", true);
   }
 }
-function Dashboard_main_1_div_30_Template(rf, ctx) {
+function Dashboard_main_2_div_30_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 59);
-    \u0275\u0275template(1, Dashboard_main_1_div_30_video_1_Template, 1, 2, "video", 60);
+    \u0275\u0275elementStart(0, "div", 80);
+    \u0275\u0275template(1, Dashboard_main_2_div_30_video_1_Template, 1, 2, "video", 81);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -58780,12 +58855,12 @@ function Dashboard_main_1_div_30_Template(rf, ctx) {
     \u0275\u0275property("ngIf", ctx_r1.you == null ? null : ctx_r1.you.stream);
   }
 }
-function Dashboard_main_1_button_44_Template(rf, ctx) {
+function Dashboard_main_2_button_44_Template(rf, ctx) {
   if (rf & 1) {
-    const _r6 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "button", 62);
-    \u0275\u0275listener("click", function Dashboard_main_1_button_44_Template_button_click_0_listener() {
-      \u0275\u0275restoreView(_r6);
+    const _r7 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 83);
+    \u0275\u0275listener("click", function Dashboard_main_2_button_44_Template_button_click_0_listener() {
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.closeChat());
     });
@@ -58793,75 +58868,77 @@ function Dashboard_main_1_button_44_Template(rf, ctx) {
     \u0275\u0275elementEnd();
   }
 }
-function Dashboard_main_1_div_46_div_3_span_3_Template(rf, ctx) {
+function Dashboard_main_2_div_46_div_3_span_3_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "span");
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r7 = \u0275\u0275nextContext().$implicit;
+    const p_r8 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate(p_r7.initials);
+    \u0275\u0275textInterpolate(p_r8.initials);
   }
 }
-function Dashboard_main_1_div_46_div_3_span_4_Template(rf, ctx) {
+function Dashboard_main_2_div_46_div_3_span_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 58);
+    \u0275\u0275elementStart(0, "span", 92);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
-function Dashboard_main_1_div_46_div_3_span_7_Template(rf, ctx) {
+function Dashboard_main_2_div_46_div_3_span_7_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 70);
+    \u0275\u0275elementStart(0, "span", 93);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r7 = \u0275\u0275nextContext().$implicit;
+    const p_r8 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r7.gaze);
+    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r8.gaze);
   }
 }
-function Dashboard_main_1_div_46_div_3_Template(rf, ctx) {
+function Dashboard_main_2_div_46_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 66)(1, "div", 67)(2, "div", 68);
-    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_span_3_Template, 2, 1, "span", 1)(4, Dashboard_main_1_div_46_div_3_span_4_Template, 2, 0, "span", 57);
+    \u0275\u0275elementStart(0, "div", 87)(1, "div", 88)(2, "div", 89);
+    \u0275\u0275template(3, Dashboard_main_2_div_46_div_3_span_3_Template, 2, 1, "span", 2)(4, Dashboard_main_2_div_46_div_3_span_4_Template, 2, 0, "span", 90);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(5, "span");
     \u0275\u0275text(6);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(7, Dashboard_main_1_div_46_div_3_span_7_Template, 2, 1, "span", 69);
+    \u0275\u0275template(7, Dashboard_main_2_div_46_div_3_span_7_Template, 2, 1, "span", 91);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(8, "div");
-    \u0275\u0275element(9, "i", 19)(10, "i", 19);
+    \u0275\u0275element(9, "i", 40)(10, "i", 40);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r7 = ctx.$implicit;
+    const p_r8 = ctx.$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(3);
     \u0275\u0275advance(2);
-    \u0275\u0275classProp("hand-raised", p_r7.handRaised);
+    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r8.channel));
+    \u0275\u0275classProp("hand-raised", p_r8.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r7.handRaised);
+    \u0275\u0275property("ngIf", !p_r8.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r7.handRaised);
+    \u0275\u0275property("ngIf", p_r8.handRaised);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(p_r7.name);
+    \u0275\u0275textInterpolate(p_r8.name);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r7.gaze);
+    \u0275\u0275property("ngIf", p_r8.gaze);
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", p_r7.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
+    \u0275\u0275property("ngClass", p_r8.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", p_r7.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
+    \u0275\u0275property("ngClass", p_r8.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
   }
 }
-function Dashboard_main_1_div_46_Template(rf, ctx) {
+function Dashboard_main_2_div_46_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 63)(1, "h3", 64);
+    \u0275\u0275elementStart(0, "div", 84)(1, "h3", 85);
     \u0275\u0275text(2, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_main_1_div_46_div_3_Template, 11, 8, "div", 65);
+    \u0275\u0275template(3, Dashboard_main_2_div_46_div_3_Template, 11, 10, "div", 86);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -58870,29 +58947,29 @@ function Dashboard_main_1_div_46_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.participants);
   }
 }
-function Dashboard_main_1_div_47_div_4_Template(rf, ctx) {
+function Dashboard_main_2_div_47_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 73)(1, "div", 74);
+    \u0275\u0275elementStart(0, "div", 96)(1, "div", 97);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "div", 41);
+    \u0275\u0275elementStart(3, "div", 62);
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const m_r8 = ctx.$implicit;
+    const m_r9 = ctx.$implicit;
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r8.by);
+    \u0275\u0275textInterpolate(m_r9.by);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r8.text);
+    \u0275\u0275textInterpolate(m_r9.text);
   }
 }
-function Dashboard_main_1_div_47_Template(rf, ctx) {
+function Dashboard_main_2_div_47_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 71, 0)(2, "h3", 64);
+    \u0275\u0275elementStart(0, "div", 94, 0)(2, "h3", 85);
     \u0275\u0275text(3, "Chat");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(4, Dashboard_main_1_div_47_div_4_Template, 5, 2, "div", 72);
+    \u0275\u0275template(4, Dashboard_main_2_div_47_div_4_Template, 5, 2, "div", 95);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -58901,24 +58978,24 @@ function Dashboard_main_1_div_47_Template(rf, ctx) {
     \u0275\u0275property("ngForOf", ctx_r1.chatMessages);
   }
 }
-function Dashboard_main_1_form_48_Template(rf, ctx) {
+function Dashboard_main_2_form_48_Template(rf, ctx) {
   if (rf & 1) {
-    const _r9 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "form", 75);
-    \u0275\u0275listener("ngSubmit", function Dashboard_main_1_form_48_Template_form_ngSubmit_0_listener() {
-      \u0275\u0275restoreView(_r9);
+    const _r10 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "form", 98);
+    \u0275\u0275listener("ngSubmit", function Dashboard_main_2_form_48_Template_form_ngSubmit_0_listener() {
+      \u0275\u0275restoreView(_r10);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.sendChat());
     });
-    \u0275\u0275elementStart(1, "input", 76);
-    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_form_48_Template_input_ngModelChange_1_listener($event) {
-      \u0275\u0275restoreView(_r9);
+    \u0275\u0275elementStart(1, "input", 99);
+    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_2_form_48_Template_input_ngModelChange_1_listener($event) {
+      \u0275\u0275restoreView(_r10);
       const ctx_r1 = \u0275\u0275nextContext(2);
       \u0275\u0275twoWayBindingSet(ctx_r1.chatText, $event) || (ctx_r1.chatText = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(2, "button", 77);
+    \u0275\u0275elementStart(2, "button", 100);
     \u0275\u0275text(3, "Send");
     \u0275\u0275elementEnd()();
   }
@@ -58928,109 +59005,109 @@ function Dashboard_main_1_form_48_Template(rf, ctx) {
     \u0275\u0275twoWayProperty("ngModel", ctx_r1.chatText);
   }
 }
-function Dashboard_main_1_Template(rf, ctx) {
+function Dashboard_main_2_Template(rf, ctx) {
   if (rf & 1) {
-    const _r3 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "main", 12)(1, "section", 13);
-    \u0275\u0275template(2, Dashboard_main_1_div_2_Template, 8, 1, "div", 14);
-    \u0275\u0275elementStart(3, "div", 15);
-    \u0275\u0275template(4, Dashboard_main_1_div_4_Template, 2, 9, "div", 16);
-    \u0275\u0275elementStart(5, "div", 17)(6, "button", 18);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_6_listener() {
-      \u0275\u0275restoreView(_r3);
+    const _r4 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "main", 33)(1, "section", 34);
+    \u0275\u0275template(2, Dashboard_main_2_div_2_Template, 8, 1, "div", 35);
+    \u0275\u0275elementStart(3, "div", 36);
+    \u0275\u0275template(4, Dashboard_main_2_div_4_Template, 2, 9, "div", 37);
+    \u0275\u0275elementStart(5, "div", 38)(6, "button", 39);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_6_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleMic());
     });
-    \u0275\u0275element(7, "i", 19);
+    \u0275\u0275element(7, "i", 40);
     \u0275\u0275elementStart(8, "span");
     \u0275\u0275text(9, "Mic");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(10, "button", 18);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_10_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(10, "button", 39);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_10_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleCam());
     });
-    \u0275\u0275element(11, "i", 19);
+    \u0275\u0275element(11, "i", 40);
     \u0275\u0275elementStart(12, "span");
     \u0275\u0275text(13, "Video");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(14, "button", 18);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_14_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(14, "button", 39);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_14_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.shareScreen());
     });
-    \u0275\u0275element(15, "i", 20);
+    \u0275\u0275element(15, "i", 41);
     \u0275\u0275elementStart(16, "span");
     \u0275\u0275text(17, "Share");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(18, "button", 18);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_18_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(18, "button", 39);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_18_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.raiseHand());
     });
-    \u0275\u0275element(19, "i", 21);
+    \u0275\u0275element(19, "i", 42);
     \u0275\u0275elementStart(20, "span");
     \u0275\u0275text(21, "Hand");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(22, "button", 18);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_22_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(22, "button", 39);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_22_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.runGazeSession());
     });
-    \u0275\u0275element(23, "i", 22);
+    \u0275\u0275element(23, "i", 43);
     \u0275\u0275elementStart(24, "span");
     \u0275\u0275text(25, "Start Calibration");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(26, "button", 23);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_26_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(26, "button", 44);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_26_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.leaveCall());
     });
-    \u0275\u0275element(27, "i", 24);
+    \u0275\u0275element(27, "i", 45);
     \u0275\u0275elementStart(28, "span");
     \u0275\u0275text(29, "Leave");
     \u0275\u0275elementEnd()()()();
-    \u0275\u0275template(30, Dashboard_main_1_div_30_Template, 2, 1, "div", 25);
+    \u0275\u0275template(30, Dashboard_main_2_div_30_Template, 2, 1, "div", 46);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(31, "aside", 26)(32, "div", 27)(33, "div", 28);
-    \u0275\u0275element(34, "i", 29);
-    \u0275\u0275elementStart(35, "input", 30);
-    \u0275\u0275listener("change", function Dashboard_main_1_Template_input_change_35_listener($event) {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(31, "aside", 47)(32, "div", 48)(33, "div", 49);
+    \u0275\u0275element(34, "i", 50);
+    \u0275\u0275elementStart(35, "input", 51);
+    \u0275\u0275listener("change", function Dashboard_main_2_Template_input_change_35_listener($event) {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.updateName($event));
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(36, "label", 31);
+    \u0275\u0275elementStart(36, "label", 52);
     \u0275\u0275text(37, "update display name from here.");
     \u0275\u0275elementEnd()()();
-    \u0275\u0275elementStart(38, "div", 32)(39, "div", 33)(40, "button", 34);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_40_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(38, "div", 53)(39, "div", 54)(40, "button", 55);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_40_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.activeTab = "participants");
     });
     \u0275\u0275text(41, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(42, "button", 34);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_42_listener() {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(42, "button", 55);
+    \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_42_listener() {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.activeTab = "chat");
     });
     \u0275\u0275text(43, "Chat");
     \u0275\u0275elementEnd()();
-    \u0275\u0275template(44, Dashboard_main_1_button_44_Template, 2, 0, "button", 35);
+    \u0275\u0275template(44, Dashboard_main_2_button_44_Template, 2, 0, "button", 56);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(45, "div", 36);
-    \u0275\u0275template(46, Dashboard_main_1_div_46_Template, 4, 1, "div", 37)(47, Dashboard_main_1_div_47_Template, 5, 1, "div", 38);
+    \u0275\u0275elementStart(45, "div", 57);
+    \u0275\u0275template(46, Dashboard_main_2_div_46_Template, 4, 1, "div", 58)(47, Dashboard_main_2_div_47_Template, 5, 1, "div", 59);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(48, Dashboard_main_1_form_48_Template, 4, 1, "form", 39);
+    \u0275\u0275template(48, Dashboard_main_2_form_48_Template, 4, 1, "form", 60);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -59045,9 +59122,9 @@ function Dashboard_main_1_Template(rf, ctx) {
     \u0275\u0275advance(4);
     \u0275\u0275property("ngClass", (ctx_r1.you == null ? null : ctx_r1.you.cam) === "on" ? "ph-video-camera" : "ph-camera-slash");
     \u0275\u0275advance(19);
-    \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo)("ngIfAnd", !ctx_r1.gridParticipants.length === 2);
+    \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo);
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(18, _c12, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c12, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
     \u0275\u0275advance(4);
     \u0275\u0275property("value", (ctx_r1.you == null ? null : ctx_r1.you.name) || "You");
     \u0275\u0275advance(5);
@@ -59180,20 +59257,33 @@ var init_dashboard = __esm({
       }
       get gridParticipants() {
         const remotes = this.participants.filter((p) => !p.isYou);
-        const self2 = this.you;
-        if (remotes.length === 0 && self2)
-          return [self2];
-        return remotes;
+        if (remotes.length > 0) {
+          return remotes;
+        }
+        return this.participants;
       }
       //========= GazeTracking ==============
       gazeSocket;
       isGazeTracking = false;
+      //========= Fullscreen ==============
+      escPressCount = 0;
+      escPressTimer = null;
+      hasShownEscAlert = false;
+      isInFullscreen = false;
+      fullscreenChangeHandler = null;
+      //========= Permissions ==============
+      showPermissionPopup = false;
+      permissionStatus = {
+        camera: false,
+        microphone: false
+      };
       constructor(signaling) {
         this.signaling = signaling;
       }
       // ====== Lifecycle ======
       ngOnInit() {
         return __async(this, null, function* () {
+          yield this.checkMediaPermissions();
         });
       }
       joinRoom() {
@@ -59202,6 +59292,8 @@ var init_dashboard = __esm({
         this.syncParticipantsArray();
         this.signaling.connect(this.roomName);
         this.signalingSub = this.signaling.messages$.subscribe((msg) => this.onSignal(msg));
+        this.setupFullscreenListener();
+        this.enterFullscreen();
       }
       ngOnDestroy() {
         try {
@@ -59221,6 +59313,7 @@ var init_dashboard = __esm({
         this.stopAndClearLocalTracks();
         this.participantsMap.clear();
         this.iceQueue.clear();
+        this.removeFullscreenListener();
       }
       handleGazeStatus(status) {
         const me = this.participantsMap.get("__you__");
@@ -59240,6 +59333,64 @@ var init_dashboard = __esm({
       }
       onResize() {
         this.isDesktop = window.innerWidth >= 1024;
+      }
+      onEscapeKey() {
+        if (!this.isNameUpdated)
+          return;
+        if (this.isInFullscreen)
+          return;
+        this.escPressCount++;
+        if (this.escPressCount === 1 && !this.hasShownEscAlert) {
+          alert("Press ESC again to exit fullscreen");
+          this.hasShownEscAlert = true;
+          if (this.escPressTimer)
+            clearTimeout(this.escPressTimer);
+          this.escPressTimer = setTimeout(() => {
+            this.escPressCount = 0;
+          }, 2e3);
+        } else if (this.escPressCount >= 2) {
+          this.exitFullscreen();
+          this.escPressCount = 0;
+          if (this.escPressTimer)
+            clearTimeout(this.escPressTimer);
+        }
+      }
+      setupFullscreenListener() {
+        this.fullscreenChangeHandler = () => {
+          const isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+          const wasFullscreen = this.isInFullscreen;
+          this.isInFullscreen = isCurrentlyFullscreen;
+          if (wasFullscreen && !isCurrentlyFullscreen && this.isNameUpdated) {
+            this.escPressCount++;
+            if (this.escPressCount === 1 && !this.hasShownEscAlert) {
+              alert("Press ESC again to exit fullscreen");
+              this.hasShownEscAlert = true;
+              this.enterFullscreen();
+              if (this.escPressTimer)
+                clearTimeout(this.escPressTimer);
+              this.escPressTimer = setTimeout(() => {
+                this.escPressCount = 0;
+              }, 2e3);
+            } else if (this.escPressCount >= 2) {
+              this.escPressCount = 0;
+              if (this.escPressTimer)
+                clearTimeout(this.escPressTimer);
+            }
+          }
+        };
+        document.addEventListener("fullscreenchange", this.fullscreenChangeHandler);
+        document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
+        document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
+        document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
+      }
+      removeFullscreenListener() {
+        if (this.fullscreenChangeHandler) {
+          document.removeEventListener("fullscreenchange", this.fullscreenChangeHandler);
+          document.removeEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
+          document.removeEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
+          document.removeEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
+          this.fullscreenChangeHandler = null;
+        }
       }
       // ====== Utilities ======
       sendSig(payload) {
@@ -59303,17 +59454,18 @@ var init_dashboard = __esm({
         const prev = existingByName ?? this.participantsMap.get(ch);
         const nextCam = row?.cam ?? prev?.cam ?? "off";
         const nextMic = row?.mic ?? prev?.mic ?? "off";
+        const existingStream = prev?.stream ?? null;
         const next = {
           name: row?.name ?? prev?.name ?? "Guest",
           mic: nextMic,
           cam: nextCam,
-          videoOn: this.computeVideoOn(nextCam, prev?.stream),
+          videoOn: existingStream ? this.computeVideoOn(nextCam, existingStream) : false,
           initials: this.initialsFromName(row?.name ?? prev?.name ?? "Guest"),
           isYou: false,
           channel: prev?.channel ?? ch,
           // ✅ stick to the first channel we saw
-          stream: prev?.stream ?? null,
-          gaze: "",
+          stream: existingStream,
+          gaze: row?.gaze ?? prev?.gaze ?? "",
           handRaised: typeof row?.handRaised === "boolean" ? row.handRaised : prev?.handRaised ?? false
         };
         this.participantsMap.set(next.channel, next);
@@ -59465,9 +59617,11 @@ var init_dashboard = __esm({
             ms.addTrack(ev.track);
           const updated = __spreadProps(__spreadValues({}, pPrev), {
             stream: ms,
-            mic: ms.getAudioTracks().length > 0 ? "on" : "off",
-            cam: ms.getVideoTracks().length > 0 ? "on" : "off",
-            videoOn: this.computeVideoOn(ms.getVideoTracks().length > 0 ? "on" : "off", ms)
+            // Only update mic/cam if they were at default 'off' (meaning we haven't received server state yet)
+            mic: pPrev.mic !== "off" ? pPrev.mic : ms.getAudioTracks().length > 0 ? "on" : "off",
+            cam: pPrev.cam !== "off" ? pPrev.cam : ms.getVideoTracks().length > 0 ? "on" : "off",
+            // videoOn should be based on the cam state from server, not just presence of tracks
+            videoOn: this.computeVideoOn(pPrev.cam, ms)
           });
           this.participantsMap.set(remoteChan, updated);
           this.syncParticipantsArray();
@@ -59593,7 +59747,17 @@ var init_dashboard = __esm({
               return;
             if (this.myServerChan && ch === this.myServerChan)
               return;
+            const prev = this.participantsMap.get(ch);
+            const prevCam = prev?.cam;
+            const prevMic = prev?.mic;
             this.upsertParticipantFromPayload(row);
+            const updated = this.participantsMap.get(ch);
+            const camChanged = updated && prevCam !== updated.cam;
+            const micChanged = updated && prevMic !== updated.mic;
+            if (camChanged || micChanged) {
+              console.log(`\u{1F504} Participant ${ch} changed cam:${prevCam}\u2192${updated?.cam} mic:${prevMic}\u2192${updated?.mic}, renegotiating...`);
+              setTimeout(() => this.renegotiate(ch), 100);
+            }
             break;
           }
           case "chat_message": {
@@ -59916,6 +60080,9 @@ var init_dashboard = __esm({
         });
         this.participantsMap.delete("__you__");
         this.syncParticipantsArray();
+        this.exitFullscreen();
+        this.hasShownEscAlert = false;
+        this.escPressCount = 0;
         this.isNameUpdated = false;
       }
       raiseHand() {
@@ -59953,6 +60120,108 @@ var init_dashboard = __esm({
       trackByParticipant(index, item) {
         return item.channel;
       }
+      // ====== Permission Methods ======
+      checkMediaPermissions() {
+        return __async(this, null, function* () {
+          try {
+            if (navigator.permissions) {
+              const cameraPermission = yield navigator.permissions.query({ name: "camera" });
+              const micPermission = yield navigator.permissions.query({ name: "microphone" });
+              this.permissionStatus.camera = cameraPermission.state === "granted";
+              this.permissionStatus.microphone = micPermission.state === "granted";
+              if (!this.permissionStatus.camera || !this.permissionStatus.microphone) {
+                this.showPermissionPopup = true;
+              }
+            } else {
+              try {
+                const stream = yield navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                stream.getTracks().forEach((track) => track.stop());
+                this.permissionStatus.camera = true;
+                this.permissionStatus.microphone = true;
+              } catch (err) {
+                this.showPermissionPopup = true;
+              }
+            }
+          } catch (error) {
+            this.showPermissionPopup = true;
+          }
+        });
+      }
+      requestPermissions() {
+        return __async(this, null, function* () {
+          try {
+            const stream = yield navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: true
+            });
+            stream.getTracks().forEach((track) => track.stop());
+            this.permissionStatus.camera = true;
+            this.permissionStatus.microphone = true;
+            this.showPermissionPopup = false;
+            alert("Permissions granted! You can now join the call.");
+          } catch (error) {
+            if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+              alert("Camera and microphone access denied. Please enable them in your browser settings to use this app.");
+            } else if (error.name === "NotFoundError") {
+              alert("No camera or microphone found. Please connect a device and try again.");
+            } else {
+              alert("Error accessing camera/microphone: " + error.message);
+            }
+          }
+        });
+      }
+      closePermissionPopup() {
+        this.showPermissionPopup = false;
+      }
+      // ====== Fullscreen Methods ======
+      enterFullscreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch((err) => {
+            console.error("Fullscreen request failed:", err);
+          });
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      }
+      exitFullscreen() {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {
+          });
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+      // ====== Gradient Generator for Tiles ======
+      getGradientForParticipant(channel) {
+        const gradients = [
+          "linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(240, 147, 251, 0.4) 0%, rgba(245, 87, 108, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(79, 172, 254, 0.4) 0%, rgba(0, 242, 254, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(67, 233, 123, 0.4) 0%, rgba(56, 249, 215, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(250, 112, 154, 0.4) 0%, rgba(254, 225, 64, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(48, 207, 208, 0.4) 0%, rgba(51, 8, 103, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(168, 237, 234, 0.4) 0%, rgba(254, 214, 227, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(255, 154, 158, 0.4) 0%, rgba(254, 207, 239, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(255, 236, 210, 0.4) 0%, rgba(252, 182, 159, 0.4) 100%)",
+          "linear-gradient(135deg, rgba(255, 110, 127, 0.4) 0%, rgba(191, 233, 255, 0.4) 100%)"
+        ];
+        let hash = 0;
+        for (let i = 0; i < channel.length; i++) {
+          hash = (hash << 5) - hash + channel.charCodeAt(i);
+          hash = hash & hash;
+        }
+        const index = Math.abs(hash) % gradients.length;
+        return gradients[index];
+      }
       static \u0275fac = function Dashboard_Factory(__ngFactoryType__) {
         return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService));
       };
@@ -59970,13 +60239,17 @@ var init_dashboard = __esm({
             return ctx.onBeforeUnload();
           }, \u0275\u0275resolveWindow)("resize", function Dashboard_resize_HostBindingHandler() {
             return ctx.onResize();
-          }, \u0275\u0275resolveWindow);
+          }, \u0275\u0275resolveWindow)("keydown.escape", function Dashboard_keydown_escape_HostBindingHandler() {
+            return ctx.onEscapeKey();
+          }, \u0275\u0275resolveDocument);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 2, vars: 2, consts: [["chatScroll", ""], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf", "ngIfAnd"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], ["class", "text-xs text-sky-400", 4, "ngIf"], [1, "text-xs", "text-sky-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 3, vars: 3, consts: [["chatScroll", ""], ["class", "fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]", 4, "ngIf"], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "fixed", "inset-0", "bg-black/70", "flex", "items-center", "justify-center", "z-[9999]"], [1, "bg-slate-800", "p-8", "rounded-xl", "shadow-2xl", "w-96", "border", "border-sky-500/30"], [1, "text-center", "mb-6"], [1, "w-16", "h-16", "bg-sky-600/20", "rounded-full", "flex", "items-center", "justify-center", "mx-auto", "mb-4"], [1, "ph", "ph-video-camera", "text-4xl", "text-sky-400"], [1, "text-2xl", "font-bold", "mb-2"], [1, "text-slate-300", "text-sm"], [1, "space-y-3", "mb-6"], [1, "flex", "items-center", "gap-3", "p-3", "bg-slate-700/50", "rounded-lg"], [1, "ph", "ph-video-camera", "text-2xl", "text-sky-400"], [1, "flex-1"], [1, "font-semibold"], [1, "text-xs", "text-slate-400"], ["class", "text-green-400", 4, "ngIf"], [1, "ph", "ph-microphone", "text-2xl", "text-sky-400"], [1, "flex", "gap-3"], [1, "flex-1", "px-4", "py-3", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-3", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "font-semibold", "transition-colors", 3, "click"], [1, "text-xs", "text-slate-400", "text-center", "mt-4"], [1, "text-green-400"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 3, "background", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-32", "h-32", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-4xl", "bg-black/30", "text-white", "backdrop-blur-sm"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold"], ["class", "hand-emoji text-xs", 4, "ngIf"], ["class", "text-xs text-sky-400", 4, "ngIf"], [1, "hand-emoji", "text-xs"], [1, "text-xs", "text-sky-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
-          \u0275\u0275template(0, Dashboard_main_0_Template, 15, 2, "main", 1)(1, Dashboard_main_1_Template, 49, 21, "main", 2);
+          \u0275\u0275template(0, Dashboard_div_0_Template, 33, 2, "div", 1)(1, Dashboard_main_1_Template, 15, 2, "main", 2)(2, Dashboard_main_2_Template, 49, 20, "main", 3);
         }
         if (rf & 2) {
+          \u0275\u0275property("ngIf", ctx.showPermissionPopup);
+          \u0275\u0275advance();
           \u0275\u0275property("ngIf", !ctx.isNameUpdated);
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.isNameUpdated);
@@ -59986,7 +60259,55 @@ var init_dashboard = __esm({
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Dashboard, [{
         type: Component,
-        args: [{ selector: "app-dashboard", standalone: true, imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule], providers: [SignalingService], template: `<main *ngIf="!isNameUpdated">\r
+        args: [{ selector: "app-dashboard", standalone: true, imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule], providers: [SignalingService], template: `<!-- Permission Popup -->\r
+<div *ngIf="showPermissionPopup" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">\r
+  <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-96 border border-sky-500/30">\r
+    <div class="text-center mb-6">\r
+      <div class="w-16 h-16 bg-sky-600/20 rounded-full flex items-center justify-center mx-auto mb-4">\r
+        <i class="ph ph-video-camera text-4xl text-sky-400"></i>\r
+      </div>\r
+      <h2 class="text-2xl font-bold mb-2">Camera & Microphone Access</h2>\r
+      <p class="text-slate-300 text-sm">This app needs access to your camera and microphone to work properly.</p>\r
+    </div>\r
+    \r
+    <div class="space-y-3 mb-6">\r
+      <div class="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">\r
+        <i class="ph ph-video-camera text-2xl text-sky-400"></i>\r
+        <div class="flex-1">\r
+          <div class="font-semibold">Camera</div>\r
+          <div class="text-xs text-slate-400">Required for video calls</div>\r
+        </div>\r
+        <span *ngIf="permissionStatus.camera" class="text-green-400">\u2713</span>\r
+      </div>\r
+      \r
+      <div class="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">\r
+        <i class="ph ph-microphone text-2xl text-sky-400"></i>\r
+        <div class="flex-1">\r
+          <div class="font-semibold">Microphone</div>\r
+          <div class="text-xs text-slate-400">Required for audio calls</div>\r
+        </div>\r
+        <span *ngIf="permissionStatus.microphone" class="text-green-400">\u2713</span>\r
+      </div>\r
+    </div>\r
+    \r
+    <div class="flex gap-3">\r
+      <button (click)="requestPermissions()" \r
+              class="flex-1 px-4 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 font-semibold transition-colors">\r
+        Grant Access\r
+      </button>\r
+      <button (click)="closePermissionPopup()" \r
+              class="px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 font-semibold transition-colors">\r
+        Skip\r
+      </button>\r
+    </div>\r
+    \r
+    <p class="text-xs text-slate-400 text-center mt-4">\r
+      You can change these permissions later in your browser settings\r
+    </p>\r
+  </div>\r
+</div>\r
+\r
+<main *ngIf="!isNameUpdated">\r
 <div class="h-screen flex items-center justify-center bg-slate-900 text-white">\r
   <div class="bg-slate-800 p-6 rounded-xl shadow-xl w-96">\r
     <h2 class="text-xl font-bold mb-4">Join the Room</h2>\r
@@ -60074,8 +60395,9 @@ var init_dashboard = __esm({
              [appSrcObject]="p.stream" autoplay></audio>\r
 \r
           <div class="placeholder flex items-center justify-center w-full h-full"\r
-               *ngIf="!p.stream || !p.videoOn">\r
-            <div class="initials w-24 h-24 rounded-full flex items-center justify-center font-extrabold text-2xl bg-sky-700/40 text-white"\r
+               *ngIf="!p.videoOn"\r
+               [style.background]="getGradientForParticipant(p.channel)">\r
+            <div class="initials w-32 h-32 rounded-full flex items-center justify-center font-extrabold text-4xl bg-black/30 text-white backdrop-blur-sm"\r
                  [class.hand-raised]="p.handRaised">\r
               <span *ngIf="!p.handRaised">{{ p.initials }}</span>\r
               <span *ngIf="p.handRaised" class="hand-emoji">\u270B</span>\r
@@ -60119,7 +60441,7 @@ var init_dashboard = __esm({
 \r
     <!-- Floating Self Video (PiP) -->\r
     <div class="self-video-floating"\r
-         *ngIf="shouldShowSelfVideo and !gridParticipants.length === 2"\r
+         *ngIf="shouldShowSelfVideo"\r
          cdkDrag\r
          cdkDragBoundary=".stage">\r
          <video *ngIf="you?.stream"\r
@@ -60165,10 +60487,11 @@ var init_dashboard = __esm({
         <h3 class="text-sky-100 text-sm mb-2">Participants</h3>\r
         <div *ngFor="let p of participants" class="flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1">\r
           <div class="flex items-center gap-2">\r
-            <div class="w-8 h-8 rounded-full bg-sky-700/40 flex items-center justify-center"\r
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"\r
+                 [style.background]="getGradientForParticipant(p.channel)"\r
                  [class.hand-raised]="p.handRaised">\r
               <span *ngIf="!p.handRaised">{{ p.initials }}</span>\r
-              <span *ngIf="p.handRaised" class="hand-emoji">\u270B</span>\r
+              <span *ngIf="p.handRaised" class="hand-emoji text-xs">\u270B</span>\r
             </div>\r
             <span>{{ p.name }}</span>\r
             <span *ngIf="p.gaze" class="text-xs text-sky-400">\u{1F441}\uFE0F {{ p.gaze }}</span>\r
@@ -60209,6 +60532,9 @@ var init_dashboard = __esm({
       }], onResize: [{
         type: HostListener,
         args: ["window:resize"]
+      }], onEscapeKey: [{
+        type: HostListener,
+        args: ["document:keydown.escape"]
       }] });
     })();
     (() => {
