@@ -59197,7 +59197,6 @@ var init_dashboard = __esm({
         });
       }
       joinRoom() {
-        console.log("DASHBOARD BUILD MARKER v8 \u2014 stable-media");
         this.localPreviewStream = new MediaStream();
         this.participantsMap.set("__you__", this.makeLocalParticipant(this.userName));
         this.syncParticipantsArray();
@@ -59224,7 +59223,6 @@ var init_dashboard = __esm({
         this.iceQueue.clear();
       }
       handleGazeStatus(status) {
-        console.log("\u{1F3AF} handleGazeStatus called with:", status);
         const me = this.participantsMap.get("__you__");
         if (me) {
           const updated = __spreadProps(__spreadValues({}, me), { gaze: status });
@@ -59245,7 +59243,6 @@ var init_dashboard = __esm({
       }
       // ====== Utilities ======
       sendSig(payload) {
-        console.log("\u{1F4E4} sendSig called with:", payload.type, payload);
         this.signaling.sendMessage(__spreadValues({}, payload));
       }
       initialsFromName(name) {
@@ -59274,12 +59271,6 @@ var init_dashboard = __esm({
       // ====== Participants store helpers ======
       syncParticipantsArray() {
         this.participants = Array.from(this.participantsMap.values()).filter((p) => p.channel !== "__you__").concat(this.you ? [this.you] : []);
-        console.log("\u{1F504} syncParticipantsArray:", this.participants.map((p) => ({
-          name: p.name,
-          stream: !!p.stream,
-          videoOn: p.videoOn,
-          tracks: p.stream?.getTracks().length
-        })));
       }
       makeLocalParticipant(name) {
         return {
@@ -59420,9 +59411,6 @@ var init_dashboard = __esm({
         const h264Codecs = RTCRtpSender.getCapabilities("video")?.codecs.filter((c) => c.mimeType.toLowerCase() === "video/h264").filter((c) => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
         if (h264Codecs?.length && vt.setCodecPreferences) {
           vt.setCodecPreferences(h264Codecs);
-          console.log("\u{1F3A5} Forcing baseline H.264 codec:", h264Codecs);
-        } else {
-          console.warn("\u26A0\uFE0F H.264 baseline not available, using defaults");
         }
         st = {
           pc,
@@ -59447,17 +59435,15 @@ var init_dashboard = __esm({
             return;
           try {
             st.makingOffer = true;
-            console.log("\u{1F9ED} onnegotiationneeded \u2192 createOffer for", remoteChan);
             yield pc.setLocalDescription(yield pc.createOffer());
             this.sendSig({ type: "offer", offer: pc.localDescription, to: remoteChan });
           } catch (err) {
-            console.error("onnegotiationneeded error", err);
+            console.error("Negotiation error:", err);
           } finally {
             st.makingOffer = false;
           }
         });
         pc.ontrack = (ev) => {
-          console.log("\u{1F4E1} ontrack from", remoteChan, ev);
           let pPrev = this.participantsMap.get(remoteChan);
           if (!pPrev) {
             pPrev = {
@@ -59492,7 +59478,9 @@ var init_dashboard = __esm({
           this.sendSig({ type: "ice_candidate", ice_candidate: candidate.toJSON?.() ?? candidate, to: remoteChan });
         };
         pc.onconnectionstatechange = () => {
-          console.log("pc.connectionState for", remoteChan, "=", pc.connectionState);
+          if (pc.connectionState === "failed") {
+            console.error("Connection failed for", remoteChan);
+          }
         };
         this.peers.set(remoteChan, st);
         return st;
@@ -59507,11 +59495,10 @@ var init_dashboard = __esm({
             return;
           try {
             st.makingOffer = true;
-            console.log("manual renegotiate for", remoteChan);
             yield pc.setLocalDescription(yield pc.createOffer());
             this.sendSig({ type: "offer", offer: pc.localDescription, to: remoteChan });
           } catch (err) {
-            console.error("renegotiate error", err);
+            console.error("Renegotiation error:", err);
           } finally {
             st.makingOffer = false;
           }
@@ -59548,7 +59535,6 @@ var init_dashboard = __esm({
           this.myPolite = !!msg.polite;
           const myName = this.you?.name || "You";
           this.sendSig({ type: "name_update", name: myName });
-          console.log("\u2714\uFE0F Received welcome. My channel =", this.myServerChan, "Polite =", this.myPolite);
           return;
         }
         switch (msg.type) {
@@ -59563,6 +59549,7 @@ var init_dashboard = __esm({
               if (!this.participantsMap.has(ch)) {
                 this.upsertParticipantFromPayload(row);
                 this.getOrCreatePeer(ch);
+                setTimeout(() => this.renegotiate(ch), 100);
               }
             });
             break;
@@ -59577,6 +59564,7 @@ var init_dashboard = __esm({
             if (!this.participantsMap.has(ch)) {
               this.upsertParticipantFromPayload(row);
               this.getOrCreatePeer(ch);
+              setTimeout(() => this.renegotiate(ch), 100);
               this.monitorSelfVideo();
             }
             break;
@@ -59632,10 +59620,8 @@ var init_dashboard = __esm({
             (() => __async(this, null, function* () {
               const offerCollision = st.makingOffer || pc.signalingState !== "stable";
               st.ignoreOffer = !st.polite && offerCollision;
-              if (st.ignoreOffer) {
-                console.log("ignoring offer from", from2);
+              if (st.ignoreOffer)
                 return;
-              }
               try {
                 if (pc.signalingState !== "stable") {
                   yield pc.setLocalDescription({ type: "rollback" });
@@ -59782,8 +59768,8 @@ var init_dashboard = __esm({
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ audio: true, video: false });
               this.localAudioTrack = s.getAudioTracks()[0] || null;
-            } catch {
-              alert("Microphone access denied.");
+            } catch (e) {
+              alert("Microphone access denied: " + (e?.message || ""));
               return;
             }
           } else {
@@ -59807,18 +59793,17 @@ var init_dashboard = __esm({
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ video: true, audio: false });
               this.localVideoTrack = s.getVideoTracks()[0] || null;
-              if (this.localVideoTrack)
-                this.localVideoTrack.enabled = true;
               if (this.localVideoTrack) {
+                this.localVideoTrack.enabled = true;
                 this.localVideoTrack.onended = () => {
                   this.localVideoTrack = null;
                   this.refreshLocalPreview();
-                  this.sendSig({ type: "cam_toggle", cam: "off" });
                   const me2 = this.participantsMap.get("__you__");
                   if (me2) {
                     this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me2), { cam: "off", videoOn: false }));
                     this.syncParticipantsArray();
                   }
+                  this.sendSig({ type: "cam_toggle", cam: "off" });
                   this.peers.forEach((_st, ch) => this.renegotiate(ch));
                   this.monitorLoopRunning = false;
                   stopGazeTracking();
@@ -59826,7 +59811,7 @@ var init_dashboard = __esm({
                 };
               }
             } catch (e) {
-              alert("Camera access error: " + (e?.message || e));
+              alert("Camera access error: " + (e?.message || ""));
               return;
             }
           } else {
@@ -59853,9 +59838,7 @@ var init_dashboard = __esm({
         const tryAttach = () => {
           const selfVideo = document.querySelector('video[data-chan="__you__"]');
           if (selfVideo && document.body.contains(selfVideo)) {
-            console.log("\u{1F3AF} Gaze tracking reattached to current self video");
             startGazeTracking(selfVideo, ws, this.userName, (status) => {
-              console.log("\u{1F4E1} Gaze callback triggered, sending:", status);
               this.handleGazeStatus(status);
               this.sendSig({
                 type: "gaze_status",
@@ -59947,19 +59930,13 @@ var init_dashboard = __esm({
       runGazeSession() {
         return __async(this, null, function* () {
           const thresholds = yield startCalibration();
-          console.log("\u2705 Got thresholds:", thresholds);
           const ws = this.signaling.getSocket();
           const selfVideo = document.querySelector('video[data-chan="__you__"]');
-          if (!selfVideo) {
-            console.warn("\u26A0\uFE0F Self video element not found \u2014 cannot start gaze tracking yet.");
-            return;
-          }
-          if (!ws) {
-            console.warn("\u26A0\uFE0F WebSocket not found \u2014 cannot start gaze tracking yet.");
+          if (!selfVideo || !ws) {
+            alert("Please turn on your camera first");
             return;
           }
           startGazeTracking(selfVideo, ws, this.userName, (status) => {
-            console.log("\u{1F4E1} Gaze callback (runGazeSession) triggered, sending:", status);
             this.handleGazeStatus(status);
             this.sendSig({
               type: "gaze_status",
@@ -59968,16 +59945,7 @@ var init_dashboard = __esm({
               ts: Date.now()
             });
           }, thresholds);
-          const update = () => {
-            const lm = window.lastFaceLandmarks;
-            requestAnimationFrame(update);
-          };
-          update();
         });
-      }
-      updateGazeDot(thresholds) {
-        const lm = window.lastFaceLandmarks;
-        requestAnimationFrame(() => this.updateGazeDot(thresholds));
       }
       get shouldShowSelfVideo() {
         return !!this.you?.videoOn && !!this.you?.stream && this.gridParticipants.length > 0;
@@ -60244,7 +60212,7 @@ var init_dashboard = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 87 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 88 });
     })();
   }
 });

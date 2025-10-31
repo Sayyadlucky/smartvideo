@@ -1,3 +1,4 @@
+
 // src/app/dashboard/dashboard.ts (refactor — stable media, clearer state)
 import {
   Component,
@@ -146,7 +147,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
 
   joinRoom(){
-    console.log('DASHBOARD BUILD MARKER v8 — stable-media');
     // Create a single stable preview stream instance
     this.localPreviewStream = new MediaStream();
 
@@ -157,7 +157,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.signaling.connect(this.roomName);
     this.signalingSub = this.signaling.messages$.subscribe((msg: any) => this.onSignal(msg));
   
-  } 
+  }
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
     stopGazeTracking();
@@ -174,7 +174,6 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private handleGazeStatus(status: GazeStatus) {
-    console.log('🎯 handleGazeStatus called with:', status);
     const me = this.participantsMap.get('__you__');
     if (me) {
       const updated = { ...me, gaze: status };
@@ -193,7 +192,6 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // ====== Utilities ======
   private sendSig(payload: any & { to?: string }) { 
-    console.log('📤 sendSig called with:', payload.type, payload);
     this.signaling.sendMessage({ ...payload }); 
   }
 
@@ -216,14 +214,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.participants = Array.from(this.participantsMap.values())
       .filter(p => p.channel !== '__you__')
       .concat(this.you ? [this.you] : []);
-
-    // Debug view
-    console.log('🔄 syncParticipantsArray:', this.participants.map(p => ({
-      name: p.name,
-      stream: !!p.stream,
-      videoOn: p.videoOn,
-      tracks: p.stream?.getTracks().length,
-    })));
   }
 
   private makeLocalParticipant(name: string): Participant {
@@ -367,14 +357,11 @@ export class Dashboard implements OnInit, OnDestroy {
     const vt = pc.addTransceiver('video', { direction: 'sendrecv' });
 
     const h264Codecs = RTCRtpSender.getCapabilities('video')?.codecs
-  .filter(c => c.mimeType.toLowerCase() === 'video/h264')
-  .filter(c => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
+      .filter(c => c.mimeType.toLowerCase() === 'video/h264')
+      .filter(c => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
 
     if (h264Codecs?.length && vt.setCodecPreferences) {
       vt.setCodecPreferences(h264Codecs);
-      console.log("🎥 Forcing baseline H.264 codec:", h264Codecs);
-    } else {
-      console.warn("⚠️ H.264 baseline not available, using defaults");
     }
 
     st = {
@@ -397,11 +384,10 @@ export class Dashboard implements OnInit, OnDestroy {
       if (st.makingOffer || pc.signalingState !== 'stable') return;
       try {
         st.makingOffer = true;
-        console.log('🧭 onnegotiationneeded → createOffer for', remoteChan);
         await pc.setLocalDescription(await pc.createOffer());
         this.sendSig({ type: 'offer', offer: pc.localDescription, to: remoteChan });
       } catch (err) {
-        console.error('onnegotiationneeded error', err);
+        console.error('Negotiation error:', err);
       } finally {
         st.makingOffer = false;
       }
@@ -410,8 +396,6 @@ export class Dashboard implements OnInit, OnDestroy {
 
     // ontrack: always reuse the same MediaStream per participant
     pc.ontrack = (ev: RTCTrackEvent) => {
-      console.log('📡 ontrack from', remoteChan, ev);
-    
       // Always ensure we have a participant entry
       let pPrev = this.participantsMap.get(remoteChan);
     
@@ -459,7 +443,11 @@ export class Dashboard implements OnInit, OnDestroy {
       this.sendSig({ type: 'ice_candidate', ice_candidate: candidate.toJSON?.() ?? candidate, to: remoteChan });
     };
 
-    pc.onconnectionstatechange = () => { console.log('pc.connectionState for', remoteChan, '=', pc.connectionState); };
+    pc.onconnectionstatechange = () => { 
+      if (pc.connectionState === 'failed') {
+        console.error('Connection failed for', remoteChan);
+      }
+    };
 
     this.peers.set(remoteChan, st);
     return st;
@@ -471,11 +459,10 @@ export class Dashboard implements OnInit, OnDestroy {
     if (st.makingOffer || pc.signalingState !== 'stable') return;
     try {
       st.makingOffer = true;
-      console.log('manual renegotiate for', remoteChan);
       await pc.setLocalDescription(await pc.createOffer());
       this.sendSig({ type: 'offer', offer: pc.localDescription, to: remoteChan });
     } catch (err) {
-      console.error('renegotiate error', err);
+      console.error('Renegotiation error:', err);
     } finally {
       st.makingOffer = false;
     }
@@ -501,7 +488,6 @@ export class Dashboard implements OnInit, OnDestroy {
       this.myPolite = !!msg.polite;
       const myName = this.you?.name || 'You';
       this.sendSig({ type: 'name_update', name: myName });
-      console.log('✔️ Received welcome. My channel =', this.myServerChan, 'Polite =', this.myPolite);
       return;
     }
 
@@ -514,6 +500,9 @@ export class Dashboard implements OnInit, OnDestroy {
           if (!this.participantsMap.has(ch)) {
             this.upsertParticipantFromPayload(row);
             this.getOrCreatePeer(ch);
+            
+            // Trigger renegotiation to send our current tracks to existing participants
+            setTimeout(() => this.renegotiate(ch), 100);
           }
         });
         break;
@@ -525,6 +514,10 @@ export class Dashboard implements OnInit, OnDestroy {
         if (!this.participantsMap.has(ch)) {
           this.upsertParticipantFromPayload(row);
           this.getOrCreatePeer(ch);
+          
+          // Trigger renegotiation to send our current tracks to the new participant
+          setTimeout(() => this.renegotiate(ch), 100);
+          
           this.monitorSelfVideo();
         }
         break;
@@ -561,7 +554,7 @@ export class Dashboard implements OnInit, OnDestroy {
         (async () => {
           const offerCollision = (st.makingOffer || pc.signalingState !== 'stable');
           st.ignoreOffer = !st.polite && offerCollision;
-          if (st.ignoreOffer) { console.log('ignoring offer from', from); return; }
+          if (st.ignoreOffer) return;
 
           try {
             if (pc.signalingState !== 'stable') {
@@ -678,18 +671,26 @@ export class Dashboard implements OnInit, OnDestroy {
   async toggleMic(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
     const next: MicState = me.mic === 'on' ? 'off' : 'on';
+    
     if (next === 'on') {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         this.localAudioTrack = s.getAudioTracks()[0] || null;
-      } catch { alert('Microphone access denied.'); return; }
+      } catch (e: any) { 
+        alert('Microphone access denied: ' + (e?.message || '')); 
+        return; 
+      }
     } else {
       this.localAudioTrack?.stop();
       this.localAudioTrack = null;
     }
+    
+    // Update local preview and participant state
     this.refreshLocalPreview();
     this.participantsMap.set('__you__', { ...me, mic: next });
     this.syncParticipantsArray();
+    
+    // Notify server and trigger renegotiation for all peers
     this.sendSig({ type: 'mic_toggle', mic: next });
     this.peers.forEach((_st, ch) => this.renegotiate(ch));
   }
@@ -697,53 +698,64 @@ export class Dashboard implements OnInit, OnDestroy {
   async toggleCam(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
     const next: CamState = me.cam === 'on' ? 'off' : 'on';
+    
     if (next === 'on') {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         this.localVideoTrack = s.getVideoTracks()[0] || null;
-        if (this.localVideoTrack) this.localVideoTrack.enabled = true;
+        
         if (this.localVideoTrack) {
+          this.localVideoTrack.enabled = true;
+          
+          // Handle camera track ending (user stops from browser/system)
           this.localVideoTrack.onended = () => {
             this.localVideoTrack = null;
             this.refreshLocalPreview();
-            this.sendSig({ type: 'cam_toggle', cam: 'off' });
+            
             const me2 = this.participantsMap.get('__you__');
             if (me2) {
               this.participantsMap.set('__you__', { ...me2, cam: 'off', videoOn: false });
               this.syncParticipantsArray();
             }
+            
+            this.sendSig({ type: 'cam_toggle', cam: 'off' });
             this.peers.forEach((_st, ch) => this.renegotiate(ch));
-            // stop overlay when cam stops
-            // this.hideOverlay();
+            
+            // Stop gaze tracking when camera stops
             this.monitorLoopRunning = false;
             stopGazeTracking();
             this.isGazeTracking = false;
           };
         }
-      } catch (e: any) { alert('Camera access error: ' + (e?.message || e)); return; }
+      } catch (e: any) { 
+        alert('Camera access error: ' + (e?.message || '')); 
+        return; 
+      }
     } else {
+      // Turn off camera
       this.localVideoTrack?.stop();
       this.localVideoTrack = null;
-      // stop overlay when cam stops
-      // this.hideOverlay();
+      
+      // Stop gaze tracking
       this.monitorLoopRunning = false;
       stopGazeTracking();
       this.isGazeTracking = false;
     }
+    
+    // Update local preview and participant state
     this.refreshLocalPreview();
     this.participantsMap.set('__you__', { ...me, cam: next, videoOn: next === 'on', stream: this.localPreviewStream });
     this.syncParticipantsArray();
+    
+    // Notify server and trigger renegotiation for all peers
     this.sendSig({ type: 'cam_toggle', cam: next });
     this.peers.forEach((_st, ch) => this.renegotiate(ch));
 
-    // Start monitoring only when camera is ON
+    // Start gaze tracking when camera turns ON
     if (next === 'on') {
-      // this.ensureHiddenVideoEl();
-      // this.ensureOverlayCanvas();
       this.monitorSelfVideo();
-      // this.startFaceMonitoring(); // safe to call repeatedly
     }
-	}
+  }
 
   private monitorSelfVideo(): void {
     const ws = this.signaling.getSocket();
@@ -752,19 +764,11 @@ export class Dashboard implements OnInit, OnDestroy {
     const tryAttach = () => {
       const selfVideo = document.querySelector('video[data-chan="__you__"]') as HTMLVideoElement | null;
       if (selfVideo && document.body.contains(selfVideo)) {
-        console.log('🎯 Gaze tracking reattached to current self video');
-        // startGazeTracking(
-        //   selfVideo,
-        //   ws,
-        //   this.userName,
-        //   (status) => this.handleGazeStatus(status)
-        // );
         startGazeTracking(
           selfVideo,
           ws,
           this.userName,
           (status) => {
-            console.log('📡 Gaze callback triggered, sending:', status);
             this.handleGazeStatus(status);
             this.sendSig({
               type: 'gaze_status',
@@ -780,7 +784,7 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     };
     tryAttach();
-  }  
+  }
 
   async shareScreen(): Promise<void> {
     try {
@@ -844,25 +848,17 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   async runGazeSession() {
-    const thresholds = await startCalibration(); // runs fullscreen calibration
-    console.log('✅ Got thresholds:', thresholds);
+    const thresholds = await startCalibration();
     
-    // showCalibrationGrid();
     const ws = this.signaling.getSocket();
     const selfVideo = document.querySelector('video[data-chan="__you__"]') as HTMLVideoElement | null;
     
-    if (!selfVideo) {
-      console.warn("⚠️ Self video element not found — cannot start gaze tracking yet.");
-      return;
-    }
-    if(!ws){
-      console.warn("⚠️ WebSocket not found — cannot start gaze tracking yet.");
+    if (!selfVideo || !ws) {
+      alert('Please turn on your camera first');
       return;
     }
   
-    // ✅ Properly pass all required parameters
     startGazeTracking(selfVideo, ws, this.userName, (status) => {
-      console.log('📡 Gaze callback (runGazeSession) triggered, sending:', status);
       this.handleGazeStatus(status);
       this.sendSig({
         type: 'gaze_status',
@@ -871,22 +867,9 @@ export class Dashboard implements OnInit, OnDestroy {
         ts: Date.now(),
       });
     }, thresholds);
-  
-    // ✅ Start real-time dot overlay
-    const update = () => {
-      const lm = (window as any).lastFaceLandmarks;
-      // if (lm) showGazeDot(lm, thresholds);
-      requestAnimationFrame(update);
-    };
-    update();
   }
   
   
-  updateGazeDot(thresholds:any) {
-    const lm = (window as any).lastFaceLandmarks;
-    // if (lm) showGazeDot(lm, thresholds);
-    requestAnimationFrame(() => this.updateGazeDot(thresholds));
-  }
 
   get shouldShowSelfVideo(): boolean {
     // Show PiP if you have a self video stream

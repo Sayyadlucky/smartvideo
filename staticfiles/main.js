@@ -5009,16 +5009,16 @@ function isExhaustiveCheckNoChanges() {
   !ngDevMode && throwError2("Must never be called in production mode");
   return _checkNoChangesMode === CheckNoChangesMode.Exhaustive;
 }
-function setIsInCheckNoChangesMode(mode2) {
+function setIsInCheckNoChangesMode(mode) {
   !ngDevMode && throwError2("Must never be called in production mode");
-  _checkNoChangesMode = mode2;
+  _checkNoChangesMode = mode;
 }
 function isRefreshingViews() {
   return _isRefreshingViews;
 }
-function setIsRefreshingViews(mode2) {
+function setIsRefreshingViews(mode) {
   const prev = _isRefreshingViews;
-  _isRefreshingViews = mode2;
+  _isRefreshingViews = mode;
   return prev;
 }
 function getBindingRoot() {
@@ -8319,34 +8319,34 @@ function hasTagAndTypeMatch(tNode, currentSelector, isProjectionMode) {
 }
 function isNodeMatchingSelector(tNode, selector, isProjectionMode) {
   ngDevMode && assertDefined(selector[0], "Selector should have a tag name");
-  let mode2 = 4;
+  let mode = 4;
   const nodeAttrs = tNode.attrs;
   const nameOnlyMarkerIdx = nodeAttrs !== null ? getNameOnlyMarkerIndex(nodeAttrs) : 0;
   let skipToNextSelector = false;
   for (let i = 0; i < selector.length; i++) {
     const current = selector[i];
     if (typeof current === "number") {
-      if (!skipToNextSelector && !isPositive(mode2) && !isPositive(current)) {
+      if (!skipToNextSelector && !isPositive(mode) && !isPositive(current)) {
         return false;
       }
       if (skipToNextSelector && isPositive(current))
         continue;
       skipToNextSelector = false;
-      mode2 = current | mode2 & 1;
+      mode = current | mode & 1;
       continue;
     }
     if (skipToNextSelector)
       continue;
-    if (mode2 & 4) {
-      mode2 = 2 | mode2 & 1;
+    if (mode & 4) {
+      mode = 2 | mode & 1;
       if (current !== "" && !hasTagAndTypeMatch(tNode, current, isProjectionMode) || current === "" && selector.length === 1) {
-        if (isPositive(mode2))
+        if (isPositive(mode))
           return false;
         skipToNextSelector = true;
       }
-    } else if (mode2 & 8) {
+    } else if (mode & 8) {
       if (nodeAttrs === null || !isCssClassMatching(tNode, nodeAttrs, current, isProjectionMode)) {
-        if (isPositive(mode2))
+        if (isPositive(mode))
           return false;
         skipToNextSelector = true;
       }
@@ -8354,7 +8354,7 @@ function isNodeMatchingSelector(tNode, selector, isProjectionMode) {
       const selectorAttrValue = selector[++i];
       const attrIndexInNode = findAttrIndexInNode(current, nodeAttrs, isInlineTemplate(tNode), isProjectionMode);
       if (attrIndexInNode === -1) {
-        if (isPositive(mode2))
+        if (isPositive(mode))
           return false;
         skipToNextSelector = true;
         continue;
@@ -8367,18 +8367,18 @@ function isNodeMatchingSelector(tNode, selector, isProjectionMode) {
           ngDevMode && assertNotEqual(nodeAttrs[attrIndexInNode], 0, "We do not match directives on namespaced attributes");
           nodeAttrValue = nodeAttrs[attrIndexInNode + 1].toLowerCase();
         }
-        if (mode2 & 2 && selectorAttrValue !== nodeAttrValue) {
-          if (isPositive(mode2))
+        if (mode & 2 && selectorAttrValue !== nodeAttrValue) {
+          if (isPositive(mode))
             return false;
           skipToNextSelector = true;
         }
       }
     }
   }
-  return isPositive(mode2) || skipToNextSelector;
+  return isPositive(mode) || skipToNextSelector;
 }
-function isPositive(mode2) {
-  return (mode2 & 1) === 0;
+function isPositive(mode) {
+  return (mode & 1) === 0;
 }
 function findAttrIndexInNode(name, attrs, isInlineTemplate2, isProjectionMode) {
   if (attrs === null)
@@ -8480,18 +8480,18 @@ function maybeWrapInNotSelector(isNegativeMode, chunk) {
 function stringifyCSSSelector(selector) {
   let result = selector[0];
   let i = 1;
-  let mode2 = 2;
+  let mode = 2;
   let currentChunk = "";
   let isNegativeMode = false;
   while (i < selector.length) {
     let valueOrMarker = selector[i];
     if (typeof valueOrMarker === "string") {
-      if (mode2 & 2) {
+      if (mode & 2) {
         const attrValue = selector[++i];
         currentChunk += "[" + valueOrMarker + (attrValue.length > 0 ? '="' + attrValue + '"' : "") + "]";
-      } else if (mode2 & 8) {
+      } else if (mode & 8) {
         currentChunk += "." + valueOrMarker;
-      } else if (mode2 & 4) {
+      } else if (mode & 4) {
         currentChunk += " " + valueOrMarker;
       }
     } else {
@@ -8499,8 +8499,8 @@ function stringifyCSSSelector(selector) {
         result += maybeWrapInNotSelector(isNegativeMode, currentChunk);
         currentChunk = "";
       }
-      mode2 = valueOrMarker;
-      isNegativeMode = isNegativeMode || !isPositive(mode2);
+      mode = valueOrMarker;
+      isNegativeMode = isNegativeMode || !isPositive(mode);
     }
     i++;
   }
@@ -8516,21 +8516,21 @@ function extractAttrsAndClassesFromSelector(selector) {
   const attrs = [];
   const classes = [];
   let i = 1;
-  let mode2 = 2;
+  let mode = 2;
   while (i < selector.length) {
     let valueOrMarker = selector[i];
     if (typeof valueOrMarker === "string") {
-      if (mode2 === 2) {
+      if (mode === 2) {
         if (valueOrMarker !== "") {
           attrs.push(valueOrMarker, selector[++i]);
         }
-      } else if (mode2 === 8) {
+      } else if (mode === 8) {
         classes.push(valueOrMarker);
       }
     } else {
-      if (!isPositive(mode2))
+      if (!isPositive(mode))
         break;
-      mode2 = valueOrMarker;
+      mode = valueOrMarker;
     }
     i++;
   }
@@ -9743,7 +9743,7 @@ function runEffectsInView(view) {
     tryFlushEffects = foundDirtyEffect && !!(view[FLAGS] & 8192);
   }
 }
-function detectChangesInternal(lView, mode2 = 0) {
+function detectChangesInternal(lView, mode = 0) {
   const environment = lView[ENVIRONMENT];
   const rendererFactory = environment.rendererFactory;
   const checkNoChangesMode = !!ngDevMode && isInCheckNoChangesMode();
@@ -9751,18 +9751,18 @@ function detectChangesInternal(lView, mode2 = 0) {
     rendererFactory.begin?.();
   }
   try {
-    detectChangesInViewWhileDirty(lView, mode2);
+    detectChangesInViewWhileDirty(lView, mode);
   } finally {
     if (!checkNoChangesMode) {
       rendererFactory.end?.();
     }
   }
 }
-function detectChangesInViewWhileDirty(lView, mode2) {
+function detectChangesInViewWhileDirty(lView, mode) {
   const lastIsRefreshingViewsValue = isRefreshingViews();
   try {
     setIsRefreshingViews(true);
-    detectChangesInView(lView, mode2);
+    detectChangesInView(lView, mode);
     if (ngDevMode && isExhaustiveCheckNoChanges()) {
       return;
     }
@@ -9939,11 +9939,11 @@ function refreshView(tView, lView, templateFn, context2) {
     leaveView();
   }
 }
-function detectChangesInEmbeddedViews(lView, mode2) {
+function detectChangesInEmbeddedViews(lView, mode) {
   for (let lContainer = getFirstLContainer(lView); lContainer !== null; lContainer = getNextLContainer(lContainer)) {
     for (let i = CONTAINER_HEADER_OFFSET; i < lContainer.length; i++) {
       const embeddedLView = lContainer[i];
-      detectChangesInViewIfAttached(embeddedLView, mode2);
+      detectChangesInViewIfAttached(embeddedLView, mode);
     }
   }
 }
@@ -9959,29 +9959,29 @@ function markTransplantedViewsForRefresh(lView) {
     }
   }
 }
-function detectChangesInComponent(hostLView, componentHostIdx, mode2) {
+function detectChangesInComponent(hostLView, componentHostIdx, mode) {
   ngDevMode && assertEqual(isCreationMode(hostLView), false, "Should be run in update mode");
   profiler(
     18
     /* ProfilerEvent.ComponentStart */
   );
   const componentView = getComponentLViewByIndex(componentHostIdx, hostLView);
-  detectChangesInViewIfAttached(componentView, mode2);
+  detectChangesInViewIfAttached(componentView, mode);
   profiler(19, componentView[CONTEXT]);
 }
-function detectChangesInViewIfAttached(lView, mode2) {
+function detectChangesInViewIfAttached(lView, mode) {
   if (!viewAttachedToChangeDetector(lView)) {
     return;
   }
-  detectChangesInView(lView, mode2);
+  detectChangesInView(lView, mode);
 }
-function detectChangesInView(lView, mode2) {
+function detectChangesInView(lView, mode) {
   const isInCheckNoChangesPass = ngDevMode && isInCheckNoChangesMode();
   const tView = lView[TVIEW];
   const flags = lView[FLAGS];
   const consumer = lView[REACTIVE_TEMPLATE_CONSUMER];
-  let shouldRefreshView = !!(mode2 === 0 && flags & 16);
-  shouldRefreshView ||= !!(flags & 64 && mode2 === 0 && !isInCheckNoChangesPass);
+  let shouldRefreshView = !!(mode === 0 && flags & 16);
+  shouldRefreshView ||= !!(flags & 64 && mode === 0 && !isInCheckNoChangesPass);
   shouldRefreshView ||= !!(flags & 1024);
   shouldRefreshView ||= !!(consumer?.dirty && consumerPollProducersForChange(consumer));
   shouldRefreshView ||= !!(ngDevMode && isExhaustiveCheckNoChanges());
@@ -10019,9 +10019,9 @@ function detectChangesInView(lView, mode2) {
     }
   }
 }
-function detectChangesInChildComponents(hostLView, components, mode2) {
+function detectChangesInChildComponents(hostLView, components, mode) {
   for (let i = 0; i < components.length; i++) {
-    detectChangesInComponent(hostLView, components[i], mode2);
+    detectChangesInComponent(hostLView, components[i], mode);
   }
 }
 function processHostBindingOpCodes(tView, lView) {
@@ -10844,15 +10844,15 @@ function computeStaticStyling(tNode, attrs, writeToHost) {
   ngDevMode && assertFirstCreatePass(getTView(), "Expecting to be called in first template pass only");
   let styles = writeToHost ? tNode.styles : null;
   let classes = writeToHost ? tNode.classes : null;
-  let mode2 = 0;
+  let mode = 0;
   if (attrs !== null) {
     for (let i = 0; i < attrs.length; i++) {
       const value = attrs[i];
       if (typeof value === "number") {
-        mode2 = value;
-      } else if (mode2 == 1) {
+        mode = value;
+      } else if (mode == 1) {
         classes = concatStringsWithSpace(classes, value);
-      } else if (mode2 == 2) {
+      } else if (mode == 2) {
         const style = value;
         const styleValue = attrs[++i];
         styles = concatStringsWithSpace(styles, style + ": " + styleValue + ";");
@@ -10986,12 +10986,12 @@ function initializeInputAndOutputAliases(tView, tNode, hostDirectiveDefs) {
     }
   }
 }
-function setupSelectorMatchedInputsOrOutputs(mode2, tNode, def, directiveIndex) {
-  const aliasMap = mode2 === 0 ? def.inputs : def.outputs;
+function setupSelectorMatchedInputsOrOutputs(mode, tNode, def, directiveIndex) {
+  const aliasMap = mode === 0 ? def.inputs : def.outputs;
   for (const publicName in aliasMap) {
     if (aliasMap.hasOwnProperty(publicName)) {
       let bindings;
-      if (mode2 === 0) {
+      if (mode === 0) {
         bindings = tNode.inputs ??= {};
       } else {
         bindings = tNode.outputs ??= {};
@@ -11002,13 +11002,13 @@ function setupSelectorMatchedInputsOrOutputs(mode2, tNode, def, directiveIndex) 
     }
   }
 }
-function setupHostDirectiveInputsOrOutputs(mode2, tNode, config2, directiveIndex) {
-  const aliasMap = mode2 === 0 ? config2.inputs : config2.outputs;
+function setupHostDirectiveInputsOrOutputs(mode, tNode, config2, directiveIndex) {
+  const aliasMap = mode === 0 ? config2.inputs : config2.outputs;
   for (const initialName in aliasMap) {
     if (aliasMap.hasOwnProperty(initialName)) {
       const publicName = aliasMap[initialName];
       let bindings;
-      if (mode2 === 0) {
+      if (mode === 0) {
         bindings = tNode.hostDirectiveInputs ??= {};
       } else {
         bindings = tNode.hostDirectiveOutputs ??= {};
@@ -22156,14 +22156,14 @@ var init_debug_node = __esm({
             if (!useGlobalCheck && !requiresRefreshOrTraversal(_lView)) {
               continue;
             }
-            const mode2 = useGlobalCheck && !this.zonelessEnabled ? (
+            const mode = useGlobalCheck && !this.zonelessEnabled ? (
               // Global mode includes `CheckAlways` views.
               0
             ) : (
               // Only refresh views with the `RefreshView` flag or views is a changed signal
               1
             );
-            detectChangesInternal(_lView, mode2);
+            detectChangesInternal(_lView, mode);
             ranDetectChanges = true;
           }
           this.dirtyFlags &= ~4;
@@ -32527,7 +32527,7 @@ var init_module = __esm({
         const keepalive = update.keepalive ?? this.keepalive;
         const priority = update.priority || this.priority;
         const cache = update.cache || this.cache;
-        const mode2 = update.mode || this.mode;
+        const mode = update.mode || this.mode;
         const redirect = update.redirect || this.redirect;
         const credentials = update.credentials || this.credentials;
         const transferCache = update.transferCache ?? this.transferCache;
@@ -32556,7 +32556,7 @@ var init_module = __esm({
           cache,
           priority,
           timeout,
-          mode: mode2,
+          mode,
           redirect,
           credentials
         });
@@ -35493,11 +35493,11 @@ function getRouteGuards(futureNode, currNode, parentContexts, futurePath, checks
   }
   return checks;
 }
-function shouldRunGuardsAndResolvers(curr, future, mode2) {
-  if (typeof mode2 === "function") {
-    return mode2(curr, future);
+function shouldRunGuardsAndResolvers(curr, future, mode) {
+  if (typeof mode === "function") {
+    return mode(curr, future);
   }
-  switch (mode2) {
+  switch (mode) {
     case "pathParamsChange":
       return !equalPath(curr.url, future.url);
     case "pathParamsOrQueryParamsChange":
@@ -46975,10 +46975,11 @@ var init_signaling_service = __esm({
       }
       sendMessage(msg) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-          console.warn("[SignalingService] sendMessage failed, socket not open");
+          console.warn("[SignalingService] sendMessage failed, socket not open", "readyState:", this.ws?.readyState);
           return;
         }
         try {
+          console.log("[SignalingService] \u{1F4E8} Sending message:", msg.type, msg);
           this.ws.send(JSON.stringify(msg));
         } catch (err) {
           console.error("[SignalingService] sendMessage error", err, msg);
@@ -57991,11 +57992,272 @@ var require_face_mesh = __commonJS({
 });
 
 // src/app/dashboard/gazeTracker.ts
-function startGazeTracking(videoEl, socket, userName, callback, calibrationThresholds) {
+function updateIntrinsicsFromCamera() {
+  const { width, height } = cameraModel;
+  const fx = 0.9 * Math.min(width, height);
+  cameraModel.fx = fx;
+  cameraModel.fy = fx;
+  cameraModel.cx = width / 2;
+  cameraModel.cy = height / 2;
+}
+function setCameraFromVideo(videoEl) {
+  const w = videoEl.videoWidth || videoEl.clientWidth || 640;
+  const h = videoEl.videoHeight || videoEl.clientHeight || 480;
+  cameraModel.width = Math.max(2, w);
+  cameraModel.height = Math.max(2, h);
+  updateIntrinsicsFromCamera();
+}
+function kalmanStepGaze(xm, ym, nowMs, cal) {
+  const { xn, yn } = measurementToNormalized(xm, ym);
+  const { xw, yw } = warpEdgeNonlinearity(xn, yn, cal);
+  const depthComp = cameraModel.width / cameraModel.fx * 1e-3;
+  const xp = xw + depthComp * (xw - 0.5);
+  const yp = yw + depthComp * (yw - 0.5);
+  const dt = lastKalmanT === 0 ? 1 / 60 : Math.min(0.1, Math.max(1 / 240, (nowMs - lastKalmanT) / 1e3));
+  lastKalmanT = nowMs;
+  const F = [
+    [1, 0, dt, 0],
+    [0, 1, 0, dt],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+  ];
+  const H = [
+    [1, 0, 0, 0],
+    [0, 1, 0, 0]
+  ];
+  const edgeX = Math.min(1, Math.abs(xp - 0.5) * 2);
+  const edgeY = Math.min(1, Math.abs(yp - 0.5) * 2);
+  const qScaleX = 0.3 + 0.7 * edgeX;
+  const qScaleY = 0.3 + 0.7 * edgeY;
+  const Qs = [
+    [kalmanQbase[0][0] * qScaleX, 0, 0, 0],
+    [0, kalmanQbase[1][1] * qScaleY, 0, 0],
+    [0, 0, kalmanQbase[2][2] * qScaleX, 0],
+    [0, 0, 0, kalmanQbase[3][3] * qScaleY]
+  ];
+  kalmanX = matMulVecNum(F, kalmanX);
+  const Ft = transpose(F);
+  kalmanP = matAddNum(matMulFFNum(matMulFFNum(F, kalmanP), Ft), Qs);
+  const z = [xp, yp];
+  const HX = matMulVecNum(H, kalmanX);
+  const innov = [z[0] - HX[0], z[1] - HX[1]];
+  const Ht = transpose(H);
+  const S = matAddNum(matMulFFNum(matMulFFNum(H, kalmanP), Ht), kalmanR);
+  const K = matMulFFNum(matMulFFNum(kalmanP, Ht), inv2(S));
+  kalmanX = matAddVec(kalmanX, matMulVecNum(K, innov));
+  const I = eye(4, 1);
+  const KH = matMulFFNum(K, H);
+  const IKH = matSubNum(I, KH);
+  const term1 = matMulFFNum(matMulFFNum(IKH, kalmanP), transpose(IKH));
+  const term2 = matMulFFNum(matMulFFNum(K, kalmanR), transpose(K));
+  kalmanP = matAddNum(term1, term2);
+  return {
+    xk: Math.max(-0.5, Math.min(1.5, kalmanX[0])),
+    yk: Math.max(-0.5, Math.min(1.5, kalmanX[1]))
+  };
+}
+function measurementToNormalized(xm, ym) {
+  const { width, height, fx, fy, cx, cy, tiltX, tiltY, roll, homography } = cameraModel;
+  const u2 = xm * (width - 1);
+  const v = ym * (height - 1);
+  let uDeskew = u2, vDeskew = v;
+  if (homography) {
+    const denom = homography[2][0] * u2 + homography[2][1] * v + homography[2][2];
+    const s = Math.abs(denom) < 1e-9 ? denom >= 0 ? 1e-9 : -1e-9 : denom;
+    uDeskew = (homography[0][0] * u2 + homography[0][1] * v + homography[0][2]) / s;
+    vDeskew = (homography[1][0] * u2 + homography[1][1] * v + homography[1][2]) / s;
+  } else if (tiltX || tiltY || roll) {
+    const x = (u2 - cx) / fx;
+    const y = (v - cy) / fy;
+    const ray = [x, y, 1];
+    const Rz = rotZ(-roll), Rx = rotX(-tiltX), Ry = rotY(-tiltY);
+    const R = matMulFFNum(matMulFFNum(Rz, Rx), Ry);
+    const r = matMulVecNum(R, ray);
+    const Xp = r[0] / r[2];
+    const Yp = r[1] / r[2];
+    uDeskew = fx * Xp + cx;
+    vDeskew = fy * Yp + cy;
+  }
+  return { xn: uDeskew / (width - 1), yn: vDeskew / (height - 1) };
+}
+function warpEdgeNonlinearity(x, y, cal) {
+  const { leftTh, rightTh } = computeThresholds(cal || {});
+  const L = clamp01(leftTh);
+  const R = clamp01(rightTh);
+  if (R - L <= 1e-6)
+    return { xw: x, yw: y };
+  let t = (x - L) / (R - L);
+  t = clamp01(t);
+  const a0 = 0, a1 = 0.25, a2 = 0.75, a3 = 1;
+  const k = 0.07;
+  let xw;
+  if (t < 1 / 3) {
+    const u2 = t / (1 / 3);
+    xw = a0 * (1 - u2) + a1 * u2;
+  } else if (t < 2 / 3) {
+    const u2 = (t - 1 / 3) / (1 / 3);
+    xw = a1 * (1 - u2) + a2 * u2;
+  } else {
+    const u2 = (t - 2 / 3) / (1 / 3);
+    xw = a2 * (1 - u2) + a3 * u2;
+  }
+  xw += (t - 0.5) * k * (1 - Math.abs(t - 0.5));
+  return { xw: clamp01(xw), yw: y };
+}
+function rotX(a) {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [
+    [1, 0, 0],
+    [0, c, -s],
+    [0, s, c]
+  ];
+}
+function rotY(a) {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [
+    [c, 0, s],
+    [0, 1, 0],
+    [-s, 0, c]
+  ];
+}
+function rotZ(a) {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [
+    [c, -s, 0],
+    [s, c, 0],
+    [0, 0, 1]
+  ];
+}
+function ensureOverlay() {
+  if (!overlayCanvas) {
+    overlayCanvas = document.createElement("canvas");
+    overlayCanvas.id = "gaze-overlay";
+    Object.assign(overlayCanvas.style, {
+      position: "fixed",
+      pointerEvents: "none",
+      zIndex: "999999",
+      top: "0",
+      left: "0",
+      width: "100vw",
+      height: "100vh"
+    });
+    document.body.appendChild(overlayCanvas);
+    overlayCtx = overlayCanvas.getContext("2d");
+  } else if (!overlayCtx) {
+    overlayCtx = overlayCanvas.getContext("2d");
+  }
+}
+function resizeOverlay() {
+  if (!overlayCanvas || !overlayCtx)
+    return;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.floor(window.innerWidth);
+  const cssH = Math.floor(window.innerHeight);
+  const reqW = Math.floor(cssW * dpr);
+  const reqH = Math.floor(cssH * dpr);
+  if (overlayCanvas.width !== reqW || overlayCanvas.height !== reqH) {
+    overlayCanvas.width = reqW;
+    overlayCanvas.height = reqH;
+    overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+}
+function computeGazeDot(lm, cal) {
+  const feat = featuresFromLandmarks(lm);
+  if (!feat)
+    return { x: -1, y: -1 };
+  const { h, v } = feat;
+  const { hs, vs } = adaptiveSmooth(h, v);
+  const { xNorm, yNorm } = mapToScreen(hs, vs, cal);
+  const now = performance.now();
+  const { xk, yk } = kalmanStepGaze(xNorm, yNorm, now, cal);
+  const { xo, yo } = interpolateOut(xk, yk, now);
+  return {
+    x: xo * window.innerWidth,
+    y: yo * window.innerHeight
+  };
+}
+function updateGazePresence(lm, cal, callback) {
+  const now = Date.now();
+  const screenW = window.innerWidth;
+  const screenH = window.innerHeight;
+  const margin = 0.1;
+  if (!lm) {
+    if (faceDetected) {
+      faceDetected = false;
+      lastOnScreenTime = now;
+    }
+    if (now - lastOnScreenTime > 3e3) {
+      if (currentPresence !== "offscreen") {
+        currentPresence = "offscreen";
+        drawPresenceBorder("offscreen");
+      }
+      if (now - lastGazeBroadcast >= GAZE_BROADCAST_THROTTLE) {
+        callback("offscreen");
+        lastGazeBroadcast = now;
+      }
+    }
+    return;
+  }
+  faceDetected = true;
+  const { x, y } = computeGazeDot(lm, cal);
+  const inside = x >= -screenW * margin && x <= screenW * (1 + margin) && y >= -screenH * margin && y <= screenH * (1 + margin);
+  if (inside) {
+    lastOnScreenTime = now;
+    const feat = lm && featuresFromLandmarks(lm);
+    let status = "CENTER";
+    if (feat && cal?.["top-center"]) {
+      const topCal = cal["top-center"].vert;
+      const margin2 = 0.02;
+      const pupilDistUp = feat.upRatio > 0.6;
+      if (feat.v < topCal - margin2 && pupilDistUp) {
+        status = "UP";
+      }
+    }
+    if (currentPresence !== status) {
+      currentPresence = status;
+      drawPresenceBorder("CENTER");
+    }
+    if (now - lastGazeBroadcast >= GAZE_BROADCAST_THROTTLE) {
+      callback(status);
+      lastGazeBroadcast = now;
+    }
+  } else if (now - lastOnScreenTime > 3e3) {
+    if (currentPresence !== "offscreen") {
+      currentPresence = "offscreen";
+      drawPresenceBorder("offscreen");
+    }
+    if (now - lastGazeBroadcast >= GAZE_BROADCAST_THROTTLE) {
+      callback("offscreen");
+      lastGazeBroadcast = now;
+    }
+  }
+}
+function drawPresenceBorder(status) {
+  if (!overlayCtx || !overlayCanvas)
+    return;
+  const now = performance.now();
+  if (now - lastBorderDraw < 200)
+    return;
+  lastBorderDraw = now;
+  const ctx = overlayCtx;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  ctx.save();
+  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = status === "offscreen" ? "rgba(255,0,0,0.6)" : "rgba(0,255,0,0.6)";
+  ctx.strokeRect(5, 5, w - 10, h - 10);
+  ctx.font = "20px Arial";
+  ctx.fillStyle = status === "offscreen" ? "red" : "lime";
+  ctx.fillText(status === "offscreen" ? "OFFSCREEN" : "ONSCREEN", 20, 40);
+  ctx.restore();
+}
+function startGazeTracking(videoEl, socket, userName, callback, calibrationThresholds, debugMode = true) {
   return __async(this, null, function* () {
     if (running)
       return;
     running = true;
+    debug = debugMode;
     faceMesh = new import_face_mesh.FaceMesh({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
     });
@@ -58006,112 +58268,38 @@ function startGazeTracking(videoEl, socket, userName, callback, calibrationThres
       minTrackingConfidence: 0.6
     });
     yield faceMesh.initialize();
-    let lastStatus = "CENTER";
-    let lastEmit = 0;
+    ensureOverlay();
+    resizeOverlay();
+    window.addEventListener("resize", resizeOverlay);
     faceMesh.onResults((results) => {
-      if (results.multiFaceLandmarks?.length)
-        window.lastFaceLandmarks = results.multiFaceLandmarks[0];
-      let canvas = document.getElementById("gaze-overlay");
-      if (!canvas) {
-        canvas = document.createElement("canvas");
-        canvas.id = "gaze-overlay";
-        canvas.style.position = "absolute";
-        canvas.style.pointerEvents = "none";
-        canvas.style.zIndex = "9999";
-        document.body.appendChild(canvas);
-      }
-      const rect = videoEl.getBoundingClientRect();
-      canvas.width = videoEl.videoWidth || rect.width;
-      canvas.height = videoEl.videoHeight || rect.height;
-      canvas.style.width = rect.width + "px";
-      canvas.style.height = rect.height + "px";
-      canvas.style.top = rect.top + "px";
-      canvas.style.left = rect.left + "px";
-      const ctx = canvas.getContext("2d");
-      if (!ctx)
+      if (!overlayCtx || !overlayCanvas)
         return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const ctx = overlayCtx;
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      if (cameraModel.fx === 1)
+        setCameraFromVideo(videoEl);
       if (!results.multiFaceLandmarks?.length) {
-        updateStatus("offscreen");
-        ctx.save();
-        ctx.font = "18px Arial";
-        ctx.fillStyle = "red";
-        ctx.fillText("Gaze: offscreen", 20, 30);
-        ctx.restore();
+        updateGazePresence(null, calibrationThresholds, callback || (() => {
+        }));
         return;
       }
       const lm = results.multiFaceLandmarks[0];
-      const gaze = getGaze(lm, calibrationThresholds);
-      updateStatus(gaze);
-      ctx.save();
-      ctx.font = "18px Arial";
-      ctx.fillStyle = stableGaze === "offscreen" ? "red" : "lime";
-      ctx.fillText(`Gaze: ${stableGaze}`, 20, 30);
-      const mem = updateStatus._memory || {};
-      const stableRatio = mem.stableRatio ?? 0;
-      const radius = 12;
-      const x = 110;
-      const y = 25;
-      ctx.beginPath();
-      ctx.strokeStyle = stableRatio < 1 ? "yellow" : "lime";
-      ctx.lineWidth = 3;
-      ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + stableRatio * 2 * Math.PI);
-      ctx.stroke();
-      ctx.restore();
+      window.lastFaceLandmarks = lm;
+      updateGazePresence(lm, calibrationThresholds, callback || (() => {
+      }));
     });
-    function updateStatus(status) {
-      gazeHistory.push(status);
-      if (gazeHistory.length > SMOOTHING_WINDOW)
-        gazeHistory.shift();
-      const mostCommon = mode(gazeHistory);
-      const now = Date.now();
-      const mem = updateStatus._memory || {};
-      let candidate = mem.candidate ?? mostCommon;
-      let since = mem.since ?? now;
-      let stableRatio = mem.stableRatio ?? 0;
-      if (mostCommon !== candidate) {
-        candidate = mostCommon;
-        since = now;
-        stableRatio = 0;
-      } else {
-        stableRatio = Math.min(1, (now - since) / 2e3);
-      }
-      const shouldCommit = mostCommon === "offscreen" || stableRatio === 1 && mostCommon !== lastStatus;
-      if (shouldCommit) {
-        stableGaze = mostCommon;
-        lastStatus = mostCommon;
-        callback?.(mostCommon);
-        console.log("\u{1F4E4} Gaze message sending to server \u2192", {
-          type: "gaze_status",
-          user: userName,
-          gaze: mostCommon
-        });
-        if (socket.readyState === WebSocket.OPEN && (now - lastEmit > 1e3 || shouldCommit)) {
-          socket.send(JSON.stringify({
-            type: "gaze_status",
-            user: userName,
-            gaze: mostCommon,
-            ts: now
-          }));
-          lastEmit = now;
+    const loop = () => __async(null, null, function* () {
+      if (!running)
+        return;
+      if (videoEl.readyState >= 2 && faceMesh) {
+        try {
+          yield faceMesh.send({ image: videoEl });
+        } catch (e) {
+          console.warn("FaceMesh error", e);
         }
       }
-      updateStatus._memory = { candidate, since, stableRatio };
-    }
-    function loop() {
-      return __async(this, null, function* () {
-        if (!running)
-          return;
-        if (videoEl.readyState >= 2 && faceMesh) {
-          try {
-            yield faceMesh.send({ image: videoEl });
-          } catch (e) {
-            console.warn("FaceMesh error:", e);
-          }
-        }
-        rafId = requestAnimationFrame(loop);
-      });
-    }
+      rafId = requestAnimationFrame(loop);
+    });
     loop();
   });
 }
@@ -58124,71 +58312,225 @@ function stopGazeTracking() {
   rafId = null;
   faceMesh?.close();
   faceMesh = null;
+  window.removeEventListener("resize", resizeOverlay);
   gazeHistory.length = 0;
+  model2 = null;
+  samples.length = 0;
+  emaH = emaV = lastH = lastV = 0.5;
+  avgSpeed = 8;
+  stableGaze = "CENTER";
+  lastDiscreteStatus = "CENTER";
+  calScaleH = calScaleV = 1;
+  deviceRatio = 1;
+  lastOut = lastTarget = null;
+  kalmanX = [0.5, 0.5, 0, 0];
+  kalmanP = eye(4, 0.01);
+  lastKalmanT = 0;
+  lastGazeBroadcast = 0;
 }
-function mode(arr) {
-  const counts = {
-    CENTER: 0,
-    LEFT: 0,
-    RIGHT: 0,
-    UP: 0,
-    offscreen: 0
+function startCalibration() {
+  return __async(this, null, function* () {
+    emaH = emaV = lastH = lastV = 0.5;
+    avgSpeed = 8;
+    lastOut = lastTarget = null;
+    const prevDisplay = overlayCanvas?.style.display;
+    if (overlayCanvas)
+      overlayCanvas.style.display = "none";
+    const calCanvas = document.createElement("canvas");
+    Object.assign(calCanvas.style, {
+      position: "fixed",
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(0,0,0,0.75)",
+      zIndex: "999999",
+      cursor: "none"
+    });
+    document.body.appendChild(calCanvas);
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = window.innerWidth;
+    const cssH = window.innerHeight;
+    calCanvas.width = cssW * dpr;
+    calCanvas.height = cssH * dpr;
+    const cctx = calCanvas.getContext("2d");
+    cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    try {
+      const fn = (calCanvas.requestFullscreen || calCanvas.webkitRequestFullscreen || calCanvas.mozRequestFullScreen || calCanvas.msRequestFullscreen) ?? null;
+      if (typeof fn === "function")
+        yield fn.call(calCanvas);
+    } catch {
+    }
+    const positions = [
+      { name: "top-left", x: 0.2, y: 0.2 },
+      { name: "top-center", x: 0.5, y: 0.2 },
+      { name: "top-right", x: 0.8, y: 0.2 },
+      { name: "mid-left", x: 0.2, y: 0.5 },
+      { name: "center", x: 0.5, y: 0.5 },
+      { name: "mid-right", x: 0.8, y: 0.5 },
+      { name: "bottom-left", x: 0.2, y: 0.8 },
+      { name: "bottom-center", x: 0.5, y: 0.8 },
+      { name: "bottom-right", x: 0.8, y: 0.8 }
+    ];
+    const samplesByPoint = {};
+    positions.forEach((p) => samplesByPoint[p.name] = { h: [], v: [] });
+    for (let i = 0; i < positions.length; i++) {
+      const p = positions[i];
+      const start = performance.now();
+      while (performance.now() - start < 2500) {
+        cctx.clearRect(0, 0, cssW, cssH);
+        cctx.beginPath();
+        cctx.arc(p.x * cssW, p.y * cssH, Math.max(10, cssH * 0.015), 0, Math.PI * 2);
+        cctx.fillStyle = "rgba(255,0,0,0.95)";
+        cctx.fill();
+        cctx.fillStyle = "#fff";
+        cctx.font = "20px Arial";
+        cctx.fillText(`Point ${i + 1}/9`, 24, 42);
+        const lm = window.lastFaceLandmarks;
+        const feat = lm && featuresFromLandmarks(lm);
+        if (feat) {
+          samplesByPoint[p.name].h.push(feat.h);
+          samplesByPoint[p.name].v.push(feat.v);
+        }
+        yield new Promise((r) => requestAnimationFrame(() => r()));
+      }
+      yield new Promise((r) => setTimeout(r, 200));
+    }
+    const cal = {};
+    for (const k of Object.keys(samplesByPoint)) {
+      const H = samplesByPoint[k].h.sort((a, b) => a - b);
+      const V = samplesByPoint[k].v.sort((a, b) => a - b);
+      const hm = H.length ? H[Math.floor(H.length / 2)] : 0.5;
+      const vm = V.length ? V[Math.floor(V.length / 2)] : 0.5;
+      cal[k] = { horiz: hm, vert: vm };
+    }
+    try {
+      if (document.fullscreenElement)
+        yield document.exitFullscreen();
+    } catch {
+    }
+    calCanvas.remove();
+    if (overlayCanvas)
+      overlayCanvas.style.display = prevDisplay || "";
+    lastOut = lastTarget = null;
+    return cal;
+  });
+}
+function clamp2(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+function clamp01(v) {
+  return Math.max(0, Math.min(1, v));
+}
+function eye(n, scale = 1) {
+  const M = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++)
+    M[i][i] = scale;
+  return M;
+}
+function matAddNum(A, B) {
+  return A.map((r, i) => r.map((v, j) => v + B[i][j]));
+}
+function matSubNum(A, B) {
+  return A.map((r, i) => r.map((v, j) => v - B[i][j]));
+}
+function matMulFFNum(A, B, transB = false) {
+  const aR = A.length, aC = A[0].length;
+  const bR = transB ? B[0].length : B.length;
+  const bC = transB ? B.length : B[0].length;
+  const out = Array.from({ length: aR }, () => Array(bC).fill(0));
+  for (let i = 0; i < aR; i++) {
+    for (let k = 0; k < aC; k++) {
+      const aik = A[i][k];
+      for (let j = 0; j < bC; j++) {
+        out[i][j] += aik * (transB ? B[j][k] : B[k][j]);
+      }
+    }
+  }
+  return out;
+}
+function matMulVecNum(A, x) {
+  return A.map((r) => r.reduce((sum, v, j) => sum + v * x[j], 0));
+}
+function matAddVec(a, b) {
+  return a.map((v, i) => v + b[i]);
+}
+function transpose(A) {
+  const r = A.length, c = A[0].length;
+  const T = Array.from({ length: c }, () => Array(r).fill(0));
+  for (let i = 0; i < r; i++)
+    for (let j = 0; j < c; j++)
+      T[j][i] = A[i][j];
+  return T;
+}
+function inv2(S) {
+  const a = S[0][0], b = S[0][1], c = S[1][0], d = S[1][1];
+  const det = a * d - b * c || 1e-9;
+  return [
+    [d / det, -b / det],
+    [-c / det, a / det]
+  ];
+}
+function featuresFromLandmarks(lm) {
+  if (!lm || lm.length < 478)
+    return null;
+  const irisL = lm[468];
+  const irisR = lm[473];
+  const iris = {
+    x: (irisL.x + irisR.x) / 2,
+    y: (irisL.y + irisR.y) / 2
   };
-  for (const v of arr)
-    counts[v]++;
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  const leftCorner = lm[33];
+  const rightCorner = lm[263];
+  const topLid = lm[159];
+  const bottomLid = lm[145];
+  const h = (iris.x - leftCorner.x) / (rightCorner.x - leftCorner.x);
+  const v = (iris.y - topLid.y) / (bottomLid.y - topLid.y);
+  const pupilBottomDist = bottomLid.y - iris.y;
+  const baseline = bottomLid.y - topLid.y;
+  const upRatio = pupilBottomDist / baseline;
+  return { h: clamp01(h), v: clamp01(v), upRatio };
 }
-function getGaze(lm, thresholds) {
-  const leftRatio = horizontalRatio(lm[468], lm[362], lm[263]);
-  const rightRatio = horizontalRatio(lm[473], lm[33], lm[133]);
-  const avg = (leftRatio + rightRatio) / 2;
-  const leftVert = verticalRatio(lm[468], lm[386], lm[374]);
-  const rightVert = verticalRatio(lm[473], lm[159], lm[145]);
-  const vAvg = (leftVert + rightVert) / 2;
-  if (!baselineLearned && verticalSamples.length < 100) {
-    verticalSamples.push(vAvg);
-    if (verticalSamples.length === 100) {
-      neutralVertical = verticalSamples.reduce((a, b) => a + b, 0) / verticalSamples.length;
-      baselineLearned = true;
-      console.log("\u{1F4CA} Learned neutral vertical baseline:", neutralVertical.toFixed(3));
-    }
+function computeThresholds(cal) {
+  const leftTh = cal["top-left"]?.horiz ?? cal["mid-left"]?.horiz ?? cal["bottom-left"]?.horiz ?? 0.45;
+  const rightTh = cal["top-right"]?.horiz ?? cal["mid-right"]?.horiz ?? cal["bottom-right"]?.horiz ?? 0.55;
+  return { leftTh, rightTh };
+}
+function adaptiveSmooth(h, v) {
+  const dh = Math.abs(h - lastH);
+  const dv = Math.abs(v - lastV);
+  const speed = Math.sqrt(dh * dh + dv * dv) * 1e3;
+  avgSpeed = 0.8 * avgSpeed + 0.2 * speed;
+  const alpha = clamp01(MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * Math.exp(-avgSpeed / 20));
+  emaH = emaH * (1 - alpha) + h * alpha;
+  emaV = emaV * (1 - alpha) + v * alpha;
+  lastH = h;
+  lastV = v;
+  return { hs: emaH, vs: emaV };
+}
+function mapToScreen(h, v, cal) {
+  const baseX = (h - (cal?.["mid-left"]?.horiz ?? 0.45)) / ((cal?.["mid-right"]?.horiz ?? 0.55) - (cal?.["mid-left"]?.horiz ?? 0.45));
+  const baseY = (v - (cal?.["top-center"]?.vert ?? 0.35)) / ((cal?.["bottom-center"]?.vert ?? 0.45) - (cal?.["top-center"]?.vert ?? 0.35));
+  const xNorm = Math.max(-0.5, Math.min(1.5, baseX));
+  const yNorm = Math.max(-0.5, Math.min(1.5, baseY));
+  return { xNorm, yNorm };
+}
+function interpolateOut(x, y, now) {
+  const target = { x, y, t: now };
+  if (!lastOut) {
+    lastOut = target;
+    lastTarget = target;
+    return { xo: x, yo: y };
   }
-  let leftTh = 0.45, rightTh = 0.7, upTh = 0.45;
-  if (thresholds) {
-    if ("mid-left" in thresholds) {
-      const map2 = thresholds;
-      leftTh = map2["mid-left"]?.horiz ?? leftTh;
-      rightTh = map2["mid-right"]?.horiz ?? rightTh;
-      upTh = map2["top-center"]?.vert ?? upTh;
-    } else {
-      const simple = thresholds;
-      leftTh = simple.left;
-      rightTh = simple.right;
-      upTh = simple.up;
-    }
-  }
-  upTh += neutralVertical - 0.45;
-  if (avg < leftTh)
-    return "LEFT";
-  if (avg > rightTh)
-    return "RIGHT";
-  if (vAvg < upTh)
-    return "UP";
-  return "CENTER";
+  const dt = (now - lastOut.t) / 1e3;
+  const rate = clamp2(dt * 5, 0, 1);
+  const xo = lastOut.x + (target.x - lastOut.x) * rate;
+  const yo = lastOut.y + (target.y - lastOut.y) * rate;
+  lastOut = { x: xo, y: yo, t: now };
+  lastTarget = target;
+  return { xo, yo };
 }
-function horizontalRatio(iris, outer, inner) {
-  const ex = inner.x - outer.x;
-  const ey = inner.y - outer.y;
-  const ix = iris.x - outer.x;
-  const iy = iris.y - outer.y;
-  return (ix * ex + iy * ey) / (ex * ex + ey * ey);
-}
-function verticalRatio(iris, top, bottom) {
-  const eyeHeight = bottom.y - top.y;
-  const pos = (iris.y - top.y) / eyeHeight;
-  return pos;
-}
-var import_face_mesh, faceMesh, running, rafId, gazeHistory, SMOOTHING_WINDOW, neutralVertical, verticalSamples, baselineLearned, stableGaze;
+var import_face_mesh, faceMesh, running, rafId, overlayCanvas, overlayCtx, debug, gazeHistory, stableGaze, lastDiscreteStatus, emaH, emaV, lastH, lastV, avgSpeed, MIN_ALPHA, MAX_ALPHA, model2, samples, calScaleH, calScaleV, deviceRatio, lastOut, lastTarget, cameraModel, kalmanX, kalmanP, kalmanQbase, kalmanR, lastKalmanT, lastOnScreenTime, faceDetected, currentPresence, lastBorderDraw, lastGazeBroadcast, GAZE_BROADCAST_THROTTLE;
 var init_gazeTracker = __esm({
   "src/app/dashboard/gazeTracker.ts"() {
     "use strict";
@@ -58196,12 +58538,57 @@ var init_gazeTracker = __esm({
     faceMesh = null;
     running = false;
     rafId = null;
+    overlayCanvas = null;
+    overlayCtx = null;
+    debug = true;
     gazeHistory = [];
-    SMOOTHING_WINDOW = 5;
-    neutralVertical = 0.45;
-    verticalSamples = [];
-    baselineLearned = false;
     stableGaze = "CENTER";
+    lastDiscreteStatus = "CENTER";
+    emaH = 0.5;
+    emaV = 0.5;
+    lastH = 0.5;
+    lastV = 0.5;
+    avgSpeed = 8;
+    MIN_ALPHA = 0.03;
+    MAX_ALPHA = 0.25;
+    model2 = null;
+    samples = [];
+    calScaleH = 1;
+    calScaleV = 1;
+    deviceRatio = 1;
+    lastOut = null;
+    lastTarget = null;
+    cameraModel = {
+      width: 640,
+      height: 480,
+      fx: 1,
+      fy: 1,
+      cx: 0.5,
+      cy: 0.5,
+      tiltX: 0,
+      tiltY: 0,
+      roll: 0,
+      homography: null
+    };
+    kalmanX = [0.5, 0.5, 0, 0];
+    kalmanP = eye(4, 0.01);
+    kalmanQbase = [
+      [1e-6, 0, 0, 0],
+      [0, 1e-6, 0, 0],
+      [0, 0, 2e-4, 0],
+      [0, 0, 0, 2e-4]
+    ];
+    kalmanR = [
+      [2e-4, 0],
+      [0, 2e-4]
+    ];
+    lastKalmanT = 0;
+    lastOnScreenTime = Date.now();
+    faceDetected = false;
+    currentPresence = "offscreen";
+    lastBorderDraw = 0;
+    lastGazeBroadcast = 0;
+    GAZE_BROADCAST_THROTTLE = 150;
   }
 });
 
@@ -58592,11 +58979,11 @@ function Dashboard_main_1_Template(rf, ctx) {
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_22_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r1.cycleLayout());
+      return \u0275\u0275resetView(ctx_r1.runGazeSession());
     });
     \u0275\u0275element(23, "i", 22);
     \u0275\u0275elementStart(24, "span");
-    \u0275\u0275text(25, "Layout");
+    \u0275\u0275text(25, "Start Calibration");
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(26, "button", 23);
     \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_26_listener() {
@@ -58810,7 +59197,6 @@ var init_dashboard = __esm({
         });
       }
       joinRoom() {
-        console.log("DASHBOARD BUILD MARKER v8 \u2014 stable-media");
         this.localPreviewStream = new MediaStream();
         this.participantsMap.set("__you__", this.makeLocalParticipant(this.userName));
         this.syncParticipantsArray();
@@ -58885,12 +59271,6 @@ var init_dashboard = __esm({
       // ====== Participants store helpers ======
       syncParticipantsArray() {
         this.participants = Array.from(this.participantsMap.values()).filter((p) => p.channel !== "__you__").concat(this.you ? [this.you] : []);
-        console.log("\u{1F504} syncParticipantsArray:", this.participants.map((p) => ({
-          name: p.name,
-          stream: !!p.stream,
-          videoOn: p.videoOn,
-          tracks: p.stream?.getTracks().length
-        })));
       }
       makeLocalParticipant(name) {
         return {
@@ -59031,9 +59411,6 @@ var init_dashboard = __esm({
         const h264Codecs = RTCRtpSender.getCapabilities("video")?.codecs.filter((c) => c.mimeType.toLowerCase() === "video/h264").filter((c) => !c.sdpFmtpLine || c.sdpFmtpLine.includes("42e01f"));
         if (h264Codecs?.length && vt.setCodecPreferences) {
           vt.setCodecPreferences(h264Codecs);
-          console.log("\u{1F3A5} Forcing baseline H.264 codec:", h264Codecs);
-        } else {
-          console.warn("\u26A0\uFE0F H.264 baseline not available, using defaults");
         }
         st = {
           pc,
@@ -59058,17 +59435,15 @@ var init_dashboard = __esm({
             return;
           try {
             st.makingOffer = true;
-            console.log("\u{1F9ED} onnegotiationneeded \u2192 createOffer for", remoteChan);
             yield pc.setLocalDescription(yield pc.createOffer());
             this.sendSig({ type: "offer", offer: pc.localDescription, to: remoteChan });
           } catch (err) {
-            console.error("onnegotiationneeded error", err);
+            console.error("Negotiation error:", err);
           } finally {
             st.makingOffer = false;
           }
         });
         pc.ontrack = (ev) => {
-          console.log("\u{1F4E1} ontrack from", remoteChan, ev);
           let pPrev = this.participantsMap.get(remoteChan);
           if (!pPrev) {
             pPrev = {
@@ -59103,7 +59478,9 @@ var init_dashboard = __esm({
           this.sendSig({ type: "ice_candidate", ice_candidate: candidate.toJSON?.() ?? candidate, to: remoteChan });
         };
         pc.onconnectionstatechange = () => {
-          console.log("pc.connectionState for", remoteChan, "=", pc.connectionState);
+          if (pc.connectionState === "failed") {
+            console.error("Connection failed for", remoteChan);
+          }
         };
         this.peers.set(remoteChan, st);
         return st;
@@ -59118,11 +59495,10 @@ var init_dashboard = __esm({
             return;
           try {
             st.makingOffer = true;
-            console.log("manual renegotiate for", remoteChan);
             yield pc.setLocalDescription(yield pc.createOffer());
             this.sendSig({ type: "offer", offer: pc.localDescription, to: remoteChan });
           } catch (err) {
-            console.error("renegotiate error", err);
+            console.error("Renegotiation error:", err);
           } finally {
             st.makingOffer = false;
           }
@@ -59159,7 +59535,6 @@ var init_dashboard = __esm({
           this.myPolite = !!msg.polite;
           const myName = this.you?.name || "You";
           this.sendSig({ type: "name_update", name: myName });
-          console.log("\u2714\uFE0F Received welcome. My channel =", this.myServerChan, "Polite =", this.myPolite);
           return;
         }
         switch (msg.type) {
@@ -59174,6 +59549,7 @@ var init_dashboard = __esm({
               if (!this.participantsMap.has(ch)) {
                 this.upsertParticipantFromPayload(row);
                 this.getOrCreatePeer(ch);
+                setTimeout(() => this.renegotiate(ch), 100);
               }
             });
             break;
@@ -59188,6 +59564,7 @@ var init_dashboard = __esm({
             if (!this.participantsMap.has(ch)) {
               this.upsertParticipantFromPayload(row);
               this.getOrCreatePeer(ch);
+              setTimeout(() => this.renegotiate(ch), 100);
               this.monitorSelfVideo();
             }
             break;
@@ -59243,10 +59620,8 @@ var init_dashboard = __esm({
             (() => __async(this, null, function* () {
               const offerCollision = st.makingOffer || pc.signalingState !== "stable";
               st.ignoreOffer = !st.polite && offerCollision;
-              if (st.ignoreOffer) {
-                console.log("ignoring offer from", from2);
+              if (st.ignoreOffer)
                 return;
-              }
               try {
                 if (pc.signalingState !== "stable") {
                   yield pc.setLocalDescription({ type: "rollback" });
@@ -59393,8 +59768,8 @@ var init_dashboard = __esm({
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ audio: true, video: false });
               this.localAudioTrack = s.getAudioTracks()[0] || null;
-            } catch {
-              alert("Microphone access denied.");
+            } catch (e) {
+              alert("Microphone access denied: " + (e?.message || ""));
               return;
             }
           } else {
@@ -59418,18 +59793,17 @@ var init_dashboard = __esm({
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ video: true, audio: false });
               this.localVideoTrack = s.getVideoTracks()[0] || null;
-              if (this.localVideoTrack)
-                this.localVideoTrack.enabled = true;
               if (this.localVideoTrack) {
+                this.localVideoTrack.enabled = true;
                 this.localVideoTrack.onended = () => {
                   this.localVideoTrack = null;
                   this.refreshLocalPreview();
-                  this.sendSig({ type: "cam_toggle", cam: "off" });
                   const me2 = this.participantsMap.get("__you__");
                   if (me2) {
                     this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me2), { cam: "off", videoOn: false }));
                     this.syncParticipantsArray();
                   }
+                  this.sendSig({ type: "cam_toggle", cam: "off" });
                   this.peers.forEach((_st, ch) => this.renegotiate(ch));
                   this.monitorLoopRunning = false;
                   stopGazeTracking();
@@ -59437,7 +59811,7 @@ var init_dashboard = __esm({
                 };
               }
             } catch (e) {
-              alert("Camera access error: " + (e?.message || e));
+              alert("Camera access error: " + (e?.message || ""));
               return;
             }
           } else {
@@ -59464,8 +59838,15 @@ var init_dashboard = __esm({
         const tryAttach = () => {
           const selfVideo = document.querySelector('video[data-chan="__you__"]');
           if (selfVideo && document.body.contains(selfVideo)) {
-            console.log("\u{1F3AF} Gaze tracking reattached to current self video");
-            startGazeTracking(selfVideo, ws, this.userName, (status) => this.handleGazeStatus(status));
+            startGazeTracking(selfVideo, ws, this.userName, (status) => {
+              this.handleGazeStatus(status);
+              this.sendSig({
+                type: "gaze_status",
+                user: this.userName,
+                gaze: status,
+                ts: Date.now()
+              });
+            }, this.gazeThresholds);
           } else {
             setTimeout(tryAttach, 500);
           }
@@ -59546,6 +59927,26 @@ var init_dashboard = __esm({
         this.syncParticipantsArray();
         this.sendSig({ type: "hand_toggle", handRaised: next });
       }
+      runGazeSession() {
+        return __async(this, null, function* () {
+          const thresholds = yield startCalibration();
+          const ws = this.signaling.getSocket();
+          const selfVideo = document.querySelector('video[data-chan="__you__"]');
+          if (!selfVideo || !ws) {
+            alert("Please turn on your camera first");
+            return;
+          }
+          startGazeTracking(selfVideo, ws, this.userName, (status) => {
+            this.handleGazeStatus(status);
+            this.sendSig({
+              type: "gaze_status",
+              user: this.userName,
+              gaze: status,
+              ts: Date.now()
+            });
+          }, thresholds);
+        });
+      }
       get shouldShowSelfVideo() {
         return !!this.you?.videoOn && !!this.you?.stream && this.gridParticipants.length > 0;
       }
@@ -59571,7 +59972,7 @@ var init_dashboard = __esm({
             return ctx.onResize();
           }, \u0275\u0275resolveWindow);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 2, vars: 2, consts: [["chatScroll", ""], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf", "ngIfAnd"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "absolute", "left-3", "bottom-9", "text-xs", "text-sky-400", "ml-2"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], ["class", "text-xs text-sky-400", 4, "ngIf"], [1, "text-xs", "text-sky-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 2, vars: 2, consts: [["chatScroll", ""], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf", "ngIfAnd"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-24", "h-24", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-2xl", "bg-sky-700/40", "text-white"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "bg-sky-700/40", "flex", "items-center", "justify-center"], ["class", "text-xs text-sky-400", 4, "ngIf"], [1, "text-xs", "text-sky-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
           \u0275\u0275template(0, Dashboard_main_0_Template, 15, 2, "main", 1)(1, Dashboard_main_1_Template, 49, 21, "main", 2);
         }
@@ -59580,7 +59981,7 @@ var init_dashboard = __esm({
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.isNameUpdated);
         }
-      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag], styles: ['\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full[_ngcontent-%COMP%] {\n  grid-column: span 2;\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 1/1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
+      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag], styles: ['@charset "UTF-8";\n\n\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile[_ngcontent-%COMP%]   .canvas[data-role=overlay][_ngcontent-%COMP%] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile[_ngcontent-%COMP%] {\n  position: relative;\n}\n.tile[_ngcontent-%COMP%]   .video-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .overlay-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  z-index: 2;\n}\n.tile[_ngcontent-%COMP%]   .nameplate[_ngcontent-%COMP%] {\n  z-index: 10;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Dashboard, [{
@@ -59680,7 +60081,7 @@ var init_dashboard = __esm({
               <span *ngIf="p.handRaised" class="hand-emoji">\u270B</span>\r
             </div>\r
           </div>\r
-          <span class="absolute left-3 bottom-9 text-xs text-sky-400 ml-2">\r
+          <span class="nameplate absolute left-2 top-9 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm text-sky-400">\r
             \u{1F441}\uFE0F {{ p.gaze }}\r
           </span>\r
           <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">\r
@@ -59707,8 +60108,8 @@ var init_dashboard = __esm({
         <button (click)="raiseHand()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">\r
           <i class="ph ph-hand"></i><span>Hand</span>\r
         </button>\r
-        <button (click)="cycleLayout()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">\r
-          <i class="ph ph-grid-four"></i><span>Layout</span>\r
+        <button (click)="runGazeSession()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">\r
+          <i class="ph ph-grid-four"></i><span>Start Calibration</span>\r
         </button>\r
         <button (click)="leaveCall()" class="ctrl danger flex items-center gap-2 px-4 py-2 rounded-full">\r
           <i class="ph ph-sign-out"></i><span>Leave</span>\r
@@ -59798,7 +60199,7 @@ var init_dashboard = __esm({
     </form>\r
   </aside>\r
 </main>\r
-`, styles: ['/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile.span-full {\n  grid-column: span 2;\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 1/1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video,\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
+`, styles: ['@charset "UTF-8";\n\n/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile .canvas[data-role=overlay] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile {\n  position: relative;\n}\n.tile .video-el {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .overlay-el {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile .placeholder {\n  z-index: 2;\n}\n.tile .nameplate {\n  z-index: 10;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
       }], () => [{ type: SignalingService }], { chatScroll: [{
         type: ViewChild,
         args: ["chatScroll"]
@@ -59811,7 +60212,7 @@ var init_dashboard = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 83 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 88 });
     })();
   }
 });
