@@ -62,6 +62,10 @@ export class SignalingService {
     if (this.room) this.connect(this.room);
   }
 
+  getSocket(): WebSocket | null {
+    return this.ws; // or whatever your private WS variable is called
+  }
+
   disconnect(): void {
     this.ws?.close();
     this.ws = null;
@@ -69,10 +73,11 @@ export class SignalingService {
 
   sendMessage(msg: SignalMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('[SignalingService] sendMessage failed, socket not open');
+      console.warn('[SignalingService] sendMessage failed, socket not open', 'readyState:', this.ws?.readyState);
       return;
     }
     try {
+      console.log('[SignalingService] 📨 Sending message:', msg.type, msg);
       this.ws.send(JSON.stringify(msg));
     } catch (err) {
       console.error('[SignalingService] sendMessage error', err, msg);

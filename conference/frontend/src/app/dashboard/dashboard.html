@@ -79,6 +79,7 @@
              [appSrcObject]="p.stream"
              [muted]="!!p.isYou"
              autoplay playsinline
+             [attr.data-chan]="p.isYou ? '__you__' : p.channel"
              class="absolute inset-0 w-full h-full object-cover"></video>
 
              <audio *ngIf="p.stream && !p.isYou"
@@ -92,7 +93,9 @@
               <span *ngIf="p.handRaised" class="hand-emoji">✋</span>
             </div>
           </div>
-
+          <span class="nameplate absolute left-2 top-9 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm text-sky-400">
+            👁️ {{ p.gaze }}
+          </span>
           <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
             <span class="badge w-2 h-2 rounded-full"
                   [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
@@ -117,8 +120,8 @@
         <button (click)="raiseHand()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
           <i class="ph ph-hand"></i><span>Hand</span>
         </button>
-        <button (click)="cycleLayout()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
-          <i class="ph ph-grid-four"></i><span>Layout</span>
+        <button (click)="runGazeSession()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-grid-four"></i><span>Start Calibration</span>
         </button>
         <button (click)="leaveCall()" class="ctrl danger flex items-center gap-2 px-4 py-2 rounded-full">
           <i class="ph ph-sign-out"></i><span>Leave</span>
@@ -135,6 +138,7 @@
          [appSrcObject]="you?.stream"
          [muted]="true"
          autoplay playsinline
+         data-chan= "__you__"
          class="w-full h-full object-cover rounded-lg shadow-lg"></video>
     </div>
   </section>
@@ -179,6 +183,7 @@
               <span *ngIf="p.handRaised" class="hand-emoji">✋</span>
             </div>
             <span>{{ p.name }}</span>
+            <span *ngIf="p.gaze" class="text-xs text-sky-400">👁️ {{ p.gaze }}</span>
           </div>
           <div>
             <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>

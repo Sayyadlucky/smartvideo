@@ -15,16 +15,13 @@ import { SignalingService } from './signaling.service';
 import { Subscription } from 'rxjs';
 import { SrcObjectDirective } from './src-object.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import {
+  startGazeTracking,
+  stopGazeTracking,
+  startCalibration,
+  GazeStatus
+} from './gazeTracker';
 
-/**
- * Goals of this refactor
- * - One participant object per remote channel, always keyed by channel id
- * - "videoOn" is a pure UI-derived flag (from tracks + cam), never trusted from server
- * - Mic toggle never touches video state; Cam toggle never touches mic state
- * - ontrack always reuses the same MediaStream per participant and only adds/removes tracks
- * - replaceTrack for senders instead of remove/add to avoid renegotiation churn
- * - Clear separation: local state helpers, peer signaling helpers, participant store helpers
- */
 
 type MicState = 'on' | 'off';
 type CamState = 'on' | 'off';
@@ -39,6 +36,7 @@ interface Participant {
   channel: string;
   stream?: MediaStream | null;
   handRaised?: boolean;
+  gaze: string;
 }
 
 interface ChatMessage { by: string; text: string; }
@@ -87,6 +85,7 @@ type PeerState = {
   providers: [SignalingService],
 })
 export class Dashboard implements OnInit, OnDestroy {
+ 
   // ====== UI state ======
   isDesktop = window.innerWidth >= 1024;
   chatCollapsed = true;
@@ -114,6 +113,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private localPreviewStream: MediaStream = new MediaStream(); // stable instance
   userName: any;
   termsCheckbox: any;
+  monitorLoopRunning: boolean = false;
+  gazeThresholds: { horizontal: any; vertical: any; } | undefined;
 
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
@@ -133,6 +134,10 @@ export class Dashboard implements OnInit, OnDestroy {
     if (remotes.length === 0 && self) return [self];
     return remotes;
   }
+
+  //========= GazeTracking ==============
+  private gazeSocket?: WebSocket;
+  private isGazeTracking = false;
 
   constructor(private signaling: SignalingService) {}
 
@@ -155,6 +160,7 @@ export class Dashboard implements OnInit, OnDestroy {
   } 
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
+    stopGazeTracking();
     this.signalingSub?.unsubscribe();
     this.signaling.disconnect();
 
@@ -167,11 +173,29 @@ export class Dashboard implements OnInit, OnDestroy {
     this.iceQueue.clear();
   }
 
-  @HostListener('window:beforeunload') onBeforeUnload() { try { this.sendSig({ type: 'bye' }); } catch {} }
+  private handleGazeStatus(status: GazeStatus) {
+    console.log('🎯 handleGazeStatus called with:', status);
+    const me = this.participantsMap.get('__you__');
+    if (me) {
+      const updated = { ...me, gaze: status };
+      this.participantsMap.set('__you__', updated);
+      this.syncParticipantsArray();
+    }
+  }
+
+  @HostListener('window:beforeunload') onBeforeUnload() { 
+    try { 
+      this.sendSig({ type: 'bye' }); 
+      stopGazeTracking();
+      this.signaling.disconnect();
+    } catch {} }
   @HostListener('window:resize') onResize() { this.isDesktop = window.innerWidth >= 1024; }
 
   // ====== Utilities ======
-  private sendSig(payload: any & { to?: string }) { this.signaling.sendMessage({ ...payload }); }
+  private sendSig(payload: any & { to?: string }) { 
+    console.log('📤 sendSig called with:', payload.type, payload);
+    this.signaling.sendMessage({ ...payload }); 
+  }
 
   private initialsFromName(name: string): string {
     const parts = (name || '').trim().split(/\s+/);
@@ -213,6 +237,7 @@ export class Dashboard implements OnInit, OnDestroy {
       channel: '__you__',
       stream: null, // preview stream will be attached when camera turns on
       handRaised: false,
+      gaze: '',
     };
   }
 
@@ -247,6 +272,7 @@ export class Dashboard implements OnInit, OnDestroy {
       isYou: false,
       channel: prev?.channel ?? ch, // ✅ stick to the first channel we saw
       stream: prev?.stream ?? null,
+      gaze: '',
       handRaised: (typeof row?.handRaised === 'boolean')
         ? row.handRaised
         : (prev?.handRaised ?? false),
@@ -401,6 +427,7 @@ export class Dashboard implements OnInit, OnDestroy {
           isYou: false,
           stream: null,
           handRaised: false,
+          gaze:'',
         };
       }
     
@@ -498,6 +525,7 @@ export class Dashboard implements OnInit, OnDestroy {
         if (!this.participantsMap.has(ch)) {
           this.upsertParticipantFromPayload(row);
           this.getOrCreatePeer(ch);
+          this.monitorSelfVideo();
         }
         break;
       }
@@ -507,6 +535,7 @@ export class Dashboard implements OnInit, OnDestroy {
         this.participantsMap.delete(ch);
         const st = this.peers.get(ch); if (st) { try { st.pc.close(); } catch {} this.peers.delete(ch); }
         this.syncParticipantsArray();
+        this.monitorSelfVideo();
         break;
       }
 
@@ -586,6 +615,24 @@ export class Dashboard implements OnInit, OnDestroy {
         })();
         break;
       }
+
+      case "gaze_update": {
+        const ch = msg.channel;
+        const g = msg.gaze;
+      
+        if (ch && this.participantsMap.has(ch)) {
+          const p = this.participantsMap.get(ch)!;
+          this.participantsMap.set(ch, { ...p, gaze: g });
+          this.syncParticipantsArray();
+        } else {
+          const p = this.participants.find(pp => pp.name === msg.user);
+          if (p) {
+            p.gaze = g;
+            this.syncParticipantsArray();
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -631,65 +678,109 @@ export class Dashboard implements OnInit, OnDestroy {
   async toggleMic(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
     const next: MicState = me.mic === 'on' ? 'off' : 'on';
-
     if (next === 'on') {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         this.localAudioTrack = s.getAudioTracks()[0] || null;
       } catch { alert('Microphone access denied.'); return; }
     } else {
-      try { this.localAudioTrack?.stop(); } finally { this.localAudioTrack = null; }
+      this.localAudioTrack?.stop();
+      this.localAudioTrack = null;
     }
-
-    // Update senders only; do not touch video flags
-    this.peers.forEach(st => { try { st.audioSender.replaceTrack(this.localAudioTrack); } catch {} });
-
-    // Update local participant mic flag only
+    this.refreshLocalPreview();
     this.participantsMap.set('__you__', { ...me, mic: next });
     this.syncParticipantsArray();
     this.sendSig({ type: 'mic_toggle', mic: next });
+    this.peers.forEach((_st, ch) => this.renegotiate(ch));
   }
 
   async toggleCam(): Promise<void> {
     const me = this.participantsMap.get('__you__'); if (!me) return;
-    const turningOn = me.cam === 'off';
-
-    if (turningOn) {
+    const next: CamState = me.cam === 'on' ? 'off' : 'on';
+    if (next === 'on') {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         this.localVideoTrack = s.getVideoTracks()[0] || null;
+        if (this.localVideoTrack) this.localVideoTrack.enabled = true;
         if (this.localVideoTrack) {
-          this.localVideoTrack.enabled = true;
           this.localVideoTrack.onended = () => {
             this.localVideoTrack = null;
             this.refreshLocalPreview();
-            this.participantsMap.set('__you__', { ...this.participantsMap.get('__you__')!, cam: 'off' });
-            this.syncParticipantsArray();
             this.sendSig({ type: 'cam_toggle', cam: 'off' });
+            const me2 = this.participantsMap.get('__you__');
+            if (me2) {
+              this.participantsMap.set('__you__', { ...me2, cam: 'off', videoOn: false });
+              this.syncParticipantsArray();
+            }
             this.peers.forEach((_st, ch) => this.renegotiate(ch));
+            // stop overlay when cam stops
+            // this.hideOverlay();
+            this.monitorLoopRunning = false;
+            stopGazeTracking();
+            this.isGazeTracking = false;
           };
         }
       } catch (e: any) { alert('Camera access error: ' + (e?.message || e)); return; }
     } else {
-      try { this.localVideoTrack?.stop(); } finally { this.localVideoTrack = null; }
+      this.localVideoTrack?.stop();
+      this.localVideoTrack = null;
+      // stop overlay when cam stops
+      // this.hideOverlay();
+      this.monitorLoopRunning = false;
+      stopGazeTracking();
+      this.isGazeTracking = false;
     }
-
-    // Update preview stream + senders and derive UI flags
     this.refreshLocalPreview();
-
-    const me2 = this.participantsMap.get('__you__')!;
-    const nextCam: CamState = turningOn ? 'on' : 'off';
-    const updated: Participant = {
-      ...me2,
-      cam: nextCam,
-      videoOn: this.computeVideoOn(nextCam, me2.stream),
-    };
-    this.participantsMap.set('__you__', updated);
+    this.participantsMap.set('__you__', { ...me, cam: next, videoOn: next === 'on', stream: this.localPreviewStream });
     this.syncParticipantsArray();
-
-    this.sendSig({ type: 'cam_toggle', cam: nextCam });
+    this.sendSig({ type: 'cam_toggle', cam: next });
     this.peers.forEach((_st, ch) => this.renegotiate(ch));
-  }
+
+    // Start monitoring only when camera is ON
+    if (next === 'on') {
+      // this.ensureHiddenVideoEl();
+      // this.ensureOverlayCanvas();
+      this.monitorSelfVideo();
+      // this.startFaceMonitoring(); // safe to call repeatedly
+    }
+	}
+
+  private monitorSelfVideo(): void {
+    const ws = this.signaling.getSocket();
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  
+    const tryAttach = () => {
+      const selfVideo = document.querySelector('video[data-chan="__you__"]') as HTMLVideoElement | null;
+      if (selfVideo && document.body.contains(selfVideo)) {
+        console.log('🎯 Gaze tracking reattached to current self video');
+        // startGazeTracking(
+        //   selfVideo,
+        //   ws,
+        //   this.userName,
+        //   (status) => this.handleGazeStatus(status)
+        // );
+        startGazeTracking(
+          selfVideo,
+          ws,
+          this.userName,
+          (status) => {
+            console.log('📡 Gaze callback triggered, sending:', status);
+            this.handleGazeStatus(status);
+            this.sendSig({
+              type: 'gaze_status',
+              user: this.userName,
+              gaze: status,
+              ts: Date.now(),
+            });
+          },
+          this.gazeThresholds
+        );
+      } else {
+        setTimeout(tryAttach, 500);
+      }
+    };
+    tryAttach();
+  }  
 
   async shareScreen(): Promise<void> {
     try {
@@ -723,6 +814,7 @@ export class Dashboard implements OnInit, OnDestroy {
     } catch { alert('Screen share failed.'); }
   }
 
+
   cycleLayout(): void {
     if (this.tileColsManual == null) this.tileColsManual = 1;
     else if (this.tileColsManual < 4) this.tileColsManual += 1;
@@ -749,6 +841,51 @@ export class Dashboard implements OnInit, OnDestroy {
     const next = !me.handRaised; this.participantsMap.set('__you__', { ...me, handRaised: next });
     this.syncParticipantsArray();
     this.sendSig({ type: 'hand_toggle', handRaised: next });
+  }
+
+  async runGazeSession() {
+    const thresholds = await startCalibration(); // runs fullscreen calibration
+    console.log('✅ Got thresholds:', thresholds);
+    
+    // showCalibrationGrid();
+    const ws = this.signaling.getSocket();
+    const selfVideo = document.querySelector('video[data-chan="__you__"]') as HTMLVideoElement | null;
+    
+    if (!selfVideo) {
+      console.warn("⚠️ Self video element not found — cannot start gaze tracking yet.");
+      return;
+    }
+    if(!ws){
+      console.warn("⚠️ WebSocket not found — cannot start gaze tracking yet.");
+      return;
+    }
+  
+    // ✅ Properly pass all required parameters
+    startGazeTracking(selfVideo, ws, this.userName, (status) => {
+      console.log('📡 Gaze callback (runGazeSession) triggered, sending:', status);
+      this.handleGazeStatus(status);
+      this.sendSig({
+        type: 'gaze_status',
+        user: this.userName,
+        gaze: status,
+        ts: Date.now(),
+      });
+    }, thresholds);
+  
+    // ✅ Start real-time dot overlay
+    const update = () => {
+      const lm = (window as any).lastFaceLandmarks;
+      // if (lm) showGazeDot(lm, thresholds);
+      requestAnimationFrame(update);
+    };
+    update();
+  }
+  
+  
+  updateGazeDot(thresholds:any) {
+    const lm = (window as any).lastFaceLandmarks;
+    // if (lm) showGazeDot(lm, thresholds);
+    requestAnimationFrame(() => this.updateGazeDot(thresholds));
   }
 
   get shouldShowSelfVideo(): boolean {
