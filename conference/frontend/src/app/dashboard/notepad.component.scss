@@ -1,0 +1,301 @@
+.notepad-overlay {
+  animation: fadeIn 0.2s ease-out;
+  
+  &.fullscreen {
+    padding: 0;
+  }
+}
+
+.notepad-container {
+  transition: all 0.3s ease;
+  
+  &.normal-container {
+    width: 90vw;
+    max-width: 1400px;
+    height: 85vh;
+    max-height: 900px;
+  }
+  
+  &.fullscreen-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+.notepad-header {
+  user-select: none;
+  
+  button {
+    &:hover {
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.tabs-bar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;
+  
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 2px;
+    
+    &:hover {
+      background: rgba(56, 189, 248, 0.5);
+    }
+  }
+}
+
+.tab-item {
+  position: relative;
+  min-width: 120px;
+  max-width: 200px;
+  
+  &.active {
+    background: linear-gradient(to bottom, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-bottom: none;
+    color: #38bdf8;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #0f172a;
+    }
+  }
+  
+  &.inactive {
+    background: rgba(30, 41, 59, 0.5);
+    color: #94a3b8;
+    border: 1px solid transparent;
+    
+    &:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(56, 189, 248, 0.2);
+      color: #cbd5e1;
+    }
+  }
+  
+  .close-tab-btn {
+    color: #94a3b8;
+    
+    &:hover {
+      color: #ef4444;
+    }
+  }
+}
+
+.add-tab-btn {
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.toolbar {
+  select {
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    }
+  }
+  
+  .toolbar-btn {
+    transition: all 0.2s;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+.editor-wrapper {
+  position: relative;
+  
+  .editor-container {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    
+    // CodeMirror custom styles
+    :deep(.cm-editor) {
+      height: 100%;
+      font-size: 14px;
+      
+      .cm-scroller {
+        overflow: auto;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      }
+      
+      .cm-gutters {
+        background: rgba(15, 23, 42, 0.5);
+        border-right: 1px solid rgba(56, 189, 248, 0.1);
+      }
+      
+      .cm-activeLineGutter {
+        background: rgba(56, 189, 248, 0.1);
+      }
+      
+      .cm-activeLine {
+        background: rgba(56, 189, 248, 0.05);
+      }
+      
+      .cm-selectionBackground {
+        background: rgba(56, 189, 248, 0.2) !important;
+      }
+      
+      .cm-cursor {
+        border-left-color: #38bdf8;
+      }
+      
+      .cm-focused {
+        outline: none;
+      }
+      
+      // Search panel styling
+      .cm-panel {
+        background: rgba(30, 41, 59, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        
+        input {
+          background: rgba(15, 23, 42, 0.8);
+          border: 1px solid rgba(56, 189, 248, 0.2);
+          color: #e2e8f0;
+          padding: 4px 8px;
+          border-radius: 4px;
+          
+          &:focus {
+            outline: none;
+            border-color: #38bdf8;
+          }
+        }
+        
+        button {
+          background: rgba(56, 189, 248, 0.1);
+          border: 1px solid rgba(56, 189, 248, 0.2);
+          color: #38bdf8;
+          padding: 4px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          
+          &:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+          }
+        }
+      }
+    }
+    
+    // Light theme adjustments
+    :deep(.cm-editor:not(.cm-focused)) {
+      .cm-gutters {
+        background: rgba(241, 245, 249, 0.5);
+      }
+    }
+  }
+}
+
+.status-bar {
+  user-select: none;
+  
+  strong {
+    font-weight: 600;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .notepad-container.normal-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .tab-item {
+    min-width: 100px;
+    max-width: 150px;
+    font-size: 0.875rem;
+  }
+  
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(56, 189, 248, 0.5);
+  }
+}
+
+// Firefox scrollbar
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);
+}

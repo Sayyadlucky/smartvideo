@@ -169,6 +169,9 @@
         <button (click)="raiseHand()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
           <i class="ph ph-hand"></i><span>Hand</span>
         </button>
+        <button (click)="startNotes()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
+          <i class="ph ph-note"></i><span>Notepad</span>
+        </button>
         <button (click)="runGazeSession()" class="ctrl secondary flex items-center gap-2 px-4 py-2 rounded-full">
           <i class="ph ph-grid-four"></i><span>Start Calibration</span>
         </button>
@@ -261,3 +264,6 @@
     </form>
   </aside>
 </main>
+
+<!-- Notepad Component -->
+<app-notepad *ngIf="isNotesOpen" (close)="closeNotes()"></app-notepad>

@@ -16,6 +16,7 @@ import { SignalingService } from './signaling.service';
 import { Subscription } from 'rxjs';
 import { SrcObjectDirective } from './src-object.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { NotepadComponent } from './notepad.component';
 import {
   startGazeTracking,
   stopGazeTracking,
@@ -80,7 +81,7 @@ type PeerState = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule],
+  imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, NotepadComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
   providers: [SignalingService],
@@ -116,6 +117,7 @@ export class Dashboard implements OnInit, OnDestroy {
   termsCheckbox: any;
   monitorLoopRunning: boolean = false;
   gazeThresholds: { horizontal: any; vertical: any; } | undefined;
+  isNotesOpen: boolean = false;
 
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
@@ -987,6 +989,14 @@ export class Dashboard implements OnInit, OnDestroy {
     const next = !me.handRaised; this.participantsMap.set('__you__', { ...me, handRaised: next });
     this.syncParticipantsArray();
     this.sendSig({ type: 'hand_toggle', handRaised: next });
+  }
+
+  startNotes(): void {
+    this.isNotesOpen = true;
+  }
+
+  closeNotes(): void {
+    this.isNotesOpen = false;
   }
 
   async runGazeSession() {

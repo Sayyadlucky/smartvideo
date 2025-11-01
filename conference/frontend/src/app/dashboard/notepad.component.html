@@ -1,0 +1,124 @@
+<!-- Notepad Modal Overlay -->
+<div class="notepad-overlay fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+     [class.fullscreen]="isFullscreen"
+     (click)="$event.target === $event.currentTarget && closeNotepad()">
+  
+  <!-- Notepad Container -->
+  <div class="notepad-container bg-slate-900 rounded-xl shadow-2xl border border-sky-500/30 flex flex-col overflow-hidden"
+       [class.fullscreen-container]="isFullscreen"
+       [class.normal-container]="!isFullscreen">
+    
+    <!-- Header -->
+    <div class="notepad-header bg-slate-800/90 border-b border-sky-500/20 px-4 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <i class="ph ph-note-pencil text-2xl text-sky-400"></i>
+        <h2 class="text-xl font-bold text-white">Smart Notepad</h2>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- Theme Toggle -->
+        <button (click)="toggleTheme()" 
+                class="p-2 rounded-lg hover:bg-slate-700 transition-colors text-sky-400"
+                title="Toggle Theme">
+          <i class="ph text-xl" [ngClass]="isDarkTheme ? 'ph-sun' : 'ph-moon'"></i>
+        </button>
+        
+        <!-- Fullscreen Toggle -->
+        <button (click)="toggleFullscreen()" 
+                class="p-2 rounded-lg hover:bg-slate-700 transition-colors text-sky-400"
+                title="Toggle Fullscreen">
+          <i class="ph text-xl" [ngClass]="isFullscreen ? 'ph-arrows-in' : 'ph-arrows-out'"></i>
+        </button>
+        
+        <!-- Close Button -->
+        <button (click)="closeNotepad()" 
+                class="p-2 rounded-lg hover:bg-red-600 transition-colors text-red-400 hover:text-white"
+                title="Close Notepad">
+          <i class="ph ph-x text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs Bar -->
+    <div class="tabs-bar bg-slate-800/50 border-b border-sky-500/10 px-4 py-2 flex items-center gap-2 overflow-x-auto shrink-0">
+      <div class="flex items-center gap-1 flex-1 overflow-x-auto">
+        <div *ngFor="let tab of tabs" 
+             class="tab-item group relative flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer transition-all"
+             [class.active]="tab.isActive"
+             [class.inactive]="!tab.isActive"
+             (click)="switchTab(tab.id)"
+             (dblclick)="renameTab(tab.id)">
+          <span class="text-sm font-medium whitespace-nowrap">{{ tab.name }}</span>
+          <button (click)="closeTab(tab.id, $event)" 
+                  class="close-tab-btn opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
+                  title="Close Tab">
+            <i class="ph ph-x text-xs"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Add Tab Button -->
+      <button (click)="addTab()" 
+              class="add-tab-btn p-2 rounded-lg hover:bg-sky-600/20 transition-colors text-sky-400 shrink-0"
+              title="Add New Tab">
+        <i class="ph ph-plus text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar bg-slate-800/30 border-b border-sky-500/10 px-4 py-2 flex items-center justify-between gap-4 shrink-0">
+      <!-- Language Selector -->
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-slate-400">Language:</label>
+        <select [value]="activeTab?.language" 
+                (change)="changeLanguage($any($event.target).value)"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 text-white text-sm border border-sky-500/20 focus:border-sky-500 focus:outline-none">
+          <option *ngFor="let lang of languages" [value]="lang.value">
+            {{ lang.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button (click)="importFile()" 
+                class="toolbar-btn px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors text-sky-400 text-sm flex items-center gap-2"
+                title="Import File">
+          <i class="ph ph-upload-simple"></i>
+          <span class="hidden sm:inline">Import</span>
+        </button>
+        
+        <button (click)="exportFile()" 
+                class="toolbar-btn px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors text-sky-400 text-sm flex items-center gap-2"
+                title="Export File">
+          <i class="ph ph-download-simple"></i>
+          <span class="hidden sm:inline">Export</span>
+        </button>
+        
+        <button (click)="clearContent()" 
+                class="toolbar-btn px-3 py-1.5 rounded-lg hover:bg-red-600/20 transition-colors text-red-400 text-sm flex items-center gap-2"
+                title="Clear Content">
+          <i class="ph ph-trash"></i>
+          <span class="hidden sm:inline">Clear</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor Container -->
+    <div class="editor-wrapper flex-1 overflow-hidden bg-slate-900">
+      <div #editorContainer class="editor-container h-full w-full"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar bg-slate-800/50 border-t border-sky-500/10 px-4 py-2 flex items-center justify-between text-xs text-slate-400 shrink-0">
+      <div class="flex items-center gap-4">
+        <span>Tab: <strong class="text-sky-400">{{ activeTab?.name }}</strong></span>
+        <span>Language: <strong class="text-sky-400">{{ activeTab?.language }}</strong></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Auto-save enabled</span>
+        <span>{{ tabs.length }} tab{{ tabs.length !== 1 ? 's' : '' }}</span>
+      </div>
+    </div>
+  </div>
+</div>
