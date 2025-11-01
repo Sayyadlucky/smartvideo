@@ -30,6 +30,18 @@ interface LanguageOption {
   extension: any;
 }
 
+interface PopupData {
+  type: 'alert' | 'confirm' | 'prompt';
+  title: string;
+  message: string;
+  inputValue?: string;
+  inputPlaceholder?: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: (value?: string) => void;
+  onCancel?: () => void;
+}
+
 @Component({
   selector: 'app-notepad',
   standalone: true,
@@ -47,6 +59,11 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
   isDarkTheme: boolean = true;
   isFullscreen: boolean = false;
   showSettings: boolean = false;
+  
+  // Popup state
+  showPopup: boolean = false;
+  popupData: PopupData | null = null;
+  popupInputValue: string = '';
   
   languageCompartment = new Compartment();
   themeCompartment = new Compartment();
@@ -135,6 +152,15 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
         if (update.docChanged) {
           this.onEditorChange(update.state.doc.toString());
         }
+      }),
+      // Enable scrolling with custom theme
+      EditorView.theme({
+        "&": {
+          height: "100%"
+        },
+        ".cm-scroller": {
+          overflow: "auto"
+        }
       })
     ];
 
@@ -222,7 +248,7 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Don't close if it's the last tab
     if (this.tabs.length === 1) {
-      alert('Cannot close the last tab');
+      this.showAlertPopup('Cannot Close Tab', 'You cannot close the last tab. At least one tab must remain open.');
       return;
     }
 
@@ -241,11 +267,17 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
     const tab = this.tabs.find(t => t.id === tabId);
     if (!tab) return;
 
-    const newName = prompt('Enter new tab name:', tab.name);
-    if (newName && newName.trim()) {
-      tab.name = newName.trim();
-      this.saveToLocalStorage();
-    }
+    this.showPromptPopup(
+      'Rename Tab',
+      'Enter a new name for this tab:',
+      tab.name,
+      (newName) => {
+        if (newName && newName.trim()) {
+          tab.name = newName.trim();
+          this.saveToLocalStorage();
+        }
+      }
+    );
   }
 
   changeLanguage(language: string): void {
@@ -338,20 +370,24 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   clearContent(): void {
-    if (!confirm('Are you sure you want to clear the current tab content?')) return;
-
-    const activeTab = this.getActiveTab();
-    if (activeTab && this.editorView) {
-      activeTab.content = '';
-      this.editorView.dispatch({
-        changes: {
-          from: 0,
-          to: this.editorView.state.doc.length,
-          insert: ''
+    this.showConfirmPopup(
+      'Clear Content',
+      'Are you sure you want to clear all content in the current tab? This action cannot be undone.',
+      () => {
+        const activeTab = this.getActiveTab();
+        if (activeTab && this.editorView) {
+          activeTab.content = '';
+          this.editorView.dispatch({
+            changes: {
+              from: 0,
+              to: this.editorView.state.doc.length,
+              insert: ''
+            }
+          });
+          this.saveToLocalStorage();
         }
-      });
-      this.saveToLocalStorage();
-    }
+      }
+    );
   }
 
   private getActiveTab(): EditorTab | undefined {
@@ -402,5 +438,83 @@ export class NotepadComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get activeTab(): EditorTab | undefined {
     return this.getActiveTab();
+  }
+
+  // Popup methods
+  private showAlertPopup(title: string, message: string): void {
+    this.popupData = {
+      type: 'alert',
+      title,
+      message,
+      confirmText: 'OK'
+    };
+    this.showPopup = true;
+  }
+
+  private showConfirmPopup(title: string, message: string, onConfirm: () => void, onCancel?: () => void): void {
+    this.popupData = {
+      type: 'confirm',
+      title,
+      message,
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onConfirm,
+      onCancel
+    };
+    this.showPopup = true;
+  }
+
+  private showPromptPopup(title: string, message: string, defaultValue: string, onConfirm: (value?: string) => void, onCancel?: () => void): void {
+    this.popupInputValue = defaultValue;
+    this.popupData = {
+      type: 'prompt',
+      title,
+      message,
+      inputValue: defaultValue,
+      inputPlaceholder: 'Enter value...',
+      confirmText: 'OK',
+      cancelText: 'Cancel',
+      onConfirm,
+      onCancel
+    };
+    this.showPopup = true;
+  }
+
+  closePopup(): void {
+    this.showPopup = false;
+    this.popupData = null;
+    this.popupInputValue = '';
+  }
+
+  handlePopupConfirm(): void {
+    if (!this.popupData) return;
+
+    if (this.popupData.type === 'prompt') {
+      this.popupData.onConfirm?.(this.popupInputValue);
+    } else {
+      this.popupData.onConfirm?.();
+    }
+
+    this.closePopup();
+  }
+
+  handlePopupCancel(): void {
+    this.popupData?.onCancel?.();
+    this.closePopup();
+  }
+
+  onPopupKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.handlePopupCancel();
+    } else if (event.key === 'Enter' && this.popupData?.type !== 'prompt') {
+      this.handlePopupConfirm();
+    }
+  }
+
+  onPromptKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.handlePopupConfirm();
+    }
   }
 }

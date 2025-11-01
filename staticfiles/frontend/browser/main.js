@@ -84117,7 +84117,7 @@ var init_dist23 = __esm({
 function NotepadComponent_div_16_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 34);
+    \u0275\u0275elementStart(0, "div", 35);
     \u0275\u0275listener("click", function NotepadComponent_div_16_Template_div_click_0_listener() {
       const tab_r3 = \u0275\u0275restoreView(_r2).$implicit;
       const ctx_r3 = \u0275\u0275nextContext();
@@ -84127,16 +84127,16 @@ function NotepadComponent_div_16_Template(rf, ctx) {
       const ctx_r3 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r3.renameTab(tab_r3.id));
     });
-    \u0275\u0275elementStart(1, "span", 35);
+    \u0275\u0275elementStart(1, "span", 36);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "button", 36);
+    \u0275\u0275elementStart(3, "button", 37);
     \u0275\u0275listener("click", function NotepadComponent_div_16_Template_button_click_3_listener($event) {
       const tab_r3 = \u0275\u0275restoreView(_r2).$implicit;
       const ctx_r3 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r3.closeTab(tab_r3.id, $event));
     });
-    \u0275\u0275element(4, "i", 37);
+    \u0275\u0275element(4, "i", 38);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -84148,7 +84148,7 @@ function NotepadComponent_div_16_Template(rf, ctx) {
 }
 function NotepadComponent_option_24_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 38);
+    \u0275\u0275elementStart(0, "option", 39);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -84159,7 +84159,114 @@ function NotepadComponent_option_24_Template(rf, ctx) {
     \u0275\u0275textInterpolate1(" ", lang_r5.label, " ");
   }
 }
-var _c02, NotepadComponent;
+function NotepadComponent_div_56_div_12_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r7 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 52)(1, "input", 53);
+    \u0275\u0275twoWayListener("ngModelChange", function NotepadComponent_div_56_div_12_Template_input_ngModelChange_1_listener($event) {
+      \u0275\u0275restoreView(_r7);
+      const ctx_r3 = \u0275\u0275nextContext(2);
+      \u0275\u0275twoWayBindingSet(ctx_r3.popupInputValue, $event) || (ctx_r3.popupInputValue = $event);
+      return \u0275\u0275resetView($event);
+    });
+    \u0275\u0275listener("keydown", function NotepadComponent_div_56_div_12_Template_input_keydown_1_listener($event) {
+      \u0275\u0275restoreView(_r7);
+      const ctx_r3 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r3.onPromptKeydown($event));
+    });
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r3 = \u0275\u0275nextContext(2);
+    \u0275\u0275advance();
+    \u0275\u0275twoWayProperty("ngModel", ctx_r3.popupInputValue);
+    \u0275\u0275property("placeholder", (ctx_r3.popupData == null ? null : ctx_r3.popupData.inputPlaceholder) || "Enter value...");
+  }
+}
+function NotepadComponent_div_56_button_14_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r8 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 54);
+    \u0275\u0275listener("click", function NotepadComponent_div_56_button_14_Template_button_click_0_listener() {
+      \u0275\u0275restoreView(_r8);
+      const ctx_r3 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r3.handlePopupCancel());
+    });
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r3 = \u0275\u0275nextContext(2);
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1(" ", (ctx_r3.popupData == null ? null : ctx_r3.popupData.cancelText) || "Cancel", " ");
+  }
+}
+function NotepadComponent_div_56_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r6 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 40);
+    \u0275\u0275listener("click", function NotepadComponent_div_56_Template_div_click_0_listener($event) {
+      \u0275\u0275restoreView(_r6);
+      const ctx_r3 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView($event.target === $event.currentTarget && ctx_r3.handlePopupCancel());
+    })("keydown", function NotepadComponent_div_56_Template_div_keydown_0_listener($event) {
+      \u0275\u0275restoreView(_r6);
+      const ctx_r3 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r3.onPopupKeydown($event));
+    });
+    \u0275\u0275elementStart(1, "div", 41);
+    \u0275\u0275listener("click", function NotepadComponent_div_56_Template_div_click_1_listener($event) {
+      \u0275\u0275restoreView(_r6);
+      return \u0275\u0275resetView($event.stopPropagation());
+    });
+    \u0275\u0275elementStart(2, "div", 42)(3, "div", 4);
+    \u0275\u0275element(4, "i", 43);
+    \u0275\u0275elementStart(5, "h3", 44);
+    \u0275\u0275text(6);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(7, "button", 45);
+    \u0275\u0275listener("click", function NotepadComponent_div_56_Template_button_click_7_listener() {
+      \u0275\u0275restoreView(_r6);
+      const ctx_r3 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r3.handlePopupCancel());
+    });
+    \u0275\u0275element(8, "i", 12);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(9, "div", 46)(10, "p", 47);
+    \u0275\u0275text(11);
+    \u0275\u0275elementEnd();
+    \u0275\u0275template(12, NotepadComponent_div_56_div_12_Template, 2, 2, "div", 48);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(13, "div", 49);
+    \u0275\u0275template(14, NotepadComponent_div_56_button_14_Template, 2, 1, "button", 50);
+    \u0275\u0275elementStart(15, "button", 51);
+    \u0275\u0275listener("click", function NotepadComponent_div_56_Template_button_click_15_listener() {
+      \u0275\u0275restoreView(_r6);
+      const ctx_r3 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r3.handlePopupConfirm());
+    });
+    \u0275\u0275text(16);
+    \u0275\u0275elementEnd()()()();
+  }
+  if (rf & 2) {
+    const ctx_r3 = \u0275\u0275nextContext();
+    \u0275\u0275advance(4);
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction3(7, _c12, (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "alert", (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "confirm", (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "prompt"));
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate(ctx_r3.popupData == null ? null : ctx_r3.popupData.title);
+    \u0275\u0275advance(5);
+    \u0275\u0275textInterpolate(ctx_r3.popupData == null ? null : ctx_r3.popupData.message);
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "prompt");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("ngIf", (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) !== "alert");
+    \u0275\u0275advance();
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(11, _c2, (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "alert" || (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "prompt", (ctx_r3.popupData == null ? null : ctx_r3.popupData.type) === "confirm"));
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1(" ", (ctx_r3.popupData == null ? null : ctx_r3.popupData.confirmText) || "OK", " ");
+  }
+}
+var _c02, _c12, _c2, NotepadComponent;
 var init_notepad_component = __esm({
   "src/app/dashboard/notepad.component.ts"() {
     "use strict";
@@ -84184,6 +84291,8 @@ var init_notepad_component = __esm({
     init_common();
     init_forms();
     _c02 = ["editorContainer"];
+    _c12 = (a0, a1, a2) => ({ "ph-info text-sky-400": a0, "ph-question text-yellow-400": a1, "ph-pencil-simple text-blue-400": a2 });
+    _c2 = (a0, a1) => ({ "bg-sky-600 hover:bg-sky-500 text-white": a0, "bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-lg shadow-sky-500/30": a1 });
     NotepadComponent = class _NotepadComponent {
       close = new EventEmitter();
       editorContainer;
@@ -84193,6 +84302,10 @@ var init_notepad_component = __esm({
       isDarkTheme = true;
       isFullscreen = false;
       showSettings = false;
+      // Popup state
+      showPopup = false;
+      popupData = null;
+      popupInputValue = "";
       languageCompartment = new Compartment();
       themeCompartment = new Compartment();
       languages = [
@@ -84270,6 +84383,15 @@ var init_notepad_component = __esm({
             if (update.docChanged) {
               this.onEditorChange(update.state.doc.toString());
             }
+          }),
+          // Enable scrolling with custom theme
+          EditorView.theme({
+            "&": {
+              height: "100%"
+            },
+            ".cm-scroller": {
+              overflow: "auto"
+            }
           })
         ];
         const state = EditorState.create({
@@ -84340,7 +84462,7 @@ var init_notepad_component = __esm({
         if (index === -1)
           return;
         if (this.tabs.length === 1) {
-          alert("Cannot close the last tab");
+          this.showAlertPopup("Cannot Close Tab", "You cannot close the last tab. At least one tab must remain open.");
           return;
         }
         this.tabs.splice(index, 1);
@@ -84354,11 +84476,12 @@ var init_notepad_component = __esm({
         const tab2 = this.tabs.find((t2) => t2.id === tabId);
         if (!tab2)
           return;
-        const newName = prompt("Enter new tab name:", tab2.name);
-        if (newName && newName.trim()) {
-          tab2.name = newName.trim();
-          this.saveToLocalStorage();
-        }
+        this.showPromptPopup("Rename Tab", "Enter a new name for this tab:", tab2.name, (newName) => {
+          if (newName && newName.trim()) {
+            tab2.name = newName.trim();
+            this.saveToLocalStorage();
+          }
+        });
       }
       changeLanguage(language2) {
         const activeTab = this.getActiveTab();
@@ -84444,20 +84567,20 @@ var init_notepad_component = __esm({
         input2.click();
       }
       clearContent() {
-        if (!confirm("Are you sure you want to clear the current tab content?"))
-          return;
-        const activeTab = this.getActiveTab();
-        if (activeTab && this.editorView) {
-          activeTab.content = "";
-          this.editorView.dispatch({
-            changes: {
-              from: 0,
-              to: this.editorView.state.doc.length,
-              insert: ""
-            }
-          });
-          this.saveToLocalStorage();
-        }
+        this.showConfirmPopup("Clear Content", "Are you sure you want to clear all content in the current tab? This action cannot be undone.", () => {
+          const activeTab = this.getActiveTab();
+          if (activeTab && this.editorView) {
+            activeTab.content = "";
+            this.editorView.dispatch({
+              changes: {
+                from: 0,
+                to: this.editorView.state.doc.length,
+                insert: ""
+              }
+            });
+            this.saveToLocalStorage();
+          }
+        });
       }
       getActiveTab() {
         return this.tabs.find((t2) => t2.id === this.activeTabId);
@@ -84502,6 +84625,75 @@ var init_notepad_component = __esm({
       get activeTab() {
         return this.getActiveTab();
       }
+      // Popup methods
+      showAlertPopup(title, message) {
+        this.popupData = {
+          type: "alert",
+          title,
+          message,
+          confirmText: "OK"
+        };
+        this.showPopup = true;
+      }
+      showConfirmPopup(title, message, onConfirm, onCancel) {
+        this.popupData = {
+          type: "confirm",
+          title,
+          message,
+          confirmText: "Yes",
+          cancelText: "No",
+          onConfirm,
+          onCancel
+        };
+        this.showPopup = true;
+      }
+      showPromptPopup(title, message, defaultValue, onConfirm, onCancel) {
+        this.popupInputValue = defaultValue;
+        this.popupData = {
+          type: "prompt",
+          title,
+          message,
+          inputValue: defaultValue,
+          inputPlaceholder: "Enter value...",
+          confirmText: "OK",
+          cancelText: "Cancel",
+          onConfirm,
+          onCancel
+        };
+        this.showPopup = true;
+      }
+      closePopup() {
+        this.showPopup = false;
+        this.popupData = null;
+        this.popupInputValue = "";
+      }
+      handlePopupConfirm() {
+        if (!this.popupData)
+          return;
+        if (this.popupData.type === "prompt") {
+          this.popupData.onConfirm?.(this.popupInputValue);
+        } else {
+          this.popupData.onConfirm?.();
+        }
+        this.closePopup();
+      }
+      handlePopupCancel() {
+        this.popupData?.onCancel?.();
+        this.closePopup();
+      }
+      onPopupKeydown(event) {
+        if (event.key === "Escape") {
+          this.handlePopupCancel();
+        } else if (event.key === "Enter" && this.popupData?.type !== "prompt") {
+          this.handlePopupConfirm();
+        }
+      }
+      onPromptKeydown(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          this.handlePopupConfirm();
+        }
+      }
       static \u0275fac = function NotepadComponent_Factory(__ngFactoryType__) {
         return new (__ngFactoryType__ || _NotepadComponent)();
       };
@@ -84513,7 +84705,7 @@ var init_notepad_component = __esm({
           let _t;
           \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.editorContainer = _t.first);
         }
-      }, outputs: { close: "close" }, decls: 56, vars: 15, consts: [["editorContainer", ""], [1, "notepad-overlay", "fixed", "inset-0", "bg-black/80", "backdrop-blur-sm", "z-[9999]", "flex", "items-center", "justify-center", "p-4", 3, "click"], [1, "notepad-container", "bg-slate-900", "rounded-xl", "shadow-2xl", "border", "border-sky-500/30", "flex", "flex-col", "overflow-hidden"], [1, "notepad-header", "bg-slate-800/90", "border-b", "border-sky-500/20", "px-4", "py-3", "flex", "items-center", "justify-between", "shrink-0"], [1, "flex", "items-center", "gap-3"], [1, "ph", "ph-note-pencil", "text-2xl", "text-sky-400"], [1, "text-xl", "font-bold", "text-white"], [1, "flex", "items-center", "gap-2"], ["title", "Toggle Theme", 1, "p-2", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", 3, "click"], [1, "ph", "text-xl", 3, "ngClass"], ["title", "Toggle Fullscreen", 1, "p-2", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", 3, "click"], ["title", "Close Notepad", 1, "p-2", "rounded-lg", "hover:bg-red-600", "transition-colors", "text-red-400", "hover:text-white", 3, "click"], [1, "ph", "ph-x", "text-xl"], [1, "tabs-bar", "bg-slate-800/50", "border-b", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "gap-2", "overflow-x-auto", "shrink-0"], [1, "flex", "items-center", "gap-1", "flex-1", "overflow-x-auto"], ["class", "tab-item group relative flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer transition-all", 3, "active", "inactive", "click", "dblclick", 4, "ngFor", "ngForOf"], ["title", "Add New Tab", 1, "add-tab-btn", "p-2", "rounded-lg", "hover:bg-sky-600/20", "transition-colors", "text-sky-400", "shrink-0", 3, "click"], [1, "ph", "ph-plus", "text-lg"], [1, "toolbar", "bg-slate-800/30", "border-b", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "justify-between", "gap-4", "shrink-0"], [1, "text-sm", "text-slate-400"], [1, "px-3", "py-1.5", "rounded-lg", "bg-slate-700", "text-white", "text-sm", "border", "border-sky-500/20", "focus:border-sky-500", "focus:outline-none", 3, "change", "value"], [3, "value", 4, "ngFor", "ngForOf"], ["title", "Import File", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-upload-simple"], [1, "hidden", "sm:inline"], ["title", "Export File", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-download-simple"], ["title", "Clear Content", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-red-600/20", "transition-colors", "text-red-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-trash"], [1, "editor-wrapper", "flex-1", "overflow-hidden", "bg-slate-900"], [1, "editor-container", "h-full", "w-full"], [1, "status-bar", "bg-slate-800/50", "border-t", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "justify-between", "text-xs", "text-slate-400", "shrink-0"], [1, "flex", "items-center", "gap-4"], [1, "text-sky-400"], [1, "tab-item", "group", "relative", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-t-lg", "cursor-pointer", "transition-all", 3, "click", "dblclick"], [1, "text-sm", "font-medium", "whitespace-nowrap"], ["title", "Close Tab", 1, "close-tab-btn", "opacity-0", "group-hover:opacity-100", "p-1", "rounded", "hover:bg-red-500/20", "transition-all", 3, "click"], [1, "ph", "ph-x", "text-xs"], [3, "value"]], template: function NotepadComponent_Template(rf, ctx) {
+      }, outputs: { close: "close" }, decls: 57, vars: 16, consts: [["editorContainer", ""], [1, "notepad-overlay", "fixed", "inset-0", "bg-black/80", "backdrop-blur-sm", "z-[9999]", "flex", "items-center", "justify-center", "p-4", 3, "click"], [1, "notepad-container", "bg-slate-900", "rounded-xl", "shadow-2xl", "border", "border-sky-500/30", "flex", "flex-col", "overflow-hidden"], [1, "notepad-header", "bg-slate-800/90", "border-b", "border-sky-500/20", "px-4", "py-3", "flex", "items-center", "justify-between", "shrink-0"], [1, "flex", "items-center", "gap-3"], [1, "ph", "ph-note-pencil", "text-2xl", "text-sky-400"], [1, "text-xl", "font-bold", "text-white"], [1, "flex", "items-center", "gap-2"], ["title", "Toggle Theme", 1, "p-2", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", 3, "click"], [1, "ph", "text-xl", 3, "ngClass"], ["title", "Toggle Fullscreen", 1, "p-2", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", 3, "click"], ["title", "Close Notepad", 1, "p-2", "rounded-lg", "hover:bg-red-600", "transition-colors", "text-red-400", "hover:text-white", 3, "click"], [1, "ph", "ph-x", "text-xl"], [1, "tabs-bar", "bg-slate-800/50", "border-b", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "gap-2", "overflow-x-auto", "shrink-0"], [1, "flex", "items-center", "gap-1", "flex-1", "overflow-x-auto"], ["class", "tab-item group relative flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer transition-all", 3, "active", "inactive", "click", "dblclick", 4, "ngFor", "ngForOf"], ["title", "Add New Tab", 1, "add-tab-btn", "p-2", "rounded-lg", "hover:bg-sky-600/20", "transition-colors", "text-sky-400", "shrink-0", 3, "click"], [1, "ph", "ph-plus", "text-lg"], [1, "toolbar", "bg-slate-800/30", "border-b", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "justify-between", "gap-4", "shrink-0"], [1, "text-sm", "text-slate-400"], [1, "px-3", "py-1.5", "rounded-lg", "bg-slate-700", "text-white", "text-sm", "border", "border-sky-500/20", "focus:border-sky-500", "focus:outline-none", 3, "change", "value"], [3, "value", 4, "ngFor", "ngForOf"], ["title", "Import File", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-upload-simple"], [1, "hidden", "sm:inline"], ["title", "Export File", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-sky-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-download-simple"], ["title", "Clear Content", 1, "toolbar-btn", "px-3", "py-1.5", "rounded-lg", "hover:bg-red-600/20", "transition-colors", "text-red-400", "text-sm", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-trash"], [1, "editor-wrapper", "flex-1", "overflow-hidden", "bg-slate-900"], [1, "editor-container", "h-full", "w-full"], [1, "status-bar", "bg-slate-800/50", "border-t", "border-sky-500/10", "px-4", "py-2", "flex", "items-center", "justify-between", "text-xs", "text-slate-400", "shrink-0"], [1, "flex", "items-center", "gap-4"], [1, "text-sky-400"], ["class", "popup-overlay fixed inset-0 bg-black/90 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 animate-fadeIn", 3, "click", "keydown", 4, "ngIf"], [1, "tab-item", "group", "relative", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-t-lg", "cursor-pointer", "transition-all", 3, "click", "dblclick"], [1, "text-sm", "font-medium", "whitespace-nowrap"], ["title", "Close Tab", 1, "close-tab-btn", "opacity-0", "group-hover:opacity-100", "p-1", "rounded", "hover:bg-red-500/20", "transition-all", 3, "click"], [1, "ph", "ph-x", "text-xs"], [3, "value"], [1, "popup-overlay", "fixed", "inset-0", "bg-black/90", "backdrop-blur-sm", "z-[10000]", "flex", "items-center", "justify-center", "p-4", "animate-fadeIn", 3, "click", "keydown"], [1, "popup-modal", "bg-slate-800", "rounded-xl", "shadow-2xl", "border", "border-sky-500/30", "max-w-md", "w-full", "animate-scaleIn", 3, "click"], [1, "popup-header", "bg-gradient-to-r", "from-sky-600/20", "to-blue-600/20", "border-b", "border-sky-500/20", "px-6", "py-4", "flex", "items-center", "justify-between"], [1, "ph", "text-2xl", 3, "ngClass"], [1, "text-lg", "font-bold", "text-white"], ["title", "Close", 1, "p-1.5", "rounded-lg", "hover:bg-slate-700", "transition-colors", "text-slate-400", "hover:text-white", 3, "click"], [1, "popup-body", "px-6", "py-5"], [1, "text-slate-300", "text-base", "leading-relaxed", "mb-4"], ["class", "mt-4", 4, "ngIf"], [1, "popup-footer", "bg-slate-900/50", "border-t", "border-sky-500/10", "px-6", "py-4", "flex", "items-center", "justify-end", "gap-3"], ["class", "px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-medium transition-all transform hover:scale-105 active:scale-95", 3, "click", 4, "ngIf"], [1, "px-5", "py-2.5", "rounded-lg", "font-medium", "transition-all", "transform", "hover:scale-105", "active:scale-95", 3, "click", "ngClass"], [1, "mt-4"], ["type", "text", "autofocus", "", 1, "w-full", "px-4", "py-3", "rounded-lg", "bg-slate-900", "text-white", "border", "border-sky-500/30", "focus:border-sky-500", "focus:outline-none", "focus:ring-2", "focus:ring-sky-500/20", "transition-all", 3, "ngModelChange", "keydown", "ngModel", "placeholder"], [1, "px-5", "py-2.5", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "text-slate-300", "hover:text-white", "font-medium", "transition-all", "transform", "hover:scale-105", "active:scale-95", 3, "click"]], template: function NotepadComponent_Template(rf, ctx) {
         if (rf & 1) {
           const _r1 = \u0275\u0275getCurrentView();
           \u0275\u0275elementStart(0, "div", 1);
@@ -84613,6 +84805,7 @@ var init_notepad_component = __esm({
           \u0275\u0275elementStart(54, "span");
           \u0275\u0275text(55);
           \u0275\u0275elementEnd()()()()();
+          \u0275\u0275template(56, NotepadComponent_div_56_Template, 17, 14, "div", 34);
         }
         if (rf & 2) {
           \u0275\u0275classProp("fullscreen", ctx.isFullscreen);
@@ -84634,8 +84827,10 @@ var init_notepad_component = __esm({
           \u0275\u0275textInterpolate(ctx.activeTab == null ? null : ctx.activeTab.language);
           \u0275\u0275advance(5);
           \u0275\u0275textInterpolate2("", ctx.tabs.length, " tab", ctx.tabs.length !== 1 ? "s" : "");
+          \u0275\u0275advance();
+          \u0275\u0275property("ngIf", ctx.showPopup);
         }
-      }, dependencies: [CommonModule, NgClass, NgForOf, FormsModule, NgSelectOption, \u0275NgSelectMultipleOption], styles: ['\n\n.notepad-overlay[_ngcontent-%COMP%] {\n  animation: _ngcontent-%COMP%_fadeIn 0.2s ease-out;\n}\n.notepad-overlay.fullscreen[_ngcontent-%COMP%] {\n  padding: 0;\n}\n.notepad-container[_ngcontent-%COMP%] {\n  transition: all 0.3s ease;\n}\n.notepad-container.normal-container[_ngcontent-%COMP%] {\n  width: 90vw;\n  max-width: 1400px;\n  height: 85vh;\n  max-height: 900px;\n}\n.notepad-container.fullscreen-container[_ngcontent-%COMP%] {\n  width: 100vw;\n  height: 100vh;\n  max-width: 100vw;\n  max-height: 100vh;\n  border-radius: 0;\n}\n.notepad-header[_ngcontent-%COMP%] {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.notepad-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  transform: scale(1.05);\n}\n.notepad-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.95);\n}\n.tabs-bar[_ngcontent-%COMP%] {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar {\n  height: 4px;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n  background: transparent;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 2px;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n.tab-item[_ngcontent-%COMP%] {\n  position: relative;\n  min-width: 120px;\n  max-width: 200px;\n}\n.tab-item.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(14, 165, 233, 0.2),\n      rgba(14, 165, 233, 0.1));\n  border: 1px solid rgba(56, 189, 248, 0.3);\n  border-bottom: none;\n  color: #38bdf8;\n}\n.tab-item.active[_ngcontent-%COMP%]::after {\n  content: "";\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  right: 0;\n  height: 2px;\n  background: #0f172a;\n}\n.tab-item.inactive[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.5);\n  color: #94a3b8;\n  border: 1px solid transparent;\n}\n.tab-item.inactive[_ngcontent-%COMP%]:hover {\n  background: rgba(30, 41, 59, 0.8);\n  border-color: rgba(56, 189, 248, 0.2);\n  color: #cbd5e1;\n}\n.tab-item[_ngcontent-%COMP%]   .close-tab-btn[_ngcontent-%COMP%] {\n  color: #94a3b8;\n}\n.tab-item[_ngcontent-%COMP%]   .close-tab-btn[_ngcontent-%COMP%]:hover {\n  color: #ef4444;\n}\n.add-tab-btn[_ngcontent-%COMP%]:hover {\n  transform: scale(1.1);\n}\n.add-tab-btn[_ngcontent-%COMP%]:active {\n  transform: scale(0.9);\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%] {\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%]:hover {\n  border-color: rgba(56, 189, 248, 0.5);\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%]:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%] {\n  transition: all 0.2s;\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%]:active {\n  transform: translateY(0);\n}\n.editor-wrapper[_ngcontent-%COMP%] {\n  position: relative;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%] {\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  font-size: 14px;\n  line-height: 1.6;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor) {\n  height: 100%;\n  font-size: 14px;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%] {\n  overflow: auto;\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-gutters[_ngcontent-%COMP%] {\n  background: rgba(15, 23, 42, 0.5);\n  border-right: 1px solid rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-activeLineGutter[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-activeLine[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.05);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-selectionBackground[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.2) !important;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-cursor[_ngcontent-%COMP%] {\n  border-left-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-focused[_ngcontent-%COMP%] {\n  outline: none;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.95);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  background: rgba(15, 23, 42, 0.8);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #e2e8f0;\n  padding: 4px 8px;\n  border-radius: 4px;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   input[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.1);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #38bdf8;\n  padding: 4px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(56, 189, 248, 0.2);\n  border-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor:not(.cm-focused))   .cm-gutters[_ngcontent-%COMP%] {\n  background: rgba(241, 245, 249, 0.5);\n}\n.status-bar[_ngcontent-%COMP%] {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.status-bar[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n  font-weight: 600;\n}\n@keyframes _ngcontent-%COMP%_fadeIn {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@media (max-width: 768px) {\n  .notepad-container.normal-container[_ngcontent-%COMP%] {\n    width: 100vw;\n    height: 100vh;\n    max-width: 100vw;\n    max-height: 100vh;\n    border-radius: 0;\n  }\n  .tab-item[_ngcontent-%COMP%] {\n    min-width: 100px;\n    max-width: 150px;\n    font-size: 0.875rem;\n  }\n  .toolbar[_ngcontent-%COMP%] {\n    flex-wrap: wrap;\n    gap: 0.5rem;\n  }\n  .status-bar[_ngcontent-%COMP%] {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 0.5rem;\n  }\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 4px;\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n*[_ngcontent-%COMP%] {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);\n}\n/*# sourceMappingURL=notepad.component.css.map */'] });
+      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, NgSelectOption, \u0275NgSelectMultipleOption, DefaultValueAccessor, NgControlStatus, NgModel], styles: ['\n\n.notepad-overlay[_ngcontent-%COMP%] {\n  animation: _ngcontent-%COMP%_fadeIn 0.2s ease-out;\n}\n.notepad-overlay.fullscreen[_ngcontent-%COMP%] {\n  padding: 0;\n}\n.notepad-container[_ngcontent-%COMP%] {\n  transition: all 0.3s ease;\n}\n.notepad-container.normal-container[_ngcontent-%COMP%] {\n  width: 90vw;\n  max-width: 1400px;\n  height: 85vh;\n  max-height: 900px;\n}\n.notepad-container.fullscreen-container[_ngcontent-%COMP%] {\n  width: 100vw;\n  height: 100vh;\n  max-width: 100vw;\n  max-height: 100vh;\n  border-radius: 0;\n}\n.notepad-header[_ngcontent-%COMP%] {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.notepad-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  transform: scale(1.05);\n}\n.notepad-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.95);\n}\n.tabs-bar[_ngcontent-%COMP%] {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar {\n  height: 4px;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n  background: transparent;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 2px;\n}\n.tabs-bar[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n.tab-item[_ngcontent-%COMP%] {\n  position: relative;\n  min-width: 120px;\n  max-width: 200px;\n}\n.tab-item.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(14, 165, 233, 0.2),\n      rgba(14, 165, 233, 0.1));\n  border: 1px solid rgba(56, 189, 248, 0.3);\n  border-bottom: none;\n  color: #38bdf8;\n}\n.tab-item.active[_ngcontent-%COMP%]::after {\n  content: "";\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  right: 0;\n  height: 2px;\n  background: #0f172a;\n}\n.tab-item.inactive[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.5);\n  color: #94a3b8;\n  border: 1px solid transparent;\n}\n.tab-item.inactive[_ngcontent-%COMP%]:hover {\n  background: rgba(30, 41, 59, 0.8);\n  border-color: rgba(56, 189, 248, 0.2);\n  color: #cbd5e1;\n}\n.tab-item[_ngcontent-%COMP%]   .close-tab-btn[_ngcontent-%COMP%] {\n  color: #94a3b8;\n}\n.tab-item[_ngcontent-%COMP%]   .close-tab-btn[_ngcontent-%COMP%]:hover {\n  color: #ef4444;\n}\n.add-tab-btn[_ngcontent-%COMP%]:hover {\n  transform: scale(1.1);\n}\n.add-tab-btn[_ngcontent-%COMP%]:active {\n  transform: scale(0.9);\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%] {\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%]:hover {\n  border-color: rgba(56, 189, 248, 0.5);\n}\n.toolbar[_ngcontent-%COMP%]   select[_ngcontent-%COMP%]:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%] {\n  transition: all 0.2s;\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);\n}\n.toolbar[_ngcontent-%COMP%]   .toolbar-btn[_ngcontent-%COMP%]:active {\n  transform: translateY(0);\n}\n.editor-wrapper[_ngcontent-%COMP%] {\n  position: relative;\n  overflow: hidden;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%] {\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  font-size: 14px;\n  line-height: 1.6;\n  height: 100%;\n  overflow: hidden;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor) {\n  height: 100%;\n  font-size: 14px;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%] {\n  overflow-y: auto !important;\n  overflow-x: auto !important;\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  height: 100%;\n  scrollbar-width: auto;\n  scrollbar-color: rgba(56, 189, 248, 0.4) rgba(15, 23, 42, 0.5);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%]::-webkit-scrollbar {\n  width: 12px;\n  height: 12px;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n  border-radius: 0;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.4);\n  border-radius: 6px;\n  border: 2px solid rgba(15, 23, 42, 0.5);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.6);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-scroller[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:active {\n  background: rgba(56, 189, 248, 0.8);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-gutters[_ngcontent-%COMP%] {\n  background: rgba(15, 23, 42, 0.5);\n  border-right: 1px solid rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-activeLineGutter[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-activeLine[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.05);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-selectionBackground[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.2) !important;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-cursor[_ngcontent-%COMP%] {\n  border-left-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-focused[_ngcontent-%COMP%] {\n  outline: none;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.95);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  background: rgba(15, 23, 42, 0.8);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #e2e8f0;\n  padding: 4px 8px;\n  border-radius: 4px;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   input[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(56, 189, 248, 0.1);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #38bdf8;\n  padding: 4px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor)   .cm-panel[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(56, 189, 248, 0.2);\n  border-color: #38bdf8;\n}\n.editor-wrapper[_ngcontent-%COMP%]   .editor-container[_ngcontent-%COMP%]   [_ngcontent-%COMP%]:deep(.cm-editor:not(.cm-focused))   .cm-gutters[_ngcontent-%COMP%] {\n  background: rgba(241, 245, 249, 0.5);\n}\n.status-bar[_ngcontent-%COMP%] {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.status-bar[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n  font-weight: 600;\n}\n.popup-overlay[_ngcontent-%COMP%] {\n  animation: _ngcontent-%COMP%_fadeIn 0.2s ease-out;\n}\n.popup-overlay[_ngcontent-%COMP%]   .popup-modal[_ngcontent-%COMP%] {\n  animation: _ngcontent-%COMP%_scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);\n  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\n}\n.popup-header[_ngcontent-%COMP%] {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.popup-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  transform: scale(1.1);\n}\n.popup-header[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.9);\n}\n.popup-body[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  word-wrap: break-word;\n}\n.popup-body[_ngcontent-%COMP%]   input[_ngcontent-%COMP%]::placeholder {\n  color: rgba(148, 163, 184, 0.5);\n}\n.popup-body[_ngcontent-%COMP%]   input[_ngcontent-%COMP%]:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.popup-footer[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  cursor: pointer;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.popup-footer[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:focus {\n  outline: none;\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);\n}\n.popup-footer[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none !important;\n}\n@keyframes _ngcontent-%COMP%_fadeIn {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes _ngcontent-%COMP%_scaleIn {\n  from {\n    opacity: 0;\n    transform: scale(0.9) translateY(-20px);\n  }\n  to {\n    opacity: 1;\n    transform: scale(1) translateY(0);\n  }\n}\n@media (max-width: 768px) {\n  .notepad-container.normal-container[_ngcontent-%COMP%] {\n    width: 100vw;\n    height: 100vh;\n    max-width: 100vw;\n    max-height: 100vh;\n    border-radius: 0;\n  }\n  .tab-item[_ngcontent-%COMP%] {\n    min-width: 100px;\n    max-width: 150px;\n    font-size: 0.875rem;\n  }\n  .toolbar[_ngcontent-%COMP%] {\n    flex-wrap: wrap;\n    gap: 0.5rem;\n  }\n  .status-bar[_ngcontent-%COMP%] {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 0.5rem;\n  }\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 4px;\n}\n[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n*[_ngcontent-%COMP%] {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);\n}\n/*# sourceMappingURL=notepad.component.css.map */'] });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(NotepadComponent, [{
@@ -84764,7 +84959,72 @@ var init_notepad_component = __esm({
     </div>\r
   </div>\r
 </div>\r
-`, styles: ['/* src/app/dashboard/notepad.component.scss */\n.notepad-overlay {\n  animation: fadeIn 0.2s ease-out;\n}\n.notepad-overlay.fullscreen {\n  padding: 0;\n}\n.notepad-container {\n  transition: all 0.3s ease;\n}\n.notepad-container.normal-container {\n  width: 90vw;\n  max-width: 1400px;\n  height: 85vh;\n  max-height: 900px;\n}\n.notepad-container.fullscreen-container {\n  width: 100vw;\n  height: 100vh;\n  max-width: 100vw;\n  max-height: 100vh;\n  border-radius: 0;\n}\n.notepad-header {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.notepad-header button:hover {\n  transform: scale(1.05);\n}\n.notepad-header button:active {\n  transform: scale(0.95);\n}\n.tabs-bar {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;\n}\n.tabs-bar::-webkit-scrollbar {\n  height: 4px;\n}\n.tabs-bar::-webkit-scrollbar-track {\n  background: transparent;\n}\n.tabs-bar::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 2px;\n}\n.tabs-bar::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n.tab-item {\n  position: relative;\n  min-width: 120px;\n  max-width: 200px;\n}\n.tab-item.active {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(14, 165, 233, 0.2),\n      rgba(14, 165, 233, 0.1));\n  border: 1px solid rgba(56, 189, 248, 0.3);\n  border-bottom: none;\n  color: #38bdf8;\n}\n.tab-item.active::after {\n  content: "";\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  right: 0;\n  height: 2px;\n  background: #0f172a;\n}\n.tab-item.inactive {\n  background: rgba(30, 41, 59, 0.5);\n  color: #94a3b8;\n  border: 1px solid transparent;\n}\n.tab-item.inactive:hover {\n  background: rgba(30, 41, 59, 0.8);\n  border-color: rgba(56, 189, 248, 0.2);\n  color: #cbd5e1;\n}\n.tab-item .close-tab-btn {\n  color: #94a3b8;\n}\n.tab-item .close-tab-btn:hover {\n  color: #ef4444;\n}\n.add-tab-btn:hover {\n  transform: scale(1.1);\n}\n.add-tab-btn:active {\n  transform: scale(0.9);\n}\n.toolbar select {\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.toolbar select:hover {\n  border-color: rgba(56, 189, 248, 0.5);\n}\n.toolbar select:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.toolbar .toolbar-btn {\n  transition: all 0.2s;\n}\n.toolbar .toolbar-btn:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);\n}\n.toolbar .toolbar-btn:active {\n  transform: translateY(0);\n}\n.editor-wrapper {\n  position: relative;\n}\n.editor-wrapper .editor-container {\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  font-size: 14px;\n  line-height: 1.6;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) {\n  height: 100%;\n  font-size: 14px;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller {\n  overflow: auto;\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-gutters {\n  background: rgba(15, 23, 42, 0.5);\n  border-right: 1px solid rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-activeLineGutter {\n  background: rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-activeLine {\n  background: rgba(56, 189, 248, 0.05);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-selectionBackground {\n  background: rgba(56, 189, 248, 0.2) !important;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-cursor {\n  border-left-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-focused {\n  outline: none;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel {\n  background: rgba(30, 41, 59, 0.95);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel input {\n  background: rgba(15, 23, 42, 0.8);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #e2e8f0;\n  padding: 4px 8px;\n  border-radius: 4px;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel input:focus {\n  outline: none;\n  border-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel button {\n  background: rgba(56, 189, 248, 0.1);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #38bdf8;\n  padding: 4px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel button:hover {\n  background: rgba(56, 189, 248, 0.2);\n  border-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor:not(.cm-focused)) .cm-gutters {\n  background: rgba(241, 245, 249, 0.5);\n}\n.status-bar {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.status-bar strong {\n  font-weight: 600;\n}\n@keyframes fadeIn {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@media (max-width: 768px) {\n  .notepad-container.normal-container {\n    width: 100vw;\n    height: 100vh;\n    max-width: 100vw;\n    max-height: 100vh;\n    border-radius: 0;\n  }\n  .tab-item {\n    min-width: 100px;\n    max-width: 150px;\n    font-size: 0.875rem;\n  }\n  .toolbar {\n    flex-wrap: wrap;\n    gap: 0.5rem;\n  }\n  .status-bar {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 0.5rem;\n  }\n}\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n}\n::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n* {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);\n}\n/*# sourceMappingURL=notepad.component.css.map */\n'] }]
+\r
+<!-- Custom Popup Modal -->\r
+<div *ngIf="showPopup" \r
+     class="popup-overlay fixed inset-0 bg-black/90 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 animate-fadeIn"\r
+     (click)="$event.target === $event.currentTarget && handlePopupCancel()"\r
+     (keydown)="onPopupKeydown($event)">\r
+  \r
+  <div class="popup-modal bg-slate-800 rounded-xl shadow-2xl border border-sky-500/30 max-w-md w-full animate-scaleIn"\r
+       (click)="$event.stopPropagation()">\r
+    \r
+    <!-- Popup Header -->\r
+    <div class="popup-header bg-gradient-to-r from-sky-600/20 to-blue-600/20 border-b border-sky-500/20 px-6 py-4 flex items-center justify-between">\r
+      <div class="flex items-center gap-3">\r
+        <i class="ph text-2xl" \r
+           [ngClass]="{\r
+             'ph-info text-sky-400': popupData?.type === 'alert',\r
+             'ph-question text-yellow-400': popupData?.type === 'confirm',\r
+             'ph-pencil-simple text-blue-400': popupData?.type === 'prompt'\r
+           }"></i>\r
+        <h3 class="text-lg font-bold text-white">{{ popupData?.title }}</h3>\r
+      </div>\r
+      <button (click)="handlePopupCancel()" \r
+              class="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"\r
+              title="Close">\r
+        <i class="ph ph-x text-xl"></i>\r
+      </button>\r
+    </div>\r
+\r
+    <!-- Popup Body -->\r
+    <div class="popup-body px-6 py-5">\r
+      <p class="text-slate-300 text-base leading-relaxed mb-4">{{ popupData?.message }}</p>\r
+      \r
+      <!-- Input field for prompt type -->\r
+      <div *ngIf="popupData?.type === 'prompt'" class="mt-4">\r
+        <input \r
+          type="text" \r
+          [(ngModel)]="popupInputValue"\r
+          [placeholder]="popupData?.inputPlaceholder || 'Enter value...'"\r
+          (keydown)="onPromptKeydown($event)"\r
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 text-white border border-sky-500/30 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"\r
+          autofocus>\r
+      </div>\r
+    </div>\r
+\r
+    <!-- Popup Footer -->\r
+    <div class="popup-footer bg-slate-900/50 border-t border-sky-500/10 px-6 py-4 flex items-center justify-end gap-3">\r
+      <!-- Cancel button (for confirm and prompt types) -->\r
+      <button *ngIf="popupData?.type !== 'alert'"\r
+              (click)="handlePopupCancel()"\r
+              class="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-medium transition-all transform hover:scale-105 active:scale-95">\r
+        {{ popupData?.cancelText || 'Cancel' }}\r
+      </button>\r
+      \r
+      <!-- Confirm button -->\r
+      <button (click)="handlePopupConfirm()"\r
+              class="px-5 py-2.5 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95"\r
+              [ngClass]="{\r
+                'bg-sky-600 hover:bg-sky-500 text-white': popupData?.type === 'alert' || popupData?.type === 'prompt',\r
+                'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-lg shadow-sky-500/30': popupData?.type === 'confirm'\r
+              }">\r
+        {{ popupData?.confirmText || 'OK' }}\r
+      </button>\r
+    </div>\r
+  </div>\r
+</div>\r
+`, styles: ['/* src/app/dashboard/notepad.component.scss */\n.notepad-overlay {\n  animation: fadeIn 0.2s ease-out;\n}\n.notepad-overlay.fullscreen {\n  padding: 0;\n}\n.notepad-container {\n  transition: all 0.3s ease;\n}\n.notepad-container.normal-container {\n  width: 90vw;\n  max-width: 1400px;\n  height: 85vh;\n  max-height: 900px;\n}\n.notepad-container.fullscreen-container {\n  width: 100vw;\n  height: 100vh;\n  max-width: 100vw;\n  max-height: 100vh;\n  border-radius: 0;\n}\n.notepad-header {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.notepad-header button:hover {\n  transform: scale(1.05);\n}\n.notepad-header button:active {\n  transform: scale(0.95);\n}\n.tabs-bar {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) transparent;\n}\n.tabs-bar::-webkit-scrollbar {\n  height: 4px;\n}\n.tabs-bar::-webkit-scrollbar-track {\n  background: transparent;\n}\n.tabs-bar::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 2px;\n}\n.tabs-bar::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n.tab-item {\n  position: relative;\n  min-width: 120px;\n  max-width: 200px;\n}\n.tab-item.active {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(14, 165, 233, 0.2),\n      rgba(14, 165, 233, 0.1));\n  border: 1px solid rgba(56, 189, 248, 0.3);\n  border-bottom: none;\n  color: #38bdf8;\n}\n.tab-item.active::after {\n  content: "";\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  right: 0;\n  height: 2px;\n  background: #0f172a;\n}\n.tab-item.inactive {\n  background: rgba(30, 41, 59, 0.5);\n  color: #94a3b8;\n  border: 1px solid transparent;\n}\n.tab-item.inactive:hover {\n  background: rgba(30, 41, 59, 0.8);\n  border-color: rgba(56, 189, 248, 0.2);\n  color: #cbd5e1;\n}\n.tab-item .close-tab-btn {\n  color: #94a3b8;\n}\n.tab-item .close-tab-btn:hover {\n  color: #ef4444;\n}\n.add-tab-btn:hover {\n  transform: scale(1.1);\n}\n.add-tab-btn:active {\n  transform: scale(0.9);\n}\n.toolbar select {\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.toolbar select:hover {\n  border-color: rgba(56, 189, 248, 0.5);\n}\n.toolbar select:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.toolbar .toolbar-btn {\n  transition: all 0.2s;\n}\n.toolbar .toolbar-btn:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);\n}\n.toolbar .toolbar-btn:active {\n  transform: translateY(0);\n}\n.editor-wrapper {\n  position: relative;\n  overflow: hidden;\n}\n.editor-wrapper .editor-container {\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  font-size: 14px;\n  line-height: 1.6;\n  height: 100%;\n  overflow: hidden;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) {\n  height: 100%;\n  font-size: 14px;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller {\n  overflow-y: auto !important;\n  overflow-x: auto !important;\n  font-family:\n    "Consolas",\n    "Monaco",\n    "Courier New",\n    monospace;\n  height: 100%;\n  scrollbar-width: auto;\n  scrollbar-color: rgba(56, 189, 248, 0.4) rgba(15, 23, 42, 0.5);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller::-webkit-scrollbar {\n  width: 12px;\n  height: 12px;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n  border-radius: 0;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.4);\n  border-radius: 6px;\n  border: 2px solid rgba(15, 23, 42, 0.5);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.6);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-scroller::-webkit-scrollbar-thumb:active {\n  background: rgba(56, 189, 248, 0.8);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-gutters {\n  background: rgba(15, 23, 42, 0.5);\n  border-right: 1px solid rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-activeLineGutter {\n  background: rgba(56, 189, 248, 0.1);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-activeLine {\n  background: rgba(56, 189, 248, 0.05);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-selectionBackground {\n  background: rgba(56, 189, 248, 0.2) !important;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-cursor {\n  border-left-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-focused {\n  outline: none;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel {\n  background: rgba(30, 41, 59, 0.95);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel input {\n  background: rgba(15, 23, 42, 0.8);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #e2e8f0;\n  padding: 4px 8px;\n  border-radius: 4px;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel input:focus {\n  outline: none;\n  border-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel button {\n  background: rgba(56, 189, 248, 0.1);\n  border: 1px solid rgba(56, 189, 248, 0.2);\n  color: #38bdf8;\n  padding: 4px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.editor-wrapper .editor-container :deep(.cm-editor) .cm-panel button:hover {\n  background: rgba(56, 189, 248, 0.2);\n  border-color: #38bdf8;\n}\n.editor-wrapper .editor-container :deep(.cm-editor:not(.cm-focused)) .cm-gutters {\n  background: rgba(241, 245, 249, 0.5);\n}\n.status-bar {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.status-bar strong {\n  font-weight: 600;\n}\n.popup-overlay {\n  animation: fadeIn 0.2s ease-out;\n}\n.popup-overlay .popup-modal {\n  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);\n  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\n}\n.popup-header {\n  -webkit-user-select: none;\n  user-select: none;\n}\n.popup-header button:hover {\n  transform: scale(1.1);\n}\n.popup-header button:active {\n  transform: scale(0.9);\n}\n.popup-body p {\n  word-wrap: break-word;\n}\n.popup-body input::placeholder {\n  color: rgba(148, 163, 184, 0.5);\n}\n.popup-body input:focus {\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);\n}\n.popup-footer button {\n  cursor: pointer;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.popup-footer button:focus {\n  outline: none;\n  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);\n}\n.popup-footer button:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none !important;\n}\n@keyframes fadeIn {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes scaleIn {\n  from {\n    opacity: 0;\n    transform: scale(0.9) translateY(-20px);\n  }\n  to {\n    opacity: 1;\n    transform: scale(1) translateY(0);\n  }\n}\n@media (max-width: 768px) {\n  .notepad-container.normal-container {\n    width: 100vw;\n    height: 100vh;\n    max-width: 100vw;\n    max-height: 100vh;\n    border-radius: 0;\n  }\n  .tab-item {\n    min-width: 100px;\n    max-width: 150px;\n    font-size: 0.875rem;\n  }\n  .toolbar {\n    flex-wrap: wrap;\n    gap: 0.5rem;\n  }\n  .status-bar {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 0.5rem;\n  }\n}\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n::-webkit-scrollbar-track {\n  background: rgba(15, 23, 42, 0.5);\n}\n::-webkit-scrollbar-thumb {\n  background: rgba(56, 189, 248, 0.3);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: rgba(56, 189, 248, 0.5);\n}\n* {\n  scrollbar-width: thin;\n  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);\n}\n/*# sourceMappingURL=notepad.component.css.map */\n'] }]
       }], () => [], { close: [{
         type: Output
       }], editorContainer: [{
@@ -84773,7 +85033,7 @@ var init_notepad_component = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(NotepadComponent, { className: "NotepadComponent", filePath: "src/app/dashboard/notepad.component.ts", lineNumber: 40 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(NotepadComponent, { className: "NotepadComponent", filePath: "src/app/dashboard/notepad.component.ts", lineNumber: 52 });
     })();
   }
 });
@@ -90267,7 +90527,7 @@ function Dashboard_main_2_div_4_Template(rf, ctx) {
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c2, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c22, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
     \u0275\u0275advance();
     \u0275\u0275property("ngForOf", ctx_r1.gridParticipants)("ngForTrackBy", ctx_r1.trackByParticipant);
   }
@@ -90572,7 +90832,7 @@ function Dashboard_main_2_Template(rf, ctx) {
     \u0275\u0275advance(23);
     \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo);
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c12, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c13, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
     \u0275\u0275advance(4);
     \u0275\u0275property("value", (ctx_r1.you == null ? null : ctx_r1.you.name) || "You");
     \u0275\u0275advance(5);
@@ -90601,7 +90861,7 @@ function Dashboard_app_notepad_3_Template(rf, ctx) {
     \u0275\u0275elementEnd();
   }
 }
-var _c03, _c12, _c2, _c3, MediaSrcObjectDirective, Dashboard;
+var _c03, _c13, _c22, _c3, MediaSrcObjectDirective, Dashboard;
 var init_dashboard = __esm({
   "src/app/dashboard/dashboard.ts"() {
     "use strict";
@@ -90619,8 +90879,8 @@ var init_dashboard = __esm({
     init_forms();
     init_drag_drop();
     _c03 = ["chatScroll"];
-    _c12 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
-    _c2 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
+    _c13 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
+    _c22 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
     _c3 = (a0, a1) => ({ "bg-green-400": a0, "bg-red-400": a1 });
     MediaSrcObjectDirective = class _MediaSrcObjectDirective {
       el;

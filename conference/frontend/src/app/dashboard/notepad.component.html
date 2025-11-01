@@ -122,3 +122,68 @@
     </div>
   </div>
 </div>
+
+<!-- Custom Popup Modal -->
+<div *ngIf="showPopup" 
+     class="popup-overlay fixed inset-0 bg-black/90 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 animate-fadeIn"
+     (click)="$event.target === $event.currentTarget && handlePopupCancel()"
+     (keydown)="onPopupKeydown($event)">
+  
+  <div class="popup-modal bg-slate-800 rounded-xl shadow-2xl border border-sky-500/30 max-w-md w-full animate-scaleIn"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Popup Header -->
+    <div class="popup-header bg-gradient-to-r from-sky-600/20 to-blue-600/20 border-b border-sky-500/20 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="ph text-2xl" 
+           [ngClass]="{
+             'ph-info text-sky-400': popupData?.type === 'alert',
+             'ph-question text-yellow-400': popupData?.type === 'confirm',
+             'ph-pencil-simple text-blue-400': popupData?.type === 'prompt'
+           }"></i>
+        <h3 class="text-lg font-bold text-white">{{ popupData?.title }}</h3>
+      </div>
+      <button (click)="handlePopupCancel()" 
+              class="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"
+              title="Close">
+        <i class="ph ph-x text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Popup Body -->
+    <div class="popup-body px-6 py-5">
+      <p class="text-slate-300 text-base leading-relaxed mb-4">{{ popupData?.message }}</p>
+      
+      <!-- Input field for prompt type -->
+      <div *ngIf="popupData?.type === 'prompt'" class="mt-4">
+        <input 
+          type="text" 
+          [(ngModel)]="popupInputValue"
+          [placeholder]="popupData?.inputPlaceholder || 'Enter value...'"
+          (keydown)="onPromptKeydown($event)"
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 text-white border border-sky-500/30 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+          autofocus>
+      </div>
+    </div>
+
+    <!-- Popup Footer -->
+    <div class="popup-footer bg-slate-900/50 border-t border-sky-500/10 px-6 py-4 flex items-center justify-end gap-3">
+      <!-- Cancel button (for confirm and prompt types) -->
+      <button *ngIf="popupData?.type !== 'alert'"
+              (click)="handlePopupCancel()"
+              class="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-medium transition-all transform hover:scale-105 active:scale-95">
+        {{ popupData?.cancelText || 'Cancel' }}
+      </button>
+      
+      <!-- Confirm button -->
+      <button (click)="handlePopupConfirm()"
+              class="px-5 py-2.5 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95"
+              [ngClass]="{
+                'bg-sky-600 hover:bg-sky-500 text-white': popupData?.type === 'alert' || popupData?.type === 'prompt',
+                'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-lg shadow-sky-500/30': popupData?.type === 'confirm'
+              }">
+        {{ popupData?.confirmText || 'OK' }}
+      </button>
+    </div>
+  </div>
+</div>
