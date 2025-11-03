@@ -21,7 +21,6 @@ jobs:
           script: |
             cd ~/videocall_project
             git reset --hard
-            git clean -fd
             git pull origin main
              if [ ! -d "venv" ]; 
              then
@@ -31,8 +30,6 @@ jobs:
               else
                 source venv/bin/activate
               fi
-            source venv/bin/activate
-            pip install -r requirements.txt
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
             sudo systemctl restart daphne
