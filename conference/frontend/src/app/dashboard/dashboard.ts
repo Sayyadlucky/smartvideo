@@ -4,11 +4,14 @@ import {
   Component,
   OnInit,
   OnDestroy,
+  AfterViewInit,
   HostListener,
   Directive,
   ElementRef,
   Input,
   ViewChild,
+  NgZone,
+  ChangeDetectorRef, 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +26,10 @@ import {
   startCalibration,
   GazeStatus
 } from './gazeTracker';
-
+// Add near other imports at top of file
+import { initModel, blobToAudioBuffer, Embedding } from './voiceAnalyzer';
+import { VoiceService } from './voice.service';
+import { HttpClientModule } from '@angular/common/http';
 
 type MicState = 'on' | 'off';
 type CamState = 'on' | 'off';
@@ -39,6 +45,7 @@ interface Participant {
   stream?: MediaStream | null;
   handRaised?: boolean;
   gaze: string;
+  voice: string; // Voice match percentage
 }
 
 interface ChatMessage { by: string; text: string; }
@@ -81,12 +88,34 @@ type PeerState = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, NotepadComponent],
+  imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, NotepadComponent, HttpClientModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
-  providers: [SignalingService],
+  providers: [SignalingService, VoiceService],
 })
-export class Dashboard implements OnInit, OnDestroy {
+export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
+  // ==============voice detection helper==============
+  private _pendingChunks: Blob[] = [];
+  private _lastVerifyTime = 0;
+  private _lastMatchPct = 0;
+  private readonly VAD_THRESHOLD = 0.03;
+  private readonly SPEECH_MIN_FRAMES = 0.2;
+  private readonly BATCH_WINDOW_MS = 10000;
+
+  enrollmentInProgress = false;
+  isEnrollmentComplete = true;
+  isRecording = false;
+  currentPrompt = '';
+  takeIndex = 0;
+  totalTakes = 3;
+  prompts: string[] = [
+    "Please read aloud: 'I confirm my identity and consent to voice authentication for secure access to this platform.'",
+    "Please read aloud: 'My voice signature is unique and will be used to verify my identity during this session.'",
+    "Please read aloud: 'I understand that voice biometrics enhance security and protect against unauthorized access.'"
+  ];
+  recordedSamples: Blob[] = [];
+  statusMessage = 'Click "Start Enrollment" to begin.';
+  progressPercent = 0;
  
   // ====== UI state ======
   isDesktop = window.innerWidth >= 1024;
@@ -99,6 +128,7 @@ export class Dashboard implements OnInit, OnDestroy {
   activeTab: 'participants' | 'chat' = 'chat';
   isNameUpdated = false;
   @ViewChild('chatScroll') chatScroll!: ElementRef;
+  @ViewChild('enrollmentVideo') enrollmentVideo?: ElementRef<HTMLVideoElement>;
   // ====== Signaling ======
   private signalingSub: Subscription | null = null;
   private myServerChan: string | null = null;
@@ -118,6 +148,42 @@ export class Dashboard implements OnInit, OnDestroy {
   monitorLoopRunning: boolean = false;
   gazeThresholds: { horizontal: any; vertical: any; } | undefined;
   isNotesOpen: boolean = false;
+  
+  // Voice recognition state
+  isRecordingVoice: boolean = false;
+  voiceRecordingProgress: number = 0;
+  hasVoiceBaseline: boolean = false;
+  isVoiceMonitoring: boolean = false;
+  voice: string = 'N/A';
+  
+  // MediaRecorder-based voice
+  private mediaRecorder: MediaRecorder | null = null;
+  private mediaStream: MediaStream | null = null;
+  private audioChunks: Blob[] = [];
+  private verificationTimer: any = null;
+  private readonly RECORD_MS = 4000; // 2-second chunks
+  private readonly ENROLL_SAMPLES = 3;
+  private readonly VERIFICATION_WINDOW = 3;
+  private verificationScores: number[] = [];
+  private ngZone: NgZone;
+  
+  // Face capture during enrollment
+  enrollmentCameraStream: MediaStream | null = null;
+  showEnrollmentCamera: boolean = false;
+  facePositionCorrect: boolean = true;
+  facePositionMessage: string = '';
+  currentReadingText: string = '';
+  private faceDetectionInterval: any = null;
+  enrollmentSuccessCount: number = 0;
+  
+  // Professional reading texts for each sample
+  private readonly READING_TEXTS = [
+    "Please read aloud: 'I confirm my identity and consent to voice authentication for secure access to this platform.'",
+    "Please read aloud: 'My voice signature is unique and will be used to verify my identity during this session.'",
+    "Please read aloud: 'I understand that voice biometrics enhance security and protect against unauthorized access.'"
+  ];
+  private _batchStartTime: number | undefined;
+  private chunks: BlobPart[] = [];
 
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
@@ -141,6 +207,10 @@ export class Dashboard implements OnInit, OnDestroy {
     return this.participants; // Show yourself when alone
   }
 
+  get canUseRecorder(): boolean {
+    return !!this.mediaRecorder && this.enrollmentInProgress;
+  }
+
   //========= GazeTracking ==============
   private gazeSocket?: WebSocket;
   private isGazeTracking = false;
@@ -159,11 +229,32 @@ export class Dashboard implements OnInit, OnDestroy {
     microphone: false
   };
 
-  constructor(private signaling: SignalingService) {}
+  constructor(
+    private signaling: SignalingService, 
+    ngZone: NgZone,
+    private voiceService: VoiceService,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.ngZone = ngZone;
+    // try to init model early (non-blocking)
+    initModel().catch(err => console.warn('Model init (background) failed:', err));
+  }
 
   // ====== Lifecycle ======
   async ngOnInit(): Promise<void> {
     await this.checkMediaPermissions();
+  }
+  
+  ngAfterViewInit(): void {
+    // Setup enrollment video element when it becomes available
+    if (this.enrollmentVideo?.nativeElement && this.enrollmentCameraStream) {
+      const video = this.enrollmentVideo.nativeElement;
+      video.srcObject = this.enrollmentCameraStream;
+      video.muted = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.play().catch(err => console.warn('Video play error:', err));
+    }
   }
 
   joinRoom(){
@@ -186,6 +277,7 @@ export class Dashboard implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     try { this.sendSig({ type: 'bye' }); } catch {}
     stopGazeTracking();
+    this.stopAllStreams();
     this.signalingSub?.unsubscribe();
     this.signaling.disconnect();
 
@@ -233,7 +325,7 @@ export class Dashboard implements OnInit, OnDestroy {
     
     if (this.escPressCount === 1 && !this.hasShownEscAlert) {
       // First ESC press - show alert
-      alert('Press ESC again to exit fullscreen');
+      alert('You are not allowed to pres ESC key, If you do so it will notify interviewer immidiately.');
       this.hasShownEscAlert = true;
       
       // Reset counter after 2 seconds
@@ -339,6 +431,7 @@ export class Dashboard implements OnInit, OnDestroy {
       stream: null, // preview stream will be attached when camera turns on
       handRaised: false,
       gaze: '',
+      voice: 'N/A',
     };
   }
 
@@ -377,6 +470,7 @@ export class Dashboard implements OnInit, OnDestroy {
       channel: prev?.channel ?? ch, // ✅ stick to the first channel we saw
       stream: existingStream,
       gaze: row?.gaze ?? prev?.gaze ?? '',
+      voice: row?.voice ?? prev?.voice ?? 'N/A',
       handRaised: (typeof row?.handRaised === 'boolean')
         ? row.handRaised
         : (prev?.handRaised ?? false),
@@ -525,7 +619,8 @@ export class Dashboard implements OnInit, OnDestroy {
           isYou: false,
           stream: null,
           handRaised: false,
-          gaze:'',
+          gaze: '',
+          voice: 'N/A',
         };
       }
     
@@ -538,7 +633,13 @@ export class Dashboard implements OnInit, OnDestroy {
       // DON'T override cam/mic state from server - only update if we don't have it yet
       // The server's participant_updated messages are the source of truth for cam/mic state
       const updated: Participant = {
-        ...pPrev,
+        name: pPrev.name,
+        initials: pPrev.initials,
+        isYou: pPrev.isYou,
+        channel: pPrev.channel,
+        handRaised: pPrev.handRaised,
+        gaze: pPrev.gaze,
+        voice: pPrev.voice,
         stream: ms,
         // Only update mic/cam if they were at default 'off' (meaning we haven't received server state yet)
         mic: pPrev.mic !== 'off' ? pPrev.mic : (ms.getAudioTracks().length > 0 ? 'on' : 'off'),
@@ -758,6 +859,24 @@ export class Dashboard implements OnInit, OnDestroy {
         }
         break;
       }
+
+      case "voice_update": {
+        const ch = msg.channel;
+        const v = msg.voice;
+      
+        if (ch && this.participantsMap.has(ch)) {
+          const p = this.participantsMap.get(ch)!;
+          this.participantsMap.set(ch, { ...p, voice: v });
+          this.syncParticipantsArray();
+        } else {
+          const p = this.participants.find(pp => pp.name === msg.user);
+          if (p) {
+            p.voice = v;
+            this.syncParticipantsArray();
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -780,17 +899,572 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  updateNameFirst(){
+  async updateNameFirst(){
     if(!this.userName){
       alert("Please Enter User Name");
       return;
     }
     if(!this.termsCheckbox){
-      alert("Please Enter User Name");
+      alert("Please accept Terms & Conditions");
       return;
     }
+    
+    // Check if voice baseline was recorded
+    if (!this.hasVoiceBaseline) {
+      alert("Please record your voice sample first");
+      return;
+    }
+    
     this.isNameUpdated = true;
     this.joinRoom();
+  }
+
+  // ============ Voice Integration (MediaRecorder-based) ============
+
+  private isSecureContext(): boolean {
+    const origin = window.location.origin;
+    return origin.startsWith('https://') || origin.includes('localhost') || origin.includes('127.0.0.1');
+  }
+
+  private async requestMicrophone(): Promise<MediaStream> {
+    if (!this.isSecureContext()) {
+      throw new Error('Microphone requires secure origin (https) or localhost');
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('Browser does not support getUserMedia');
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+        video: false
+      });
+      this.mediaStream = stream;
+      this.permissionStatus.microphone = true;
+      return stream;
+    } catch (err: any) {
+      this.permissionStatus.microphone = false;
+      if (err && err.name === 'NotAllowedError') throw new Error('Microphone permission denied, please allow mic access in the browser');
+      if (err && err.name === 'NotFoundError') throw new Error('No microphone found');
+      throw new Error(err?.message || 'Could not get microphone');
+    }
+  }
+
+  private stopAllStreams(): void {
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(t => t.stop());
+      this.mediaStream = null;
+    }
+    if (this.mediaRecorder) {
+      try { this.mediaRecorder.stop(); } catch (_) {}
+      this.mediaRecorder = null;
+    }
+    this.isRecordingVoice = false;
+    this.isVoiceMonitoring = false;
+  }
+
+  // ---------------- Enrollment (baseline) flows ----------------
+
+  // public async startEnrollment(): Promise<void> {
+  //   try {
+  //     if (this.isRecordingVoice) return;
+      
+  //     // ensure model loaded
+  //     await initModel();
+      
+  //     // Start camera for face capture
+  //     await this.startEnrollmentCamera();
+      
+  //     // request mic
+  //     await this.requestMicrophone();
+
+  //     // prepare MediaRecorder capturing 2s segments
+  //     this.audioChunks = [];
+  //     const options: MediaRecorderOptions = { 
+  //        mimeType: 'audio/webm;codecs=opus',
+  //        audioBitsPerSecond: 128000,
+  //     };
+  //     this.mediaRecorder = new MediaRecorder(this.mediaStream as MediaStream, options);
+
+  //     this.mediaRecorder.ondataavailable = (ev: BlobEvent) => {
+  //       if (ev.data && ev.data.size > 0) this.audioChunks.push(ev.data);
+  //     };
+
+  //     this.mediaRecorder.onstop = async () => {
+  //       if (this.audioChunks.length === 0) return;
+  //       const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+  //       this.audioChunks = [];
+        
+  //       // Send to backend for enrollment
+  //       this.voiceService.enrollVoice(blob, this.roomName, this.userName).subscribe({
+  //         next: (response) => {
+  //           if (response.success) {
+  //             this.enrollmentSuccessCount++;
+  //             this.voiceRecordingProgress++;
+  //             console.log('✅ Enrollment sample captured:', this.voiceRecordingProgress);
+  //           } else {
+  //             console.error('❌ Enrollment failed:', response.message);
+  //             alert('Failed to enroll voice sample: ' + response.message);
+  //           }
+  //         },
+  //         error: (err) => {
+  //           console.error('❌ Enrollment API error:', err);
+  //           alert('Failed to enroll voice sample. Please try again.');
+  //         }
+  //       });
+  //     };
+
+  //     // Start simple loop: start recorder, wait RECORD_MS, stop, repeat until user clicks Record
+  //     this.isRecordingVoice = true;
+  //     this.showEnrollmentCamera = true;
+  //     this.enrollmentSuccessCount = 0;
+      
+  //     // Set initial reading text
+  //     this.updateReadingText();
+      
+  //     console.log('Enrollment started — click Record (2s) to capture a sample');
+  //   } catch (err: any) {
+  //     alert('Could not start enrollment: ' + (err.message || err));
+  //     this.isRecordingVoice = false;
+  //     this.stopAllStreams();
+  //     this.stopEnrollmentCamera();
+  //   }
+  // }
+
+  async startEnrollment(): Promise<void> {
+    if (this.enrollmentInProgress) {
+      return;
+    }
+
+    this.stopStream();
+    this.enrollmentInProgress = true;
+    this.isEnrollmentComplete = false;
+    this.isRecording = false;
+    this.takeIndex = 0;
+    this.recordedSamples = [];
+    this.chunks = [];
+    this.currentPrompt = '';
+    this.hasVoiceBaseline = false;
+    this.statusMessage = 'Preparing microphone...';
+    this.progressPercent = 0;
+    this.cdr.markForCheck();
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaStream = stream;
+      this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+      this.mediaRecorder.ondataavailable = event => {
+        if (event.data && event.data.size > 0) {
+          this.chunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        if (this.chunks.length === 0) {
+          this.ngZone.run(() => {
+            this.statusMessage = 'No audio captured. Please try again.';
+            this.cdr.markForCheck();
+          });
+          this.chunks = [];
+          return;
+        }
+
+        const blob = new Blob(this.chunks, { type: 'audio/webm' });
+        this.recordedSamples.push(blob);
+        this.chunks = [];
+
+        const samplesCollected = this.recordedSamples.length;
+
+        this.ngZone.run(() => {
+          this.progressPercent = Math.round((samplesCollected / this.totalTakes) * 100);
+          this.cdr.markForCheck();
+        });
+
+        if (samplesCollected >= this.totalTakes) {
+          await this.finalizeEnrollment();
+          return;
+        }
+
+        this.ngZone.run(() => {
+          this.takeIndex = samplesCollected;
+          this.currentPrompt = this.prompts[samplesCollected];
+          this.statusMessage = 'Click "Record" again, then Read the next text.';
+          this.cdr.markForCheck();
+        });
+      };
+
+      this.currentPrompt = this.prompts[0];
+      this.statusMessage = 'Click "Record, then Read the text aloud.';
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Mic access error', error);
+      this.statusMessage = 'Microphone access failed.';
+      this.enrollmentInProgress = false;
+      this.stopStream();
+      this.cdr.markForCheck();
+    }
+  }
+
+  async handleRecordClick(): Promise<void> {
+    if (!this.enrollmentInProgress || !this.mediaRecorder) {
+      return;
+    }
+
+    if (this.isRecording) {
+      this.isRecording = false;
+      try {
+        this.mediaRecorder.stop();
+        this.statusMessage = 'Processing recording...';
+      } catch (error) {
+        console.error('MediaRecorder stop error', error);
+        this.statusMessage = 'Unable to stop recording. Please try again.';
+      }
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isRecording = true;
+    this.chunks = [];
+    try {
+      this.mediaRecorder.start();
+      this.statusMessage = 'Recording... speak clearly.';
+    } catch (error) {
+      console.error('MediaRecorder start error', error);
+      this.isRecording = false;
+      this.statusMessage = 'Unable to start recording.';
+    }
+    this.cdr.markForCheck();
+  }
+
+  async finalizeEnrollment(): Promise<void> {
+    let timeoutId: number | undefined;
+    const controller = new AbortController();
+
+    try {
+      this.enrollmentInProgress = false;
+      this.statusMessage = 'Uploading samples for enrollment...';
+      this.cdr.markForCheck();
+
+      const form = new FormData();
+      this.recordedSamples.forEach((blob, index) => {
+        form.append('files', blob, `sample${index + 1}.webm`);
+      });
+      form.append('room', this.roomName || 'default');
+      form.append('username', this.userName || 'guest');
+
+      const headers: Record<string, string> = {};
+      const csrfToken = this.getCsrfToken();
+      if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+      }
+
+      timeoutId = window.setTimeout(() => controller.abort(), 20000);
+
+      const response = await fetch('/video-call/api/voice/enroll-batch', {
+        method: 'POST',
+        body: form,
+        headers,
+        credentials: 'same-origin',
+        signal: controller.signal,
+      });
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        result = null;
+      }
+
+      if (response.ok && result?.success) {
+        this.statusMessage = 'Enrollment complete! Voice profile ready.';
+        this.progressPercent = 100;
+        this.hasVoiceBaseline = true;
+      } else {
+        const message = result?.message ?? response.statusText ?? 'Unknown error';
+        this.statusMessage = `Enrollment failed: ${message}`;
+        this.hasVoiceBaseline = false;
+      }
+    } catch (error) {
+      console.error('Enrollment error', error);
+      this.statusMessage = 'Enrollment failed (network or server issue).';
+      this.hasVoiceBaseline = false;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      this.stopStream();
+      this.isEnrollmentComplete = true;
+      this.isRecording = false;
+      this.currentPrompt = '';
+      this.takeIndex = 0;
+      this.recordedSamples = [];
+      this.cdr.markForCheck();
+    }
+  }
+
+  private stopStream(): void {
+    try {
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+      }
+    } catch (error) {
+      console.warn('MediaRecorder stop warning:', error);
+    } finally {
+      this.mediaRecorder = null;
+    }
+
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => track.stop());
+      this.mediaStream = null;
+    }
+
+    this.chunks = [];
+    this.isRecording = false;
+  }
+
+  private getCsrfToken(): string | null {
+    if (typeof document === 'undefined') {
+      return null;
+    }
+    const match = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  public async captureBaselineSample(): Promise<void> {
+    if (!this.isRecordingVoice || !this.mediaRecorder) {
+      alert('Please start enrollment first');
+      return;
+    }
+    try {
+      await new Promise(r => setTimeout(r, 300)); // allow mic to stabilize
+      this.mediaRecorder.start();
+      // stop after configured ms
+      setTimeout(() => {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+          this.mediaRecorder.stop();
+          // Update reading text for next sample
+          setTimeout(() => this.updateReadingText(), 500);
+        }
+      }, this.RECORD_MS);
+    } catch (err) {
+      console.error('MediaRecorder start error:', err);
+    }
+  }
+
+  public finishEnrollment(): void {
+    if (!this.isRecordingVoice) return;
+
+    if (this.voiceRecordingProgress < this.ENROLL_SAMPLES) {
+      alert(`Please record at least ${this.ENROLL_SAMPLES} samples (currently ${this.voiceRecordingProgress})`);
+      return;
+    }
+    
+    // Check if all samples were successful
+    if (this.enrollmentSuccessCount < this.ENROLL_SAMPLES) {
+      alert(`Please wait for all samples to be processed successfully (${this.enrollmentSuccessCount}/${this.ENROLL_SAMPLES} completed)`);
+      return;
+    }
+
+    // Backend has already stored and averaged the embeddings
+    this.hasVoiceBaseline = true;
+
+    // Cleanup and stop mic
+    this.isRecordingVoice = false;
+    this.voiceRecordingProgress = 0;
+    this.enrollmentSuccessCount = 0;
+    try { this.mediaStream?.getTracks().forEach(t => t.stop()); } catch (_) {}
+    this.mediaStream = null;
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      try { this.mediaRecorder.stop(); } catch (_) {}
+    }
+    this.mediaRecorder = null;
+    
+    // Stop enrollment camera
+    this.stopEnrollmentCamera();
+  }
+
+  // ---------------- Verification (monitoring) flows ----------------
+
+  public async startVerification(): Promise<void> {
+    try {
+      if (!this.hasVoiceBaseline) {
+        alert('No baseline enrolled. Please enroll first.');
+        return;
+      }
+      await initModel();
+      await this.requestMicrophone();
+
+      // setup MediaRecorder for continuous periodic recordings
+      this.mediaRecorder = new MediaRecorder(this.mediaStream as MediaStream, { mimeType: 'audio/webm;codecs=opus' });
+      this.mediaRecorder.ondataavailable = async (ev: BlobEvent) => {
+        try {
+          // --- 1️⃣ Skip if mic muted or no data ---
+          if (!this.localAudioTrack || !this.localAudioTrack.enabled) return;
+          if (!ev.data || ev.data.size < 2000) return;
+
+          // --- 2️⃣ Decode audio and run RMS + speech activity detection ---
+          const arrayBuffer = await ev.data.arrayBuffer();
+          const audioCtx = new AudioContext();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          const samples = audioBuffer.getChannelData(0);
+          const rms = Math.sqrt(samples.reduce((s, x) => s + x * x, 0) / samples.length);
+          audioCtx.close();
+
+          // Helper: detect if person is actually speaking (short-term energy)
+          const windowSize = 1024;
+          let activeFrames = 0;
+          for (let i = 0; i < samples.length; i += windowSize) {
+            const slice = samples.subarray(i, i + windowSize);
+            const frameRms = Math.sqrt(slice.reduce((s, x) => s + x * x, 0) / slice.length);
+            if (frameRms > 0.03) activeFrames++;
+          }
+          const speechActive = activeFrames > samples.length / windowSize * 0.2; // ≥20% active frames
+
+          if (!speechActive || rms < 0.015) {
+            console.log(`🤫 Silence or no speech (RMS=${rms.toFixed(4)}) — skipping verification`);
+            return;
+          }
+
+          // --- 3️⃣ Accumulate chunks for ~10 seconds before sending ---
+          const now = Date.now();
+          if (!this._pendingChunks) this._pendingChunks = [];
+          if (!this._batchStartTime) this._batchStartTime = now;
+
+          this._pendingChunks.push(ev.data);
+          const durationSinceBatch = now - this._batchStartTime;
+
+          if (durationSinceBatch < 10000) {
+            // keep accumulating for up to 10 seconds
+            return;
+          }
+
+          // --- 4️⃣ Throttle based on last match confidence ---
+          const lastSent = this._lastVerifyTime || 0;
+          const elapsed = now - lastSent;
+          let interval = 5000; // base interval
+          if (this._lastMatchPct > 85) interval = 8000; // confident speaker
+          else if (this._lastMatchPct < 65) interval = 3000; // low confidence → verify more often
+
+          if (elapsed < interval) {
+            console.log(`⏱️ Skipping verify — only ${Math.round(elapsed / 1000)}s since last`);
+            return;
+          }
+
+          // --- 5️⃣ Send combined blob for verification ---
+          const combinedBlob = new Blob(this._pendingChunks, { type: 'audio/webm' });
+          this._pendingChunks = [];
+          this._batchStartTime = now;
+          this._lastVerifyTime = now;
+
+          console.log(`🎤 Sending ${Math.round(durationSinceBatch / 1000)}s of speech for verification...`);
+
+          this.voiceService.verifyVoice(combinedBlob, this.roomName, this.userName).subscribe({
+            next: (response) => {
+              if (response.success && response.percentage !== undefined) {
+                const pct = response.percentage;
+                this._lastMatchPct = pct;
+
+                // Rolling weighted average
+                this.verificationScores.push(pct);
+                if (this.verificationScores.length > this.VERIFICATION_WINDOW)
+                  this.verificationScores.shift();
+
+                const weights = this.verificationScores.map((_, i, arr) => (i + 1) / arr.length);
+                const avg = Math.round(
+                  this.verificationScores.reduce((a, b, i) => a + b * weights[i], 0)
+                );
+
+                this.ngZone.run(() => {
+                  this.voice = response.status === 'high_confidence' ? 'Match' : 'Unmatch';
+                  console.log('🎤 Voice match:', this.voice, `(Status: ${response.status})`);
+
+                  const me = this.participantsMap.get('__you__');
+                  if (me) {
+                    this.participantsMap.set('__you__', { ...me, voice: this.voice });
+                    this.syncParticipantsArray();
+                  }
+
+                  this.sendSig({
+                    type: 'voice_update',
+                    user: this.userName,
+                    voice: this.voice,
+                    ts: Date.now(),
+                  });
+                });
+
+                if (avg < 65) {
+                  console.warn('⚠️ Possible mismatch detected — avg:', avg + '%');
+                }
+              } else {
+                console.error('❌ Verification failed:', response.message);
+              }
+            },
+            error: (err) => {
+              console.error('❌ Verification API error:', err);
+            },
+          });
+        } catch (err) {
+          console.error('Error analyzing chunk:', err);
+        }
+      };
+
+
+
+      // Start periodic recording loop — start MediaRecorder, stop after ms, then restart.
+      this.isVoiceMonitoring = true;
+      await new Promise(r => setTimeout(r, 300));
+      this.mediaRecorder.start();
+      // We will use interval to restart recording to ensure contiguous segments (works cross-browser)
+      this.verificationTimer = setInterval(() => {
+        if (!this.mediaRecorder) return;
+        if (this.mediaRecorder.state === 'recording') {
+          try { this.mediaRecorder.stop(); } catch (_) {}
+          // restart after tiny gap to allow dataavailable to fire
+          setTimeout(() => {
+            if (this.mediaRecorder && this.isVoiceMonitoring) {
+              try { this.mediaRecorder.start(); } catch (_) {}
+            }
+          }, 150);
+        } else {
+          try { this.mediaRecorder.start(); } catch (err) { console.warn('recorder start err', err); }
+        }
+      }, this.RECORD_MS + 200);
+
+      alert('Verification started — speak to verify your voice.');
+    } catch (err: any) {
+      alert('Could not start verification: ' + (err.message || err));
+      this.stopVerification();
+    }
+  }
+
+  public stopVerification(): void {
+   try {
+    this.mediaRecorder?.stop();
+  } catch (_) {}
+
+  if (this.mediaStream) {
+    this.mediaStream.getTracks().forEach(t => {
+      try { t.stop(); } catch {}
+    });
+    this.mediaStream = null;
+  }
+
+  if (this.verificationTimer) {
+    clearInterval(this.verificationTimer);
+    this.verificationTimer = null;
+  }
+
+  this.mediaRecorder = null;
+  this.verificationScores = [];
+  this.voice = 'N/A';
+  this.isVoiceMonitoring = false;
+  console.log('Verification stopped');
+
   }
 
   updateName(e: Event): void {
@@ -808,11 +1482,21 @@ export class Dashboard implements OnInit, OnDestroy {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         this.localAudioTrack = s.getAudioTracks()[0] || null;
+        
+        // Automatically start voice monitoring if baseline exists
+        if (this.hasVoiceBaseline && !this.isVoiceMonitoring) {
+          await this.startVerification();
+        }
       } catch (e: any) { 
         alert('Microphone access denied: ' + (e?.message || '')); 
         return; 
       }
     } else {
+      // Stop voice monitoring if it's running
+      if (this.isVoiceMonitoring) {
+        this.stopVerification();
+      }
+      
       this.localAudioTrack?.stop();
       this.localAudioTrack = null;
     }
@@ -1146,6 +1830,71 @@ export class Dashboard implements OnInit, OnDestroy {
     const index = Math.abs(hash) % gradients.length;
     return gradients[index];
   }
+  
+  // ====== Face Capture Methods for Enrollment ======
+  
+  private async startEnrollmentCamera(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { width: 640, height: 480 }, 
+        audio: false 
+      });
+      this.enrollmentCameraStream = stream;
+      this.permissionStatus.camera = true;
+      
+      // Start basic face position checking (simplified without face-api.js)
+      this.startFacePositionCheck();
+    } catch (err: any) {
+      this.permissionStatus.camera = false;
+      throw new Error('Camera access denied for enrollment: ' + (err?.message || ''));
+    }
+  }
+  
+  private stopEnrollmentCamera(): void {
+    if (this.enrollmentCameraStream) {
+      this.enrollmentCameraStream.getTracks().forEach(track => track.stop());
+      this.enrollmentCameraStream = null;
+    }
+    
+    if (this.faceDetectionInterval) {
+      clearInterval(this.faceDetectionInterval);
+      this.faceDetectionInterval = null;
+    }
+    
+    this.showEnrollmentCamera = false;
+    this.facePositionCorrect = true;
+    this.facePositionMessage = '';
+  }
+  
+  private startFacePositionCheck(): void {
+    // Simple position check - in production, you'd use face-api.js or similar
+    // For now, we'll just show the overlay and assume position is correct
+    this.facePositionCorrect = true;
+    this.facePositionMessage = '';
+    
+    // Simulate basic face detection check every 2 seconds
+    this.faceDetectionInterval = setInterval(() => {
+      // In a real implementation, you would:
+      // 1. Get video element
+      // 2. Run face detection
+      // 3. Check if face is centered in oval
+      // 4. Update facePositionCorrect and facePositionMessage
+      
+      // For now, we'll just keep it as correct
+      this.facePositionCorrect = true;
+    }, 2000);
+  }
+  
+  private updateReadingText(): void {
+    // Update reading text based on current progress
+    const textIndex = Math.min(this.voiceRecordingProgress, this.READING_TEXTS.length - 1);
+    this.currentReadingText = this.READING_TEXTS[textIndex];
+  }
+  
+  // Getter to check if finish button should be enabled
+  get canFinishEnrollment(): boolean {
+    return this.enrollmentSuccessCount >= this.ENROLL_SAMPLES;
+  }
 }
 
 // Optional debug hook for attaching raw video elements (manual testing)
@@ -1155,3 +1904,4 @@ function attachDebugVideo(stream: MediaStream, chan: string) {
   vid.style.width = '200px'; vid.style.border = '2px solid red'; document.body.appendChild(vid);
   console.log('✅ Attached debug video for', chan, 'stream:', stream);
 }
+

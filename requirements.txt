@@ -5,3 +5,13 @@ channels-redis==4.1.0
 djangorestframework==3.14.0
 django-sslserver
 django_extensions
+
+# Speaker Verification Dependencies
+huggingface-hub==1.0.1
+numpy==1.26.4
+opencv-contrib-python==4.11.0.86
+opencv-python==4.10.0.84
+speechbrain==1.0.3
+torch==2.4.0
+torchaudio==2.4.0
+torchvision==0.19.0

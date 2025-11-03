@@ -174,6 +174,20 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             )
             return
 
+        if msg_type == "voice_status":
+            print(f"🎤 VOICE_STATUS received: user={data.get('user')}, voice={data.get('voice')}")
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "voice_update",
+                    "user": data.get("user", "Guest"),
+                    "voice": data.get("voice", "N/A"),
+                    "ts": data.get("ts"),
+                    "sender_channel": self.channel_id,
+                }
+            )
+            return
+
     # ==== Group event handlers ====
     async def participant_joined(self, event):
         if event.get("sender_channel") != self.channel_id:
@@ -187,6 +201,15 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             "type": "gaze_update",
             "user": event["user"],
             "gaze": event["gaze"],
+            "ts": event["ts"],
+            "channel": event["sender_channel"],
+        }))
+
+    async def voice_update(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "voice_update",
+            "user": event["user"],
+            "voice": event["voice"],
             "ts": event["ts"],
             "channel": event["sender_channel"],
         }))

@@ -90289,6 +90289,78 @@ var init_gazeTracker = __esm({
   }
 });
 
+// src/app/dashboard/voiceAnalyzer.ts
+function initModel() {
+  return __async(this, null, function* () {
+    console.log("\u2705 Using backend API for speaker verification (no frontend model needed)");
+    return Promise.resolve();
+  });
+}
+var init_voiceAnalyzer = __esm({
+  "src/app/dashboard/voiceAnalyzer.ts"() {
+    "use strict";
+  }
+});
+
+// src/app/dashboard/voice.service.ts
+var VoiceService;
+var init_voice_service = __esm({
+  "src/app/dashboard/voice.service.ts"() {
+    "use strict";
+    init_core();
+    init_esm();
+    init_operators();
+    init_core();
+    init_http();
+    VoiceService = class _VoiceService {
+      http;
+      API_BASE = "video-call/api/voice";
+      constructor(http) {
+        this.http = http;
+      }
+      /**
+       * Enroll a voice sample
+       */
+      enrollVoice(audioBlob, room, username) {
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "audio.webm");
+        formData.append("room", room);
+        formData.append("username", username);
+        return this.http.post(`${this.API_BASE}/enroll`, formData).pipe(catchError((error) => {
+          console.error("Enrollment error:", error);
+          return throwError(() => new Error(error.error?.message || "Enrollment failed"));
+        }));
+      }
+      /**
+       * Verify a voice sample against stored baseline
+       * (Assumes client-side has already filtered silence / noise)
+       */
+      verifyVoice(audioBlob, room, username) {
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "audio.webm");
+        formData.append("room", room);
+        formData.append("username", username);
+        return this.http.post(`${this.API_BASE}/verify`, formData).pipe(catchError((error) => {
+          console.error("Verification error:", error);
+          return throwError(() => new Error(error.error?.message || "Verification failed"));
+        }));
+      }
+      static \u0275fac = function VoiceService_Factory(__ngFactoryType__) {
+        return new (__ngFactoryType__ || _VoiceService)(\u0275\u0275inject(HttpClient));
+      };
+      static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _VoiceService, factory: _VoiceService.\u0275fac, providedIn: "root" });
+    };
+    (() => {
+      (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(VoiceService, [{
+        type: Injectable,
+        args: [{
+          providedIn: "root"
+        }]
+      }], () => [{ type: HttpClient }], null);
+    })();
+  }
+});
+
 // src/app/dashboard/dashboard.ts
 function Dashboard_div_0_span_17_Template(rf, ctx) {
   if (rf & 1) {
@@ -90364,6 +90436,74 @@ function Dashboard_div_0_Template(rf, ctx) {
     \u0275\u0275property("ngIf", ctx_r1.permissionStatus.microphone);
   }
 }
+function Dashboard_main_1_p_20_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "p", 48);
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1("Progress: ", ctx_r1.progressPercent, "%");
+  }
+}
+function Dashboard_main_1_div_21_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 49)(1, "p", 50);
+    \u0275\u0275text(2);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(3, "blockquote", 51);
+    \u0275\u0275text(4);
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate2(" Prompt ", ctx_r1.takeIndex + 1, " of ", ctx_r1.totalTakes, " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate1(" ", ctx_r1.currentPrompt, " ");
+  }
+}
+function Dashboard_main_1_button_23_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r4 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 52);
+    \u0275\u0275listener("click", function Dashboard_main_1_button_23_Template_button_click_0_listener() {
+      \u0275\u0275restoreView(_r4);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.startEnrollment());
+    });
+    \u0275\u0275text(1, " Start Enrollment ");
+    \u0275\u0275elementEnd();
+  }
+}
+function Dashboard_main_1_button_24_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r5 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 53);
+    \u0275\u0275listener("click", function Dashboard_main_1_button_24_Template_button_click_0_listener() {
+      \u0275\u0275restoreView(_r5);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.handleRecordClick());
+    });
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("disabled", !ctx_r1.canUseRecorder);
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1(" ", ctx_r1.isRecording ? "Stop Recording" : "Record", " ");
+  }
+}
+function Dashboard_main_1_p_25_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "p", 54);
+    \u0275\u0275text(1, " Voice profile saved. You can re-enroll anytime. ");
+    \u0275\u0275elementEnd();
+  }
+}
 function Dashboard_main_1_Template(rf, ctx) {
   if (rf & 1) {
     const _r3 = \u0275\u0275getCurrentView();
@@ -90381,49 +90521,83 @@ function Dashboard_main_1_Template(rf, ctx) {
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(9, "label", 31)(10, "input", 32);
-    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_Template_input_ngModelChange_10_listener($event) {
+    \u0275\u0275elementStart(9, "div", 31)(10, "div", 32)(11, "div", 33);
+    \u0275\u0275element(12, "i", 34);
+    \u0275\u0275elementStart(13, "span");
+    \u0275\u0275text(14, "Voice Enrollment");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(15, "div", 35)(16, "p", 36);
+    \u0275\u0275text(17);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(18, "div", 37);
+    \u0275\u0275element(19, "div", 38);
+    \u0275\u0275elementEnd();
+    \u0275\u0275template(20, Dashboard_main_1_p_20_Template, 2, 1, "p", 39);
+    \u0275\u0275elementEnd();
+    \u0275\u0275template(21, Dashboard_main_1_div_21_Template, 5, 3, "div", 40);
+    \u0275\u0275elementStart(22, "div", 41);
+    \u0275\u0275template(23, Dashboard_main_1_button_23_Template, 2, 0, "button", 42)(24, Dashboard_main_1_button_24_Template, 2, 2, "button", 43);
+    \u0275\u0275elementEnd();
+    \u0275\u0275template(25, Dashboard_main_1_p_25_Template, 2, 0, "p", 44);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(26, "label", 45)(27, "input", 46);
+    \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_1_Template_input_ngModelChange_27_listener($event) {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r1.termsCheckbox, $event) || (ctx_r1.termsCheckbox = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(11, "span", 29);
-    \u0275\u0275text(12, "I agree to the Terms & Conditions");
+    \u0275\u0275elementStart(28, "span", 29);
+    \u0275\u0275text(29, "I agree to the Terms & Conditions");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(13, "button", 33);
-    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_13_listener() {
+    \u0275\u0275elementStart(30, "button", 47);
+    \u0275\u0275listener("click", function Dashboard_main_1_Template_button_click_30_listener() {
       \u0275\u0275restoreView(_r3);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.updateNameFirst());
     });
-    \u0275\u0275text(14, " Join Room ");
+    \u0275\u0275text(31, " Join Room ");
     \u0275\u0275elementEnd()()()();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
     \u0275\u0275advance(8);
     \u0275\u0275twoWayProperty("ngModel", ctx_r1.userName);
+    \u0275\u0275advance(9);
+    \u0275\u0275textInterpolate(ctx_r1.statusMessage);
     \u0275\u0275advance(2);
+    \u0275\u0275styleProp("width", ctx_r1.progressPercent, "%");
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", ctx_r1.progressPercent > 0);
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", ctx_r1.currentPrompt);
+    \u0275\u0275advance(2);
+    \u0275\u0275property("ngIf", !ctx_r1.enrollmentInProgress && ctx_r1.isEnrollmentComplete);
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", ctx_r1.enrollmentInProgress);
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", ctx_r1.hasVoiceBaseline);
+    \u0275\u0275advance(2);
+    \u0275\u0275property("disabled", !ctx_r1.hasVoiceBaseline);
     \u0275\u0275twoWayProperty("ngModel", ctx_r1.termsCheckbox);
   }
 }
 function Dashboard_main_2_div_2_Template(rf, ctx) {
   if (rf & 1) {
-    const _r5 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 63)(1, "div", 64);
+    const _r7 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 84)(1, "div", 85);
     \u0275\u0275text(2, "Room: ");
     \u0275\u0275elementStart(3, "strong");
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(5, "button", 65);
+    \u0275\u0275elementStart(5, "button", 86);
     \u0275\u0275listener("click", function Dashboard_main_2_div_2_Template_button_click_5_listener() {
-      \u0275\u0275restoreView(_r5);
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.toggleChat());
     });
-    \u0275\u0275element(6, "i", 66);
+    \u0275\u0275element(6, "i", 87);
     \u0275\u0275text(7, " Menu ");
     \u0275\u0275elementEnd()();
   }
@@ -90435,21 +90609,21 @@ function Dashboard_main_2_div_2_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_4_div_1_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 76);
+    \u0275\u0275element(0, "video", 98);
   }
   if (rf & 2) {
-    const p_r6 = \u0275\u0275nextContext().$implicit;
-    \u0275\u0275property("appSrcObject", p_r6.stream)("muted", !!p_r6.isYou);
-    \u0275\u0275attribute("data-chan", p_r6.isYou ? "__you__" : p_r6.channel);
+    const p_r8 = \u0275\u0275nextContext().$implicit;
+    \u0275\u0275property("appSrcObject", p_r8.stream)("muted", !!p_r8.isYou);
+    \u0275\u0275attribute("data-chan", p_r8.isYou ? "__you__" : p_r8.channel);
   }
 }
 function Dashboard_main_2_div_4_div_1_audio_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "audio", 77);
+    \u0275\u0275element(0, "audio", 99);
   }
   if (rf & 2) {
-    const p_r6 = \u0275\u0275nextContext().$implicit;
-    \u0275\u0275property("appSrcObject", p_r6.stream);
+    const p_r8 = \u0275\u0275nextContext().$implicit;
+    \u0275\u0275property("appSrcObject", p_r8.stream);
   }
 }
 function Dashboard_main_2_div_4_div_1_div_3_span_2_Template(rf, ctx) {
@@ -90459,82 +90633,87 @@ function Dashboard_main_2_div_4_div_1_div_3_span_2_Template(rf, ctx) {
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r6 = \u0275\u0275nextContext(2).$implicit;
+    const p_r8 = \u0275\u0275nextContext(2).$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate(p_r6.initials);
+    \u0275\u0275textInterpolate(p_r8.initials);
   }
 }
 function Dashboard_main_2_div_4_div_1_div_3_span_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 81);
+    \u0275\u0275elementStart(0, "span", 103);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_2_div_4_div_1_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 78)(1, "div", 79);
-    \u0275\u0275template(2, Dashboard_main_2_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 2)(3, Dashboard_main_2_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 80);
+    \u0275\u0275elementStart(0, "div", 100)(1, "div", 101);
+    \u0275\u0275template(2, Dashboard_main_2_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 2)(3, Dashboard_main_2_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 102);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r6 = \u0275\u0275nextContext().$implicit;
+    const p_r8 = \u0275\u0275nextContext().$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
-    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r6.channel));
+    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r8.channel));
     \u0275\u0275advance();
-    \u0275\u0275classProp("hand-raised", p_r6.handRaised);
+    \u0275\u0275classProp("hand-raised", p_r8.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r6.handRaised);
+    \u0275\u0275property("ngIf", !p_r8.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r6.handRaised);
+    \u0275\u0275property("ngIf", p_r8.handRaised);
   }
 }
 function Dashboard_main_2_div_4_div_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 69);
-    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_video_1_Template, 1, 3, "video", 70)(2, Dashboard_main_2_div_4_div_1_audio_2_Template, 1, 1, "audio", 71)(3, Dashboard_main_2_div_4_div_1_div_3_Template, 4, 6, "div", 72);
-    \u0275\u0275elementStart(4, "span", 73);
+    \u0275\u0275elementStart(0, "div", 90);
+    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_video_1_Template, 1, 3, "video", 91)(2, Dashboard_main_2_div_4_div_1_audio_2_Template, 1, 1, "audio", 92)(3, Dashboard_main_2_div_4_div_1_div_3_Template, 4, 6, "div", 93);
+    \u0275\u0275elementStart(4, "span", 94);
     \u0275\u0275text(5);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(6, "div", 74);
-    \u0275\u0275element(7, "span", 75);
-    \u0275\u0275text(8);
+    \u0275\u0275elementStart(6, "span", 95);
+    \u0275\u0275text(7);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(8, "div", 96);
+    \u0275\u0275element(9, "span", 97);
+    \u0275\u0275text(10);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r6 = ctx.$implicit;
+    const p_r8 = ctx.$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
-    \u0275\u0275classProp("video-on", p_r6.videoOn)("hide-when-pip", p_r6.isYou && ctx_r1.shouldShowSelfVideo && ctx_r1.gridParticipants.length > 1)("hand-raised", p_r6.handRaised);
+    \u0275\u0275classProp("video-on", p_r8.videoOn)("hide-when-pip", p_r8.isYou && ctx_r1.shouldShowSelfVideo && ctx_r1.gridParticipants.length > 1)("hand-raised", p_r8.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r6.stream && p_r6.videoOn);
+    \u0275\u0275property("ngIf", p_r8.stream && p_r8.videoOn);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r6.stream && !p_r6.isYou);
+    \u0275\u0275property("ngIf", p_r8.stream && !p_r8.isYou);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r6.videoOn);
+    \u0275\u0275property("ngIf", !p_r8.videoOn);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate1(" \u{1F441}\uFE0F ", p_r6.gaze, " ");
+    \u0275\u0275textInterpolate1(" \u{1F441}\uFE0F ", p_r8.gaze, " ");
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(12, _c3, p_r6.mic === "on", p_r6.mic === "off"));
+    \u0275\u0275textInterpolate1(" \u{1F3A4} ", p_r8.voice, " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(13, _c4, p_r8.mic === "on", p_r8.mic === "off"));
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1(" ", p_r6.name, " ");
+    \u0275\u0275textInterpolate1(" ", p_r8.name, " ");
   }
 }
 function Dashboard_main_2_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 67);
-    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_Template, 9, 15, "div", 68);
+    \u0275\u0275elementStart(0, "div", 88);
+    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_Template, 11, 16, "div", 89);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c22, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction5(3, _c3, ctx_r1.gridParticipants.length === 1, ctx_r1.gridParticipants.length === 2, ctx_r1.gridParticipants.length === 3, ctx_r1.gridParticipants.length === 4, ctx_r1.gridParticipants.length > 4));
     \u0275\u0275advance();
     \u0275\u0275property("ngForOf", ctx_r1.gridParticipants)("ngForTrackBy", ctx_r1.trackByParticipant);
   }
 }
 function Dashboard_main_2_div_34_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 84);
+    \u0275\u0275element(0, "video", 106);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(3);
@@ -90543,8 +90722,8 @@ function Dashboard_main_2_div_34_video_1_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_34_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 82);
-    \u0275\u0275template(1, Dashboard_main_2_div_34_video_1_Template, 1, 2, "video", 83);
+    \u0275\u0275elementStart(0, "div", 104);
+    \u0275\u0275template(1, Dashboard_main_2_div_34_video_1_Template, 1, 2, "video", 105);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90555,10 +90734,10 @@ function Dashboard_main_2_div_34_Template(rf, ctx) {
 }
 function Dashboard_main_2_button_48_Template(rf, ctx) {
   if (rf & 1) {
-    const _r7 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "button", 85);
+    const _r9 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 107);
     \u0275\u0275listener("click", function Dashboard_main_2_button_48_Template_button_click_0_listener() {
-      \u0275\u0275restoreView(_r7);
+      \u0275\u0275restoreView(_r9);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.closeChat());
     });
@@ -90573,70 +90752,84 @@ function Dashboard_main_2_div_50_div_3_span_3_Template(rf, ctx) {
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r8 = \u0275\u0275nextContext().$implicit;
+    const p_r10 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate(p_r8.initials);
+    \u0275\u0275textInterpolate(p_r10.initials);
   }
 }
 function Dashboard_main_2_div_50_div_3_span_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 94);
+    \u0275\u0275elementStart(0, "span", 117);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_2_div_50_div_3_span_7_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 95);
+    \u0275\u0275elementStart(0, "span", 118);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r8 = \u0275\u0275nextContext().$implicit;
+    const p_r10 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r8.gaze);
+    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r10.gaze);
+  }
+}
+function Dashboard_main_2_div_50_div_3_span_8_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "span", 119);
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const p_r10 = \u0275\u0275nextContext().$implicit;
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1("\u{1F3A4} ", p_r10.voice);
   }
 }
 function Dashboard_main_2_div_50_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 89)(1, "div", 90)(2, "div", 91);
-    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_span_3_Template, 2, 1, "span", 2)(4, Dashboard_main_2_div_50_div_3_span_4_Template, 2, 0, "span", 92);
+    \u0275\u0275elementStart(0, "div", 111)(1, "div", 112)(2, "div", 113);
+    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_span_3_Template, 2, 1, "span", 2)(4, Dashboard_main_2_div_50_div_3_span_4_Template, 2, 0, "span", 114);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(5, "span");
     \u0275\u0275text(6);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(7, Dashboard_main_2_div_50_div_3_span_7_Template, 2, 1, "span", 93);
+    \u0275\u0275template(7, Dashboard_main_2_div_50_div_3_span_7_Template, 2, 1, "span", 115)(8, Dashboard_main_2_div_50_div_3_span_8_Template, 2, 1, "span", 116);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(8, "div");
-    \u0275\u0275element(9, "i", 41)(10, "i", 41);
+    \u0275\u0275elementStart(9, "div");
+    \u0275\u0275element(10, "i", 62)(11, "i", 62);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r8 = ctx.$implicit;
+    const p_r10 = ctx.$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
     \u0275\u0275advance(2);
-    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r8.channel));
-    \u0275\u0275classProp("hand-raised", p_r8.handRaised);
+    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r10.channel));
+    \u0275\u0275classProp("hand-raised", p_r10.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r8.handRaised);
+    \u0275\u0275property("ngIf", !p_r10.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r8.handRaised);
+    \u0275\u0275property("ngIf", p_r10.handRaised);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(p_r8.name);
+    \u0275\u0275textInterpolate(p_r10.name);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r8.gaze);
+    \u0275\u0275property("ngIf", p_r10.gaze);
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", p_r10.voice);
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", p_r8.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
+    \u0275\u0275property("ngClass", p_r10.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", p_r8.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
+    \u0275\u0275property("ngClass", p_r10.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
   }
 }
 function Dashboard_main_2_div_50_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 86)(1, "h3", 87);
+    \u0275\u0275elementStart(0, "div", 108)(1, "h3", 109);
     \u0275\u0275text(2, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_Template, 11, 10, "div", 88);
+    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_Template, 12, 11, "div", 110);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90647,27 +90840,27 @@ function Dashboard_main_2_div_50_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_51_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 98)(1, "div", 99);
+    \u0275\u0275elementStart(0, "div", 122)(1, "div", 123);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "div", 64);
+    \u0275\u0275elementStart(3, "div", 85);
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const m_r9 = ctx.$implicit;
+    const m_r11 = ctx.$implicit;
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r9.by);
+    \u0275\u0275textInterpolate(m_r11.by);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r9.text);
+    \u0275\u0275textInterpolate(m_r11.text);
   }
 }
 function Dashboard_main_2_div_51_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 96, 0)(2, "h3", 87);
+    \u0275\u0275elementStart(0, "div", 120, 0)(2, "h3", 109);
     \u0275\u0275text(3, "Chat");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(4, Dashboard_main_2_div_51_div_4_Template, 5, 2, "div", 97);
+    \u0275\u0275template(4, Dashboard_main_2_div_51_div_4_Template, 5, 2, "div", 121);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90678,22 +90871,22 @@ function Dashboard_main_2_div_51_Template(rf, ctx) {
 }
 function Dashboard_main_2_form_52_Template(rf, ctx) {
   if (rf & 1) {
-    const _r10 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "form", 100);
+    const _r12 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "form", 124);
     \u0275\u0275listener("ngSubmit", function Dashboard_main_2_form_52_Template_form_ngSubmit_0_listener() {
-      \u0275\u0275restoreView(_r10);
+      \u0275\u0275restoreView(_r12);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.sendChat());
     });
-    \u0275\u0275elementStart(1, "input", 101);
+    \u0275\u0275elementStart(1, "input", 125);
     \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_2_form_52_Template_input_ngModelChange_1_listener($event) {
-      \u0275\u0275restoreView(_r10);
+      \u0275\u0275restoreView(_r12);
       const ctx_r1 = \u0275\u0275nextContext(2);
       \u0275\u0275twoWayBindingSet(ctx_r1.chatText, $event) || (ctx_r1.chatText = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(2, "button", 102);
+    \u0275\u0275elementStart(2, "button", 126);
     \u0275\u0275text(3, "Send");
     \u0275\u0275elementEnd()();
   }
@@ -90705,117 +90898,117 @@ function Dashboard_main_2_form_52_Template(rf, ctx) {
 }
 function Dashboard_main_2_Template(rf, ctx) {
   if (rf & 1) {
-    const _r4 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "main", 34)(1, "section", 35);
-    \u0275\u0275template(2, Dashboard_main_2_div_2_Template, 8, 1, "div", 36);
-    \u0275\u0275elementStart(3, "div", 37);
-    \u0275\u0275template(4, Dashboard_main_2_div_4_Template, 2, 9, "div", 38);
-    \u0275\u0275elementStart(5, "div", 39)(6, "button", 40);
+    const _r6 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "main", 55)(1, "section", 56);
+    \u0275\u0275template(2, Dashboard_main_2_div_2_Template, 8, 1, "div", 57);
+    \u0275\u0275elementStart(3, "div", 58);
+    \u0275\u0275template(4, Dashboard_main_2_div_4_Template, 2, 9, "div", 59);
+    \u0275\u0275elementStart(5, "div", 60)(6, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_6_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleMic());
     });
-    \u0275\u0275element(7, "i", 41);
+    \u0275\u0275element(7, "i", 62);
     \u0275\u0275elementStart(8, "span");
     \u0275\u0275text(9, "Mic");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(10, "button", 40);
+    \u0275\u0275elementStart(10, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_10_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.toggleCam());
     });
-    \u0275\u0275element(11, "i", 41);
+    \u0275\u0275element(11, "i", 62);
     \u0275\u0275elementStart(12, "span");
     \u0275\u0275text(13, "Video");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(14, "button", 40);
+    \u0275\u0275elementStart(14, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_14_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.shareScreen());
     });
-    \u0275\u0275element(15, "i", 42);
+    \u0275\u0275element(15, "i", 63);
     \u0275\u0275elementStart(16, "span");
     \u0275\u0275text(17, "Share");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(18, "button", 40);
+    \u0275\u0275elementStart(18, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_18_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.raiseHand());
     });
-    \u0275\u0275element(19, "i", 43);
+    \u0275\u0275element(19, "i", 64);
     \u0275\u0275elementStart(20, "span");
     \u0275\u0275text(21, "Hand");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(22, "button", 40);
+    \u0275\u0275elementStart(22, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_22_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.startNotes());
     });
-    \u0275\u0275element(23, "i", 44);
+    \u0275\u0275element(23, "i", 65);
     \u0275\u0275elementStart(24, "span");
     \u0275\u0275text(25, "Notepad");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(26, "button", 40);
+    \u0275\u0275elementStart(26, "button", 61);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_26_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.runGazeSession());
     });
-    \u0275\u0275element(27, "i", 45);
+    \u0275\u0275element(27, "i", 66);
     \u0275\u0275elementStart(28, "span");
     \u0275\u0275text(29, "Start Calibration");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(30, "button", 46);
+    \u0275\u0275elementStart(30, "button", 67);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_30_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.leaveCall());
     });
-    \u0275\u0275element(31, "i", 47);
+    \u0275\u0275element(31, "i", 68);
     \u0275\u0275elementStart(32, "span");
     \u0275\u0275text(33, "Leave");
     \u0275\u0275elementEnd()()()();
-    \u0275\u0275template(34, Dashboard_main_2_div_34_Template, 2, 1, "div", 48);
+    \u0275\u0275template(34, Dashboard_main_2_div_34_Template, 2, 1, "div", 69);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(35, "aside", 49)(36, "div", 50)(37, "div", 51);
-    \u0275\u0275element(38, "i", 52);
-    \u0275\u0275elementStart(39, "input", 53);
+    \u0275\u0275elementStart(35, "aside", 70)(36, "div", 71)(37, "div", 72);
+    \u0275\u0275element(38, "i", 73);
+    \u0275\u0275elementStart(39, "input", 74);
     \u0275\u0275listener("change", function Dashboard_main_2_Template_input_change_39_listener($event) {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.updateName($event));
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(40, "label", 54);
+    \u0275\u0275elementStart(40, "label", 75);
     \u0275\u0275text(41, "update display name from here.");
     \u0275\u0275elementEnd()()();
-    \u0275\u0275elementStart(42, "div", 55)(43, "div", 56)(44, "button", 57);
+    \u0275\u0275elementStart(42, "div", 76)(43, "div", 77)(44, "button", 78);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_44_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.activeTab = "participants");
     });
     \u0275\u0275text(45, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(46, "button", 57);
+    \u0275\u0275elementStart(46, "button", 78);
     \u0275\u0275listener("click", function Dashboard_main_2_Template_button_click_46_listener() {
-      \u0275\u0275restoreView(_r4);
+      \u0275\u0275restoreView(_r6);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.activeTab = "chat");
     });
     \u0275\u0275text(47, "Chat");
     \u0275\u0275elementEnd()();
-    \u0275\u0275template(48, Dashboard_main_2_button_48_Template, 2, 0, "button", 58);
+    \u0275\u0275template(48, Dashboard_main_2_button_48_Template, 2, 0, "button", 79);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(49, "div", 59);
-    \u0275\u0275template(50, Dashboard_main_2_div_50_Template, 4, 1, "div", 60)(51, Dashboard_main_2_div_51_Template, 5, 1, "div", 61);
+    \u0275\u0275elementStart(49, "div", 80);
+    \u0275\u0275template(50, Dashboard_main_2_div_50_Template, 4, 1, "div", 81)(51, Dashboard_main_2_div_51_Template, 5, 1, "div", 82);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(52, Dashboard_main_2_form_52_Template, 4, 1, "form", 62);
+    \u0275\u0275template(52, Dashboard_main_2_form_52_Template, 4, 1, "form", 83);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -90832,7 +91025,7 @@ function Dashboard_main_2_Template(rf, ctx) {
     \u0275\u0275advance(23);
     \u0275\u0275property("ngIf", ctx_r1.shouldShowSelfVideo);
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c13, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(17, _c22, ctx_r1.chatCollapsed && !ctx_r1.isDesktop, !ctx_r1.chatCollapsed || ctx_r1.isDesktop));
     \u0275\u0275advance(4);
     \u0275\u0275property("value", (ctx_r1.you == null ? null : ctx_r1.you.name) || "You");
     \u0275\u0275advance(5);
@@ -90851,17 +91044,17 @@ function Dashboard_main_2_Template(rf, ctx) {
 }
 function Dashboard_app_notepad_3_Template(rf, ctx) {
   if (rf & 1) {
-    const _r11 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "app-notepad", 103);
+    const _r13 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "app-notepad", 127);
     \u0275\u0275listener("close", function Dashboard_app_notepad_3_Template_app_notepad_close_0_listener() {
-      \u0275\u0275restoreView(_r11);
+      \u0275\u0275restoreView(_r13);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.closeNotes());
     });
     \u0275\u0275elementEnd();
   }
 }
-var _c03, _c13, _c22, _c3, MediaSrcObjectDirective, Dashboard;
+var _c03, _c13, _c22, _c3, _c4, MediaSrcObjectDirective, Dashboard;
 var init_dashboard = __esm({
   "src/app/dashboard/dashboard.ts"() {
     "use strict";
@@ -90873,15 +91066,20 @@ var init_dashboard = __esm({
     init_drag_drop();
     init_notepad_component();
     init_gazeTracker();
+    init_voiceAnalyzer();
+    init_voice_service();
+    init_http();
     init_core();
     init_signaling_service();
+    init_voice_service();
     init_common();
     init_forms();
     init_drag_drop();
     _c03 = ["chatScroll"];
-    _c13 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
-    _c22 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
-    _c3 = (a0, a1) => ({ "bg-green-400": a0, "bg-red-400": a1 });
+    _c13 = ["enrollmentVideo"];
+    _c22 = (a0, a1) => ({ "translate-x-full": a0, "translate-x-0": a1 });
+    _c3 = (a0, a1, a2, a3, a4) => ({ "layout-1": a0, "layout-2": a1, "layout-3": a2, "layout-4": a3, "layout-more": a4 });
+    _c4 = (a0, a1) => ({ "bg-green-400": a0, "bg-red-400": a1 });
     MediaSrcObjectDirective = class _MediaSrcObjectDirective {
       el;
       muted = false;
@@ -90924,6 +91122,29 @@ var init_dashboard = __esm({
     })();
     Dashboard = class _Dashboard {
       signaling;
+      voiceService;
+      cdr;
+      // ==============voice detection helper==============
+      _pendingChunks = [];
+      _lastVerifyTime = 0;
+      _lastMatchPct = 0;
+      VAD_THRESHOLD = 0.03;
+      SPEECH_MIN_FRAMES = 0.2;
+      BATCH_WINDOW_MS = 1e4;
+      enrollmentInProgress = false;
+      isEnrollmentComplete = true;
+      isRecording = false;
+      currentPrompt = "";
+      takeIndex = 0;
+      totalTakes = 3;
+      prompts = [
+        "Please read aloud: 'I confirm my identity and consent to voice authentication for secure access to this platform.'",
+        "Please read aloud: 'My voice signature is unique and will be used to verify my identity during this session.'",
+        "Please read aloud: 'I understand that voice biometrics enhance security and protect against unauthorized access.'"
+      ];
+      recordedSamples = [];
+      statusMessage = 'Click "Start Enrollment" to begin.';
+      progressPercent = 0;
       // ====== UI state ======
       isDesktop = window.innerWidth >= 1024;
       chatCollapsed = true;
@@ -90935,6 +91156,7 @@ var init_dashboard = __esm({
       activeTab = "chat";
       isNameUpdated = false;
       chatScroll;
+      enrollmentVideo;
       // ====== Signaling ======
       signalingSub = null;
       myServerChan = null;
@@ -90956,6 +91178,39 @@ var init_dashboard = __esm({
       monitorLoopRunning = false;
       gazeThresholds;
       isNotesOpen = false;
+      // Voice recognition state
+      isRecordingVoice = false;
+      voiceRecordingProgress = 0;
+      hasVoiceBaseline = false;
+      isVoiceMonitoring = false;
+      voice = "N/A";
+      // MediaRecorder-based voice
+      mediaRecorder = null;
+      mediaStream = null;
+      audioChunks = [];
+      verificationTimer = null;
+      RECORD_MS = 4e3;
+      // 2-second chunks
+      ENROLL_SAMPLES = 3;
+      VERIFICATION_WINDOW = 3;
+      verificationScores = [];
+      ngZone;
+      // Face capture during enrollment
+      enrollmentCameraStream = null;
+      showEnrollmentCamera = false;
+      facePositionCorrect = true;
+      facePositionMessage = "";
+      currentReadingText = "";
+      faceDetectionInterval = null;
+      enrollmentSuccessCount = 0;
+      // Professional reading texts for each sample
+      READING_TEXTS = [
+        "Please read aloud: 'I confirm my identity and consent to voice authentication for secure access to this platform.'",
+        "Please read aloud: 'My voice signature is unique and will be used to verify my identity during this session.'",
+        "Please read aloud: 'I understand that voice biometrics enhance security and protect against unauthorized access.'"
+      ];
+      _batchStartTime;
+      chunks = [];
       // ====== Derived getters ======
       get you() {
         return this.participantsMap.get("__you__");
@@ -90984,6 +91239,9 @@ var init_dashboard = __esm({
         }
         return this.participants;
       }
+      get canUseRecorder() {
+        return !!this.mediaRecorder && this.enrollmentInProgress;
+      }
       //========= GazeTracking ==============
       gazeSocket;
       isGazeTracking = false;
@@ -90999,14 +91257,28 @@ var init_dashboard = __esm({
         camera: false,
         microphone: false
       };
-      constructor(signaling) {
+      constructor(signaling, ngZone, voiceService, cdr) {
         this.signaling = signaling;
+        this.voiceService = voiceService;
+        this.cdr = cdr;
+        this.ngZone = ngZone;
+        initModel().catch((err) => console.warn("Model init (background) failed:", err));
       }
       // ====== Lifecycle ======
       ngOnInit() {
         return __async(this, null, function* () {
           yield this.checkMediaPermissions();
         });
+      }
+      ngAfterViewInit() {
+        if (this.enrollmentVideo?.nativeElement && this.enrollmentCameraStream) {
+          const video = this.enrollmentVideo.nativeElement;
+          video.srcObject = this.enrollmentCameraStream;
+          video.muted = true;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.play().catch((err) => console.warn("Video play error:", err));
+        }
       }
       joinRoom() {
         this.localPreviewStream = new MediaStream();
@@ -91023,6 +91295,7 @@ var init_dashboard = __esm({
         } catch {
         }
         stopGazeTracking();
+        this.stopAllStreams();
         this.signalingSub?.unsubscribe();
         this.signaling.disconnect();
         this.peers.forEach((st) => {
@@ -91063,7 +91336,7 @@ var init_dashboard = __esm({
           return;
         this.escPressCount++;
         if (this.escPressCount === 1 && !this.hasShownEscAlert) {
-          alert("Press ESC again to exit fullscreen");
+          alert("You are not allowed to pres ESC key, If you do so it will notify interviewer immidiately.");
           this.hasShownEscAlert = true;
           if (this.escPressTimer)
             clearTimeout(this.escPressTimer);
@@ -91157,7 +91430,8 @@ var init_dashboard = __esm({
           stream: null,
           // preview stream will be attached when camera turns on
           handRaised: false,
-          gaze: ""
+          gaze: "",
+          voice: "N/A"
         };
       }
       computeVideoOn(cam, stream) {
@@ -91188,6 +91462,7 @@ var init_dashboard = __esm({
           // ✅ stick to the first channel we saw
           stream: existingStream,
           gaze: row?.gaze ?? prev?.gaze ?? "",
+          voice: row?.voice ?? prev?.voice ?? "N/A",
           handRaised: typeof row?.handRaised === "boolean" ? row.handRaised : prev?.handRaised ?? false
         };
         this.participantsMap.set(next.channel, next);
@@ -91330,21 +91605,29 @@ var init_dashboard = __esm({
               isYou: false,
               stream: null,
               handRaised: false,
-              gaze: ""
+              gaze: "",
+              voice: "N/A"
             };
           }
           const ms = this.ensureParticipantStream(remoteChan);
           const already = ms.getTracks().some((t2) => t2.id === ev.track.id);
           if (!already)
             ms.addTrack(ev.track);
-          const updated = __spreadProps(__spreadValues({}, pPrev), {
+          const updated = {
+            name: pPrev.name,
+            initials: pPrev.initials,
+            isYou: pPrev.isYou,
+            channel: pPrev.channel,
+            handRaised: pPrev.handRaised,
+            gaze: pPrev.gaze,
+            voice: pPrev.voice,
             stream: ms,
             // Only update mic/cam if they were at default 'off' (meaning we haven't received server state yet)
             mic: pPrev.mic !== "off" ? pPrev.mic : ms.getAudioTracks().length > 0 ? "on" : "off",
             cam: pPrev.cam !== "off" ? pPrev.cam : ms.getVideoTracks().length > 0 ? "on" : "off",
             // videoOn should be based on the cam state from server, not just presence of tracks
             videoOn: this.computeVideoOn(pPrev.cam, ms)
-          });
+          };
           this.participantsMap.set(remoteChan, updated);
           this.syncParticipantsArray();
         };
@@ -91599,6 +91882,22 @@ var init_dashboard = __esm({
             }
             break;
           }
+          case "voice_update": {
+            const ch = msg.channel;
+            const v = msg.voice;
+            if (ch && this.participantsMap.has(ch)) {
+              const p = this.participantsMap.get(ch);
+              this.participantsMap.set(ch, __spreadProps(__spreadValues({}, p), { voice: v }));
+              this.syncParticipantsArray();
+            } else {
+              const p = this.participants.find((pp) => pp.name === msg.user);
+              if (p) {
+                p.voice = v;
+                this.syncParticipantsArray();
+              }
+            }
+            break;
+          }
         }
       }
       // ====== UI actions ======
@@ -91624,16 +91923,517 @@ var init_dashboard = __esm({
         }
       }
       updateNameFirst() {
-        if (!this.userName) {
-          alert("Please Enter User Name");
+        return __async(this, null, function* () {
+          if (!this.userName) {
+            alert("Please Enter User Name");
+            return;
+          }
+          if (!this.termsCheckbox) {
+            alert("Please accept Terms & Conditions");
+            return;
+          }
+          if (!this.hasVoiceBaseline) {
+            alert("Please record your voice sample first");
+            return;
+          }
+          this.isNameUpdated = true;
+          this.joinRoom();
+        });
+      }
+      // ============ Voice Integration (MediaRecorder-based) ============
+      isSecureContext() {
+        const origin = window.location.origin;
+        return origin.startsWith("https://") || origin.includes("localhost") || origin.includes("127.0.0.1");
+      }
+      requestMicrophone() {
+        return __async(this, null, function* () {
+          if (!this.isSecureContext()) {
+            throw new Error("Microphone requires secure origin (https) or localhost");
+          }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("Browser does not support getUserMedia");
+          }
+          try {
+            const stream = yield navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: true, noiseSuppression: true },
+              video: false
+            });
+            this.mediaStream = stream;
+            this.permissionStatus.microphone = true;
+            return stream;
+          } catch (err) {
+            this.permissionStatus.microphone = false;
+            if (err && err.name === "NotAllowedError")
+              throw new Error("Microphone permission denied, please allow mic access in the browser");
+            if (err && err.name === "NotFoundError")
+              throw new Error("No microphone found");
+            throw new Error(err?.message || "Could not get microphone");
+          }
+        });
+      }
+      stopAllStreams() {
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach((t2) => t2.stop());
+          this.mediaStream = null;
+        }
+        if (this.mediaRecorder) {
+          try {
+            this.mediaRecorder.stop();
+          } catch (_) {
+          }
+          this.mediaRecorder = null;
+        }
+        this.isRecordingVoice = false;
+        this.isVoiceMonitoring = false;
+      }
+      // ---------------- Enrollment (baseline) flows ----------------
+      // public async startEnrollment(): Promise<void> {
+      //   try {
+      //     if (this.isRecordingVoice) return;
+      //     // ensure model loaded
+      //     await initModel();
+      //     // Start camera for face capture
+      //     await this.startEnrollmentCamera();
+      //     // request mic
+      //     await this.requestMicrophone();
+      //     // prepare MediaRecorder capturing 2s segments
+      //     this.audioChunks = [];
+      //     const options: MediaRecorderOptions = { 
+      //        mimeType: 'audio/webm;codecs=opus',
+      //        audioBitsPerSecond: 128000,
+      //     };
+      //     this.mediaRecorder = new MediaRecorder(this.mediaStream as MediaStream, options);
+      //     this.mediaRecorder.ondataavailable = (ev: BlobEvent) => {
+      //       if (ev.data && ev.data.size > 0) this.audioChunks.push(ev.data);
+      //     };
+      //     this.mediaRecorder.onstop = async () => {
+      //       if (this.audioChunks.length === 0) return;
+      //       const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+      //       this.audioChunks = [];
+      //       // Send to backend for enrollment
+      //       this.voiceService.enrollVoice(blob, this.roomName, this.userName).subscribe({
+      //         next: (response) => {
+      //           if (response.success) {
+      //             this.enrollmentSuccessCount++;
+      //             this.voiceRecordingProgress++;
+      //             console.log('✅ Enrollment sample captured:', this.voiceRecordingProgress);
+      //           } else {
+      //             console.error('❌ Enrollment failed:', response.message);
+      //             alert('Failed to enroll voice sample: ' + response.message);
+      //           }
+      //         },
+      //         error: (err) => {
+      //           console.error('❌ Enrollment API error:', err);
+      //           alert('Failed to enroll voice sample. Please try again.');
+      //         }
+      //       });
+      //     };
+      //     // Start simple loop: start recorder, wait RECORD_MS, stop, repeat until user clicks Record
+      //     this.isRecordingVoice = true;
+      //     this.showEnrollmentCamera = true;
+      //     this.enrollmentSuccessCount = 0;
+      //     // Set initial reading text
+      //     this.updateReadingText();
+      //     console.log('Enrollment started — click Record (2s) to capture a sample');
+      //   } catch (err: any) {
+      //     alert('Could not start enrollment: ' + (err.message || err));
+      //     this.isRecordingVoice = false;
+      //     this.stopAllStreams();
+      //     this.stopEnrollmentCamera();
+      //   }
+      // }
+      startEnrollment() {
+        return __async(this, null, function* () {
+          if (this.enrollmentInProgress) {
+            return;
+          }
+          this.stopStream();
+          this.enrollmentInProgress = true;
+          this.isEnrollmentComplete = false;
+          this.isRecording = false;
+          this.takeIndex = 0;
+          this.recordedSamples = [];
+          this.chunks = [];
+          this.currentPrompt = "";
+          this.hasVoiceBaseline = false;
+          this.statusMessage = "Preparing microphone...";
+          this.progressPercent = 0;
+          this.cdr.markForCheck();
+          try {
+            const stream = yield navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaStream = stream;
+            this.mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+            this.mediaRecorder.ondataavailable = (event) => {
+              if (event.data && event.data.size > 0) {
+                this.chunks.push(event.data);
+              }
+            };
+            this.mediaRecorder.onstop = () => __async(this, null, function* () {
+              if (this.chunks.length === 0) {
+                this.ngZone.run(() => {
+                  this.statusMessage = "No audio captured. Please try again.";
+                  this.cdr.markForCheck();
+                });
+                this.chunks = [];
+                return;
+              }
+              const blob = new Blob(this.chunks, { type: "audio/webm" });
+              this.recordedSamples.push(blob);
+              this.chunks = [];
+              const samplesCollected = this.recordedSamples.length;
+              this.ngZone.run(() => {
+                this.progressPercent = Math.round(samplesCollected / this.totalTakes * 100);
+                this.cdr.markForCheck();
+              });
+              if (samplesCollected >= this.totalTakes) {
+                yield this.finalizeEnrollment();
+                return;
+              }
+              this.ngZone.run(() => {
+                this.takeIndex = samplesCollected;
+                this.currentPrompt = this.prompts[samplesCollected];
+                this.statusMessage = 'Click "Record" again, then Read the next text.';
+                this.cdr.markForCheck();
+              });
+            });
+            this.currentPrompt = this.prompts[0];
+            this.statusMessage = 'Click "Record, then Read the text aloud.';
+            this.cdr.markForCheck();
+          } catch (error) {
+            console.error("Mic access error", error);
+            this.statusMessage = "Microphone access failed.";
+            this.enrollmentInProgress = false;
+            this.stopStream();
+            this.cdr.markForCheck();
+          }
+        });
+      }
+      handleRecordClick() {
+        return __async(this, null, function* () {
+          if (!this.enrollmentInProgress || !this.mediaRecorder) {
+            return;
+          }
+          if (this.isRecording) {
+            this.isRecording = false;
+            try {
+              this.mediaRecorder.stop();
+              this.statusMessage = "Processing recording...";
+            } catch (error) {
+              console.error("MediaRecorder stop error", error);
+              this.statusMessage = "Unable to stop recording. Please try again.";
+            }
+            this.cdr.markForCheck();
+            return;
+          }
+          this.isRecording = true;
+          this.chunks = [];
+          try {
+            this.mediaRecorder.start();
+            this.statusMessage = "Recording... speak clearly.";
+          } catch (error) {
+            console.error("MediaRecorder start error", error);
+            this.isRecording = false;
+            this.statusMessage = "Unable to start recording.";
+          }
+          this.cdr.markForCheck();
+        });
+      }
+      finalizeEnrollment() {
+        return __async(this, null, function* () {
+          let timeoutId;
+          const controller = new AbortController();
+          try {
+            this.enrollmentInProgress = false;
+            this.statusMessage = "Uploading samples for enrollment...";
+            this.cdr.markForCheck();
+            const form = new FormData();
+            this.recordedSamples.forEach((blob, index) => {
+              form.append("files", blob, `sample${index + 1}.webm`);
+            });
+            form.append("room", this.roomName || "default");
+            form.append("username", this.userName || "guest");
+            const headers = {};
+            const csrfToken = this.getCsrfToken();
+            if (csrfToken) {
+              headers["X-CSRFToken"] = csrfToken;
+            }
+            timeoutId = window.setTimeout(() => controller.abort(), 2e4);
+            const response = yield fetch("/video-call/api/voice/enroll-batch", {
+              method: "POST",
+              body: form,
+              headers,
+              credentials: "same-origin",
+              signal: controller.signal
+            });
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = void 0;
+            }
+            let result = null;
+            try {
+              result = yield response.json();
+            } catch {
+              result = null;
+            }
+            if (response.ok && result?.success) {
+              this.statusMessage = "Enrollment complete! Voice profile ready.";
+              this.progressPercent = 100;
+              this.hasVoiceBaseline = true;
+            } else {
+              const message = result?.message ?? response.statusText ?? "Unknown error";
+              this.statusMessage = `Enrollment failed: ${message}`;
+              this.hasVoiceBaseline = false;
+            }
+          } catch (error) {
+            console.error("Enrollment error", error);
+            this.statusMessage = "Enrollment failed (network or server issue).";
+            this.hasVoiceBaseline = false;
+          } finally {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+            this.stopStream();
+            this.isEnrollmentComplete = true;
+            this.isRecording = false;
+            this.currentPrompt = "";
+            this.takeIndex = 0;
+            this.recordedSamples = [];
+            this.cdr.markForCheck();
+          }
+        });
+      }
+      stopStream() {
+        try {
+          if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
+            this.mediaRecorder.stop();
+          }
+        } catch (error) {
+          console.warn("MediaRecorder stop warning:", error);
+        } finally {
+          this.mediaRecorder = null;
+        }
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach((track) => track.stop());
+          this.mediaStream = null;
+        }
+        this.chunks = [];
+        this.isRecording = false;
+      }
+      getCsrfToken() {
+        if (typeof document === "undefined") {
+          return null;
+        }
+        const match2 = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+        return match2 ? decodeURIComponent(match2[2]) : null;
+      }
+      captureBaselineSample() {
+        return __async(this, null, function* () {
+          if (!this.isRecordingVoice || !this.mediaRecorder) {
+            alert("Please start enrollment first");
+            return;
+          }
+          try {
+            yield new Promise((r) => setTimeout(r, 300));
+            this.mediaRecorder.start();
+            setTimeout(() => {
+              if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
+                this.mediaRecorder.stop();
+                setTimeout(() => this.updateReadingText(), 500);
+              }
+            }, this.RECORD_MS);
+          } catch (err) {
+            console.error("MediaRecorder start error:", err);
+          }
+        });
+      }
+      finishEnrollment() {
+        if (!this.isRecordingVoice)
+          return;
+        if (this.voiceRecordingProgress < this.ENROLL_SAMPLES) {
+          alert(`Please record at least ${this.ENROLL_SAMPLES} samples (currently ${this.voiceRecordingProgress})`);
           return;
         }
-        if (!this.termsCheckbox) {
-          alert("Please Enter User Name");
+        if (this.enrollmentSuccessCount < this.ENROLL_SAMPLES) {
+          alert(`Please wait for all samples to be processed successfully (${this.enrollmentSuccessCount}/${this.ENROLL_SAMPLES} completed)`);
           return;
         }
-        this.isNameUpdated = true;
-        this.joinRoom();
+        this.hasVoiceBaseline = true;
+        this.isRecordingVoice = false;
+        this.voiceRecordingProgress = 0;
+        this.enrollmentSuccessCount = 0;
+        try {
+          this.mediaStream?.getTracks().forEach((t2) => t2.stop());
+        } catch (_) {
+        }
+        this.mediaStream = null;
+        if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
+          try {
+            this.mediaRecorder.stop();
+          } catch (_) {
+          }
+        }
+        this.mediaRecorder = null;
+        this.stopEnrollmentCamera();
+      }
+      // ---------------- Verification (monitoring) flows ----------------
+      startVerification() {
+        return __async(this, null, function* () {
+          try {
+            if (!this.hasVoiceBaseline) {
+              alert("No baseline enrolled. Please enroll first.");
+              return;
+            }
+            yield initModel();
+            yield this.requestMicrophone();
+            this.mediaRecorder = new MediaRecorder(this.mediaStream, { mimeType: "audio/webm;codecs=opus" });
+            this.mediaRecorder.ondataavailable = (ev) => __async(this, null, function* () {
+              try {
+                if (!this.localAudioTrack || !this.localAudioTrack.enabled)
+                  return;
+                if (!ev.data || ev.data.size < 2e3)
+                  return;
+                const arrayBuffer = yield ev.data.arrayBuffer();
+                const audioCtx = new AudioContext();
+                const audioBuffer = yield audioCtx.decodeAudioData(arrayBuffer);
+                const samples2 = audioBuffer.getChannelData(0);
+                const rms = Math.sqrt(samples2.reduce((s, x) => s + x * x, 0) / samples2.length);
+                audioCtx.close();
+                const windowSize = 1024;
+                let activeFrames = 0;
+                for (let i = 0; i < samples2.length; i += windowSize) {
+                  const slice = samples2.subarray(i, i + windowSize);
+                  const frameRms = Math.sqrt(slice.reduce((s, x) => s + x * x, 0) / slice.length);
+                  if (frameRms > 0.03)
+                    activeFrames++;
+                }
+                const speechActive = activeFrames > samples2.length / windowSize * 0.2;
+                if (!speechActive || rms < 0.015) {
+                  console.log(`\u{1F92B} Silence or no speech (RMS=${rms.toFixed(4)}) \u2014 skipping verification`);
+                  return;
+                }
+                const now = Date.now();
+                if (!this._pendingChunks)
+                  this._pendingChunks = [];
+                if (!this._batchStartTime)
+                  this._batchStartTime = now;
+                this._pendingChunks.push(ev.data);
+                const durationSinceBatch = now - this._batchStartTime;
+                if (durationSinceBatch < 1e4) {
+                  return;
+                }
+                const lastSent = this._lastVerifyTime || 0;
+                const elapsed = now - lastSent;
+                let interval2 = 5e3;
+                if (this._lastMatchPct > 85)
+                  interval2 = 8e3;
+                else if (this._lastMatchPct < 65)
+                  interval2 = 3e3;
+                if (elapsed < interval2) {
+                  console.log(`\u23F1\uFE0F Skipping verify \u2014 only ${Math.round(elapsed / 1e3)}s since last`);
+                  return;
+                }
+                const combinedBlob = new Blob(this._pendingChunks, { type: "audio/webm" });
+                this._pendingChunks = [];
+                this._batchStartTime = now;
+                this._lastVerifyTime = now;
+                console.log(`\u{1F3A4} Sending ${Math.round(durationSinceBatch / 1e3)}s of speech for verification...`);
+                this.voiceService.verifyVoice(combinedBlob, this.roomName, this.userName).subscribe({
+                  next: (response) => {
+                    if (response.success && response.percentage !== void 0) {
+                      const pct = response.percentage;
+                      this._lastMatchPct = pct;
+                      this.verificationScores.push(pct);
+                      if (this.verificationScores.length > this.VERIFICATION_WINDOW)
+                        this.verificationScores.shift();
+                      const weights = this.verificationScores.map((_, i, arr) => (i + 1) / arr.length);
+                      const avg = Math.round(this.verificationScores.reduce((a, b, i) => a + b * weights[i], 0));
+                      this.ngZone.run(() => {
+                        this.voice = response.status === "high_confidence" ? "Match" : "Unmatch";
+                        console.log("\u{1F3A4} Voice match:", this.voice, `(Status: ${response.status})`);
+                        const me = this.participantsMap.get("__you__");
+                        if (me) {
+                          this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, me), { voice: this.voice }));
+                          this.syncParticipantsArray();
+                        }
+                        this.sendSig({
+                          type: "voice_update",
+                          user: this.userName,
+                          voice: this.voice,
+                          ts: Date.now()
+                        });
+                      });
+                      if (avg < 65) {
+                        console.warn("\u26A0\uFE0F Possible mismatch detected \u2014 avg:", avg + "%");
+                      }
+                    } else {
+                      console.error("\u274C Verification failed:", response.message);
+                    }
+                  },
+                  error: (err) => {
+                    console.error("\u274C Verification API error:", err);
+                  }
+                });
+              } catch (err) {
+                console.error("Error analyzing chunk:", err);
+              }
+            });
+            this.isVoiceMonitoring = true;
+            yield new Promise((r) => setTimeout(r, 300));
+            this.mediaRecorder.start();
+            this.verificationTimer = setInterval(() => {
+              if (!this.mediaRecorder)
+                return;
+              if (this.mediaRecorder.state === "recording") {
+                try {
+                  this.mediaRecorder.stop();
+                } catch (_) {
+                }
+                setTimeout(() => {
+                  if (this.mediaRecorder && this.isVoiceMonitoring) {
+                    try {
+                      this.mediaRecorder.start();
+                    } catch (_) {
+                    }
+                  }
+                }, 150);
+              } else {
+                try {
+                  this.mediaRecorder.start();
+                } catch (err) {
+                  console.warn("recorder start err", err);
+                }
+              }
+            }, this.RECORD_MS + 200);
+            alert("Verification started \u2014 speak to verify your voice.");
+          } catch (err) {
+            alert("Could not start verification: " + (err.message || err));
+            this.stopVerification();
+          }
+        });
+      }
+      stopVerification() {
+        try {
+          this.mediaRecorder?.stop();
+        } catch (_) {
+        }
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach((t2) => {
+            try {
+              t2.stop();
+            } catch {
+            }
+          });
+          this.mediaStream = null;
+        }
+        if (this.verificationTimer) {
+          clearInterval(this.verificationTimer);
+          this.verificationTimer = null;
+        }
+        this.mediaRecorder = null;
+        this.verificationScores = [];
+        this.voice = "N/A";
+        this.isVoiceMonitoring = false;
+        console.log("Verification stopped");
       }
       updateName(e) {
         const v = e.target.value.trim() || "You";
@@ -91654,11 +92454,17 @@ var init_dashboard = __esm({
             try {
               const s = yield navigator.mediaDevices.getUserMedia({ audio: true, video: false });
               this.localAudioTrack = s.getAudioTracks()[0] || null;
+              if (this.hasVoiceBaseline && !this.isVoiceMonitoring) {
+                yield this.startVerification();
+              }
             } catch (e) {
               alert("Microphone access denied: " + (e?.message || ""));
               return;
             }
           } else {
+            if (this.isVoiceMonitoring) {
+              this.stopVerification();
+            }
             this.localAudioTrack?.stop();
             this.localAudioTrack = null;
           }
@@ -91950,16 +92756,63 @@ var init_dashboard = __esm({
         const index = Math.abs(hash3) % gradients.length;
         return gradients[index];
       }
+      // ====== Face Capture Methods for Enrollment ======
+      startEnrollmentCamera() {
+        return __async(this, null, function* () {
+          try {
+            const stream = yield navigator.mediaDevices.getUserMedia({
+              video: { width: 640, height: 480 },
+              audio: false
+            });
+            this.enrollmentCameraStream = stream;
+            this.permissionStatus.camera = true;
+            this.startFacePositionCheck();
+          } catch (err) {
+            this.permissionStatus.camera = false;
+            throw new Error("Camera access denied for enrollment: " + (err?.message || ""));
+          }
+        });
+      }
+      stopEnrollmentCamera() {
+        if (this.enrollmentCameraStream) {
+          this.enrollmentCameraStream.getTracks().forEach((track) => track.stop());
+          this.enrollmentCameraStream = null;
+        }
+        if (this.faceDetectionInterval) {
+          clearInterval(this.faceDetectionInterval);
+          this.faceDetectionInterval = null;
+        }
+        this.showEnrollmentCamera = false;
+        this.facePositionCorrect = true;
+        this.facePositionMessage = "";
+      }
+      startFacePositionCheck() {
+        this.facePositionCorrect = true;
+        this.facePositionMessage = "";
+        this.faceDetectionInterval = setInterval(() => {
+          this.facePositionCorrect = true;
+        }, 2e3);
+      }
+      updateReadingText() {
+        const textIndex = Math.min(this.voiceRecordingProgress, this.READING_TEXTS.length - 1);
+        this.currentReadingText = this.READING_TEXTS[textIndex];
+      }
+      // Getter to check if finish button should be enabled
+      get canFinishEnrollment() {
+        return this.enrollmentSuccessCount >= this.ENROLL_SAMPLES;
+      }
       static \u0275fac = function Dashboard_Factory(__ngFactoryType__) {
-        return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService));
+        return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService), \u0275\u0275directiveInject(NgZone), \u0275\u0275directiveInject(VoiceService), \u0275\u0275directiveInject(ChangeDetectorRef));
       };
       static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Dashboard, selectors: [["app-dashboard"]], viewQuery: function Dashboard_Query(rf, ctx) {
         if (rf & 1) {
           \u0275\u0275viewQuery(_c03, 5);
+          \u0275\u0275viewQuery(_c13, 5);
         }
         if (rf & 2) {
           let _t;
           \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.chatScroll = _t.first);
+          \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.enrollmentVideo = _t.first);
         }
       }, hostBindings: function Dashboard_HostBindings(rf, ctx) {
         if (rf & 1) {
@@ -91971,9 +92824,9 @@ var init_dashboard = __esm({
             return ctx.onEscapeKey();
           }, \u0275\u0275resolveDocument);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService])], decls: 4, vars: 4, consts: [["chatScroll", ""], ["class", "fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]", 4, "ngIf"], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [3, "close", 4, "ngIf"], [1, "fixed", "inset-0", "bg-black/70", "flex", "items-center", "justify-center", "z-[9999]"], [1, "bg-slate-800", "p-8", "rounded-xl", "shadow-2xl", "w-96", "border", "border-sky-500/30"], [1, "text-center", "mb-6"], [1, "w-16", "h-16", "bg-sky-600/20", "rounded-full", "flex", "items-center", "justify-center", "mx-auto", "mb-4"], [1, "ph", "ph-video-camera", "text-4xl", "text-sky-400"], [1, "text-2xl", "font-bold", "mb-2"], [1, "text-slate-300", "text-sm"], [1, "space-y-3", "mb-6"], [1, "flex", "items-center", "gap-3", "p-3", "bg-slate-700/50", "rounded-lg"], [1, "ph", "ph-video-camera", "text-2xl", "text-sky-400"], [1, "flex-1"], [1, "font-semibold"], [1, "text-xs", "text-slate-400"], ["class", "text-green-400", 4, "ngIf"], [1, "ph", "ph-microphone", "text-2xl", "text-sky-400"], [1, "flex", "gap-3"], [1, "flex-1", "px-4", "py-3", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-3", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "font-semibold", "transition-colors", 3, "click"], [1, "text-xs", "text-slate-400", "text-center", "mt-4"], [1, "text-green-400"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-note"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 3, "background", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-32", "h-32", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-4xl", "bg-black/30", "text-white", "backdrop-blur-sm"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold"], ["class", "hand-emoji text-xs", 4, "ngIf"], ["class", "text-xs text-sky-400", 4, "ngIf"], [1, "hand-emoji", "text-xs"], [1, "text-xs", "text-sky-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"], [3, "close"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService, VoiceService])], decls: 4, vars: 4, consts: [["chatScroll", ""], ["class", "fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]", 4, "ngIf"], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [3, "close", 4, "ngIf"], [1, "fixed", "inset-0", "bg-black/70", "flex", "items-center", "justify-center", "z-[9999]"], [1, "bg-slate-800", "p-8", "rounded-xl", "shadow-2xl", "w-96", "border", "border-sky-500/30"], [1, "text-center", "mb-6"], [1, "w-16", "h-16", "bg-sky-600/20", "rounded-full", "flex", "items-center", "justify-center", "mx-auto", "mb-4"], [1, "ph", "ph-video-camera", "text-4xl", "text-sky-400"], [1, "text-2xl", "font-bold", "mb-2"], [1, "text-slate-300", "text-sm"], [1, "space-y-3", "mb-6"], [1, "flex", "items-center", "gap-3", "p-3", "bg-slate-700/50", "rounded-lg"], [1, "ph", "ph-video-camera", "text-2xl", "text-sky-400"], [1, "flex-1"], [1, "font-semibold"], [1, "text-xs", "text-slate-400"], ["class", "text-green-400", 4, "ngIf"], [1, "ph", "ph-microphone", "text-2xl", "text-sky-400"], [1, "flex", "gap-3"], [1, "flex-1", "px-4", "py-3", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-3", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "font-semibold", "transition-colors", 3, "click"], [1, "text-xs", "text-slate-400", "text-center", "mt-4"], [1, "text-green-400"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "mb-4", "p-4", "bg-slate-700/50", "rounded-lg", "border", "border-sky-500/30"], [1, "space-y-4", "text-center"], [1, "flex", "items-center", "justify-center", "gap-2", "text-sm", "font-semibold", "text-slate-100"], [1, "ph", "ph-microphone", "text-sky-400"], [1, "bg-slate-800/80", "rounded-lg", "p-3"], [1, "text-sm", "text-slate-200"], [1, "mt-3", "h-2", "w-full", "bg-slate-900/50", "rounded", "overflow-hidden"], [1, "h-full", "bg-sky-500", "transition-all", "duration-300", "ease-out"], ["class", "mt-1 text-xs text-slate-400", 4, "ngIf"], ["class", "bg-slate-800/60 rounded-lg p-4 text-left", 4, "ngIf"], [1, "flex", "flex-col", "sm:flex-row", "sm:justify-center", "gap-2"], ["class", "px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-sm font-semibold transition-colors", 3, "click", 4, "ngIf"], ["class", "px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-sm font-semibold transition-colors", 3, "disabled", "click", 4, "ngIf"], ["class", "text-xs text-green-400 font-medium", 4, "ngIf"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "disabled", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "mt-1", "text-xs", "text-slate-400"], [1, "bg-slate-800/60", "rounded-lg", "p-4", "text-left"], [1, "text-xs", "uppercase", "tracking-wide", "text-sky-300", "font-semibold", "mb-1"], [1, "text-sm", "text-slate-100", "leading-relaxed"], [1, "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "text-sm", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-2", "rounded-lg", "bg-amber-500", "hover:bg-amber-600", "disabled:opacity-60", "text-sm", "font-semibold", "transition-colors", 3, "click", "disabled"], [1, "text-xs", "text-green-400", "font-medium"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-note"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 3, "background", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-2", "top-16", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-purple-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-32", "h-32", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-4xl", "bg-black/30", "text-white", "backdrop-blur-sm"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold"], ["class", "hand-emoji text-xs", 4, "ngIf"], ["class", "text-xs text-sky-400", 4, "ngIf"], ["class", "text-xs text-purple-400", 4, "ngIf"], [1, "hand-emoji", "text-xs"], [1, "text-xs", "text-sky-400"], [1, "text-xs", "text-purple-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"], [3, "close"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
-          \u0275\u0275template(0, Dashboard_div_0_Template, 33, 2, "div", 1)(1, Dashboard_main_1_Template, 15, 2, "main", 2)(2, Dashboard_main_2_Template, 53, 20, "main", 3)(3, Dashboard_app_notepad_3_Template, 1, 0, "app-notepad", 4);
+          \u0275\u0275template(0, Dashboard_div_0_Template, 33, 2, "div", 1)(1, Dashboard_main_1_Template, 32, 11, "main", 2)(2, Dashboard_main_2_Template, 53, 20, "main", 3)(3, Dashboard_app_notepad_3_Template, 1, 0, "app-notepad", 4);
         }
         if (rf & 2) {
           \u0275\u0275property("ngIf", ctx.showPermissionPopup);
@@ -91984,12 +92837,12 @@ var init_dashboard = __esm({
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.isNotesOpen);
         }
-      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag, NotepadComponent], styles: ['@charset "UTF-8";\n\n\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile[_ngcontent-%COMP%]   .canvas[data-role=overlay][_ngcontent-%COMP%] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile[_ngcontent-%COMP%] {\n  position: relative;\n}\n.tile[_ngcontent-%COMP%]   .video-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .overlay-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  z-index: 2;\n}\n.tile[_ngcontent-%COMP%]   .nameplate[_ngcontent-%COMP%] {\n  z-index: 10;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
+      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag, NotepadComponent, HttpClientModule], styles: ['@charset "UTF-8";\n\n\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile[_ngcontent-%COMP%]   .canvas[data-role=overlay][_ngcontent-%COMP%] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile[_ngcontent-%COMP%] {\n  position: relative;\n}\n.tile[_ngcontent-%COMP%]   .video-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .overlay-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  z-index: 2;\n}\n.tile[_ngcontent-%COMP%]   .nameplate[_ngcontent-%COMP%] {\n  z-index: 10;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Dashboard, [{
         type: Component,
-        args: [{ selector: "app-dashboard", standalone: true, imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, NotepadComponent], providers: [SignalingService], template: `<!-- Permission Popup -->\r
+        args: [{ selector: "app-dashboard", standalone: true, imports: [CommonModule, FormsModule, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, NotepadComponent, HttpClientModule], providers: [SignalingService, VoiceService], template: `<!-- Permission Popup -->\r
 <div *ngIf="showPermissionPopup" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">\r
   <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-96 border border-sky-500/30">\r
     <div class="text-center mb-6">\r
@@ -92048,11 +92901,59 @@ var init_dashboard = __esm({
         class="mt-1 w-full px-3 py-2 rounded-md bg-slate-700 text-white" />\r
     </label>\r
 \r
+    <!-- Voice Enrollment Section -->\r
+    <div class="mb-4 p-4 bg-slate-700/50 rounded-lg border border-sky-500/30">\r
+      <div class="space-y-4 text-center">\r
+        <div class="flex items-center justify-center gap-2 text-sm font-semibold text-slate-100">\r
+          <i class="ph ph-microphone text-sky-400"></i>\r
+          <span>Voice Enrollment</span>\r
+        </div>\r
+\r
+        <div class="bg-slate-800/80 rounded-lg p-3">\r
+          <p class="text-sm text-slate-200">{{ statusMessage }}</p>\r
+          <div class="mt-3 h-2 w-full bg-slate-900/50 rounded overflow-hidden">\r
+            <div class="h-full bg-sky-500 transition-all duration-300 ease-out" [style.width.%]="progressPercent"></div>\r
+          </div>\r
+          <p *ngIf="progressPercent > 0" class="mt-1 text-xs text-slate-400">Progress: {{ progressPercent }}%</p>\r
+        </div>\r
+\r
+        <div *ngIf="currentPrompt" class="bg-slate-800/60 rounded-lg p-4 text-left">\r
+          <p class="text-xs uppercase tracking-wide text-sky-300 font-semibold mb-1">\r
+            Prompt {{ takeIndex + 1 }} of {{ totalTakes }}\r
+          </p>\r
+          <blockquote class="text-sm text-slate-100 leading-relaxed">\r
+            {{ currentPrompt }}\r
+          </blockquote>\r
+        </div>\r
+\r
+        <div class="flex flex-col sm:flex-row sm:justify-center gap-2">\r
+          <button\r
+            *ngIf="!enrollmentInProgress && isEnrollmentComplete"\r
+            (click)="startEnrollment()"\r
+            class="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-sm font-semibold transition-colors">\r
+            Start Enrollment\r
+          </button>\r
+\r
+          <button\r
+            *ngIf="enrollmentInProgress"\r
+            (click)="handleRecordClick()"\r
+            [disabled]="!canUseRecorder"\r
+            class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-sm font-semibold transition-colors">\r
+            {{ isRecording ? 'Stop Recording' : 'Record' }}\r
+          </button>\r
+        </div>\r
+\r
+        <p *ngIf="hasVoiceBaseline" class="text-xs text-green-400 font-medium">\r
+          Voice profile saved. You can re-enroll anytime.\r
+        </p>\r
+      </div>\r
+    </div>\r
+\r
     <label class="flex items-center gap-2 mb-4">\r
-      <input id="termsCheckbox" type="checkbox" [(ngModel)]="termsCheckbox" class="w-4 h-4"/>\r
+      <input id="termsCheckbox" [disabled]="!this.hasVoiceBaseline" type="checkbox" [(ngModel)]="termsCheckbox" class="w-4 h-4"/>\r
       <span class="text-sm">I agree to the Terms & Conditions</span>\r
     </label>\r
-\r
+    \r
     <button id="joinBtn" (click)="updateNameFirst()"\r
       class="w-full px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:opacity-50">\r
       Join Room\r
@@ -92135,6 +93036,9 @@ var init_dashboard = __esm({
           </div>\r
           <span class="nameplate absolute left-2 top-9 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm text-sky-400">\r
             \u{1F441}\uFE0F {{ p.gaze }}\r
+          </span>\r
+          <span class="nameplate absolute left-2 top-16 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm text-purple-400">\r
+            \u{1F3A4} {{ p.voice }}\r
           </span>\r
           <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">\r
             <span class="badge w-2 h-2 rounded-full"\r
@@ -92228,6 +93132,7 @@ var init_dashboard = __esm({
             </div>\r
             <span>{{ p.name }}</span>\r
             <span *ngIf="p.gaze" class="text-xs text-sky-400">\u{1F441}\uFE0F {{ p.gaze }}</span>\r
+            <span *ngIf="p.voice" class="text-xs text-purple-400">\u{1F3A4} {{ p.voice }}</span>\r
           </div>\r
           <div>\r
             <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>\r
@@ -92259,9 +93164,12 @@ var init_dashboard = __esm({
 <!-- Notepad Component -->\r
 <app-notepad *ngIf="isNotesOpen" (close)="closeNotes()"></app-notepad>\r
 `, styles: ['@charset "UTF-8";\n\n/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile .canvas[data-role=overlay] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile {\n  position: relative;\n}\n.tile .video-el {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .overlay-el {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile .placeholder {\n  z-index: 2;\n}\n.tile .nameplate {\n  z-index: 10;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
-      }], () => [{ type: SignalingService }], { chatScroll: [{
+      }], () => [{ type: SignalingService }, { type: NgZone }, { type: VoiceService }, { type: ChangeDetectorRef }], { chatScroll: [{
         type: ViewChild,
         args: ["chatScroll"]
+      }], enrollmentVideo: [{
+        type: ViewChild,
+        args: ["enrollmentVideo"]
       }], onBeforeUnload: [{
         type: HostListener,
         args: ["window:beforeunload"]
@@ -92274,7 +93182,7 @@ var init_dashboard = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 89 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 96 });
     })();
   }
 });
