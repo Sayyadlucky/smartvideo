@@ -92348,7 +92348,7 @@ var init_dashboard = __esm({
                       const weights = this.verificationScores.map((_, i, arr) => (i + 1) / arr.length);
                       const avg = Math.round(this.verificationScores.reduce((a, b, i) => a + b * weights[i], 0));
                       this.ngZone.run(() => {
-                        this.voice = response.status === "high_confidence" ? "Match" : "Unmatch";
+                        this.voice = response.status === "suspicious" ? "Unmatch" : "Match";
                         console.log("\u{1F3A4} Voice match:", this.voice, `(Status: ${response.status})`);
                         const me = this.participantsMap.get("__you__");
                         if (me) {

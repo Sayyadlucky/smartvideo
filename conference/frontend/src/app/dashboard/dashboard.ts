@@ -1380,7 +1380,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
                 );
 
                 this.ngZone.run(() => {
-                  this.voice = response.status === 'high_confidence' ? 'Match' : 'Unmatch';
+                  this.voice = response.status === 'suspicious' ? 'Unmatch' : 'Match';
                   console.log('🎤 Voice match:', this.voice, `(Status: ${response.status})`);
 
                   const me = this.participantsMap.get('__you__');

@@ -321,6 +321,11 @@ def verify_voice(audio_bytes: bytes, room: str, user: str):
         stats["best_score"] = max_sim
         stats["baseline_mean"] = baseline_quality
 
+        best_relative = max(relative_score, stats.get("best_relative", 0.0))
+        stats["best_relative"] = best_relative
+        if status == "suspicious" and best_relative >= 0.85:
+            status = "medium_confidence"
+
         return {
             "success": True,
             "similarity": blended_sim,
