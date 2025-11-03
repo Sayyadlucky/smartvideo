@@ -17,7 +17,7 @@ jobs:
         with:
           host: ${{ secrets.VM_HOST }}
           username: sayyadlucky
-          key: ${{ secrets.VM_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/videocall_project
             git reset --hard
