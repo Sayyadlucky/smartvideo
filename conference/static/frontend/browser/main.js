@@ -90508,7 +90508,7 @@ function Dashboard_main_1_Template(rf, ctx) {
   if (rf & 1) {
     const _r3 = \u0275\u0275getCurrentView();
     \u0275\u0275elementStart(0, "main")(1, "div", 25)(2, "div", 26)(3, "h2", 27);
-    \u0275\u0275text(4, "Join the Room demo");
+    \u0275\u0275text(4, "Join the Room");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(5, "label", 28)(6, "span", 29);
     \u0275\u0275text(7, "Enter your name");
@@ -92893,7 +92893,7 @@ var init_dashboard = __esm({
 <main *ngIf="!isNameUpdated">\r
 <div class="h-screen flex items-center justify-center bg-slate-900 text-white">\r
   <div class="bg-slate-800 p-6 rounded-xl shadow-xl w-96">\r
-    <h2 class="text-xl font-bold mb-4">Join the Room demo</h2>\r
+    <h2 class="text-xl font-bold mb-4">Join the Room</h2>\r
 \r
     <label class="block mb-3">\r
       <span class="text-sm">Enter your name</span>\r
