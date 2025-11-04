@@ -152,6 +152,12 @@
                   [ngClass]="{ 'bg-green-400': fullParticipant.mic==='on', 'bg-red-400': fullParticipant.mic==='off' }"></span>
             {{ fullParticipant.name }}
           </div>
+          <div
+            class="translation-caption"
+            *ngIf="translationCaptions[fullParticipant.channel] as caption"
+            [attr.title]="getCaptionTooltip(fullParticipant.channel)">
+            {{ caption }}
+          </div>
         </div>
       </div> -->
 
@@ -200,6 +206,12 @@
             <span class="badge w-2 h-2 rounded-full"
                   [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
             {{ p.name }}
+          </div>
+          <div
+            class="translation-caption"
+            *ngIf="translationCaptions[p.channel] as caption"
+            [attr.title]="getCaptionTooltip(p.channel)">
+            {{ caption }}
           </div>
         </div>
       </div>
@@ -290,7 +302,17 @@
             <span *ngIf="p.gaze" class="text-xs text-sky-400">👁️ {{ p.gaze }}</span>
             <span *ngIf="p.voice" class="text-xs text-purple-400">🎤 {{ p.voice }}</span>
           </div>
-          <div>
+          <div class="flex items-center gap-2 text-base">
+            <button
+              type="button"
+              class="transcript-toggle"
+              [class.active]="isTranslationEnabled(p.channel)"
+              [attr.aria-pressed]="isTranslationEnabled(p.channel)"
+              (click)="toggleTranslationFor(p)"
+              [disabled]="p.isYou"
+              [title]="isTranslationEnabled(p.channel) ? 'Disable live captions' : 'Enable live captions'">
+              <i class="ph ph-closed-captioning"></i>
+            </button>
             <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>
             <i class="ph" [ngClass]="p.cam==='on' ? 'ph-video-camera' : 'ph-camera-slash'"></i>
           </div>

@@ -188,6 +188,22 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             )
             return
 
+        if msg_type == "live_translation":
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "live_translation",
+                    "channel": data.get("channel") or self.channel_id,
+                    "translatedText": data.get("translatedText", ""),
+                    "originalText": data.get("originalText", ""),
+                    "sourceLanguage": data.get("sourceLanguage", ""),
+                    "targetLanguage": data.get("targetLanguage", ""),
+                    "timestamp": data.get("timestamp"),
+                    "sender_channel": self.channel_id,
+                }
+            )
+            return
+
     # ==== Group event handlers ====
     async def participant_joined(self, event):
         if event.get("sender_channel") != self.channel_id:
@@ -212,6 +228,19 @@ class SignalingConsumer(AsyncWebsocketConsumer):
             "voice": event["voice"],
             "ts": event["ts"],
             "channel": event["sender_channel"],
+        }))
+
+    async def live_translation(self, event):
+        if event.get("sender_channel") == self.channel_id:
+            return
+        await self.send(text_data=json.dumps({
+            "type": "live_translation",
+            "channel": event.get("channel") or event.get("sender_channel"),
+            "translatedText": event.get("translatedText", ""),
+            "originalText": event.get("originalText", ""),
+            "sourceLanguage": event.get("sourceLanguage", ""),
+            "targetLanguage": event.get("targetLanguage", ""),
+            "timestamp": event.get("timestamp"),
         }))
 
     async def participant_left(self, event):

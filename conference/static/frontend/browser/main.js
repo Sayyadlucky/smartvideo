@@ -21,6 +21,19 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __restKey = (key) => typeof key === "symbol" ? key : key + "";
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -90361,6 +90374,310 @@ var init_voice_service = __esm({
   }
 });
 
+// src/app/dashboard/live-translation.service.ts
+var LiveTranslationService;
+var init_live_translation_service = __esm({
+  "src/app/dashboard/live-translation.service.ts"() {
+    "use strict";
+    init_core();
+    init_esm();
+    init_core();
+    LiveTranslationService = class _LiveTranslationService {
+      ngZone;
+      sessions = /* @__PURE__ */ new Map();
+      translationSubject = new BehaviorSubject(null);
+      audioContext = null;
+      transformersModulePromise = null;
+      asrPipelinePromise = null;
+      translatorPipelinePromise = null;
+      constructor(ngZone) {
+        this.ngZone = ngZone;
+      }
+      get translations$() {
+        return this.translationSubject.asObservable();
+      }
+      startSession(_0, _1) {
+        return __async(this, arguments, function* (channel, stream, options = {}) {
+          if (this.sessions.has(channel)) {
+            return;
+          }
+          const audioTracks = stream.getAudioTracks();
+          if (!audioTracks.length) {
+            throw new Error("No audio track available for translation session.");
+          }
+          const sessionStream = new MediaStream();
+          audioTracks.forEach((track) => sessionStream.addTrack(track));
+          const preferredMime = "audio/webm;codecs=opus";
+          const fallbackMime = "audio/ogg;codecs=opus";
+          let mimeType = void 0;
+          if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(preferredMime)) {
+            mimeType = preferredMime;
+          } else if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(fallbackMime)) {
+            mimeType = fallbackMime;
+          }
+          const recorder = new MediaRecorder(sessionStream, {
+            mimeType
+          });
+          const session = {
+            recorder,
+            stream: sessionStream,
+            options: {
+              targetLanguage: options.targetLanguage ?? "en",
+              chunkMillis: options.chunkMillis ?? 2e3
+            },
+            active: true
+          };
+          recorder.ondataavailable = (evt) => {
+            if (!evt.data || !evt.data.size || !session.active) {
+              return;
+            }
+            this.ngZone.runOutsideAngular(() => {
+              this.processChunk(channel, evt.data, session.options).catch((err) => {
+                console.error("[LiveTranslationService] chunk processing failed", err);
+              });
+            });
+          };
+          recorder.onstop = () => {
+            session.active = false;
+            session.stream.getTracks().forEach((track) => track.stop());
+            this.sessions.delete(channel);
+          };
+          this.sessions.set(channel, session);
+          recorder.start(session.options.chunkMillis);
+        });
+      }
+      stopSession(channel) {
+        const session = this.sessions.get(channel);
+        if (!session) {
+          return;
+        }
+        session.active = false;
+        try {
+          if (session.recorder.state !== "inactive") {
+            session.recorder.stop();
+          }
+        } catch (err) {
+          console.warn("[LiveTranslationService] failed to stop recorder", err);
+        }
+        session.stream.getTracks().forEach((track) => track.stop());
+        this.sessions.delete(channel);
+      }
+      stopAll() {
+        Array.from(this.sessions.keys()).forEach((key) => this.stopSession(key));
+      }
+      isActive(channel) {
+        return this.sessions.has(channel);
+      }
+      getAudioContext() {
+        if (!this.audioContext) {
+          this.audioContext = new AudioContext();
+        }
+        return this.audioContext;
+      }
+      ensureTransformersModule() {
+        return __async(this, null, function* () {
+          if (this.transformersModulePromise) {
+            return this.transformersModulePromise;
+          }
+          if (typeof window === "undefined" || typeof document === "undefined") {
+            throw new Error("Transformers module can only be loaded in the browser.");
+          }
+          if (window.transformers) {
+            this.transformersModulePromise = Promise.resolve(window.transformers);
+            return window.transformers;
+          }
+          this.transformersModulePromise = new Promise((resolve, reject) => {
+            const resolveIfReady = (attemptsLeft) => {
+              const mod = window.transformers;
+              if (mod) {
+                resolve(mod);
+                return true;
+              }
+              if (attemptsLeft <= 0) {
+                return false;
+              }
+              setTimeout(() => resolveIfReady(attemptsLeft - 1), 25);
+              return true;
+            };
+            const existing = document.querySelector("script[data-transformers]");
+            if (existing?.dataset["loaded"] === "true") {
+              if (!resolveIfReady(10)) {
+                this.transformersModulePromise = null;
+                reject(new Error("Transformers runtime not ready after script load."));
+              }
+              return;
+            }
+            const script = existing ?? document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.1/dist/transformers.min.js";
+            script.async = true;
+            script.defer = true;
+            script.crossOrigin = "anonymous";
+            script.dataset["transformers"] = "true";
+            const cleanup = () => {
+              script.removeEventListener("load", handleLoad);
+              script.removeEventListener("error", handleError);
+            };
+            const handleLoad = () => {
+              cleanup();
+              script.dataset["loaded"] = "true";
+              if (!resolveIfReady(20)) {
+                this.transformersModulePromise = null;
+                reject(new Error("Transformers global not available after script load."));
+              }
+            };
+            const handleError = () => {
+              cleanup();
+              this.transformersModulePromise = null;
+              reject(new Error("Failed to load transformers runtime."));
+            };
+            script.addEventListener("load", handleLoad);
+            script.addEventListener("error", handleError);
+            if (!existing) {
+              document.head.appendChild(script);
+            }
+          });
+          return this.transformersModulePromise;
+        });
+      }
+      loadAsrPipeline() {
+        return __async(this, null, function* () {
+          if (!this.asrPipelinePromise) {
+            this.asrPipelinePromise = (() => __async(this, null, function* () {
+              const { pipeline } = yield this.ensureTransformersModule();
+              return pipeline("automatic-speech-recognition", "Xenova/whisper-small", {
+                quantized: true
+              });
+            }))();
+          }
+          return this.asrPipelinePromise;
+        });
+      }
+      loadTranslatorPipeline() {
+        return __async(this, null, function* () {
+          if (!this.translatorPipelinePromise) {
+            this.translatorPipelinePromise = (() => __async(this, null, function* () {
+              const { pipeline } = yield this.ensureTransformersModule();
+              return pipeline("translation", "Xenova/m2m100_418M", {
+                quantized: true
+              });
+            }))();
+          }
+          return this.translatorPipelinePromise;
+        });
+      }
+      processChunk(channel, blob, options) {
+        return __async(this, null, function* () {
+          const arrayBuffer = yield blob.arrayBuffer();
+          const audioContext = this.getAudioContext();
+          let audioBuffer;
+          try {
+            audioBuffer = yield audioContext.decodeAudioData(arrayBuffer.slice(0));
+          } catch (err) {
+            console.warn("[LiveTranslationService] decodeAudioData failed, skipping chunk", err);
+            return;
+          }
+          const monoData = this.downmixToMono(audioBuffer);
+          if (!monoData.length) {
+            return;
+          }
+          const pcm16k = this.resampleTo16k(monoData, audioBuffer.sampleRate);
+          if (!pcm16k.length) {
+            return;
+          }
+          const asr = yield this.loadAsrPipeline();
+          const asrInput = {
+            data: pcm16k,
+            sampling_rate: 16e3
+          };
+          const transcription = yield asr(asrInput, {
+            chunk_length_s: 30,
+            stride_length_s: 5,
+            task: "transcribe"
+          });
+          const rawText = (transcription?.text ?? "").trim();
+          if (!rawText) {
+            return;
+          }
+          const detectedLang = (transcription?.language ?? "en").toLowerCase();
+          let translatedText = rawText;
+          const targetLanguage = (options.targetLanguage || "en").toLowerCase();
+          if (detectedLang !== targetLanguage) {
+            const translator = yield this.loadTranslatorPipeline();
+            const translated = yield translator(rawText, {
+              src_lang: detectedLang,
+              tgt_lang: targetLanguage
+            });
+            translatedText = Array.isArray(translated) ? translated[0]?.translation_text ?? translated[0]?.generated_text ?? rawText : translated?.translation_text ?? translated?.generated_text ?? rawText;
+          }
+          this.translationSubject.next({
+            channel,
+            originalText: rawText,
+            translatedText,
+            sourceLanguage: detectedLang,
+            targetLanguage,
+            timestamp: Date.now(),
+            confidence: transcription?.language_score ?? transcription?.chunks?.[0]?.score
+          });
+        });
+      }
+      downmixToMono(buffer) {
+        const channelCount = buffer.numberOfChannels;
+        if (channelCount === 0) {
+          return new Float32Array();
+        }
+        if (channelCount === 1) {
+          const channelData = buffer.getChannelData(0);
+          return new Float32Array(channelData);
+        }
+        const length = buffer.length;
+        const data2 = new Float32Array(length);
+        for (let i = 0; i < length; i++) {
+          let sum = 0;
+          for (let c = 0; c < channelCount; c++) {
+            sum += buffer.getChannelData(c)[i] || 0;
+          }
+          data2[i] = sum / channelCount;
+        }
+        return data2;
+      }
+      resampleTo16k(input2, originalSampleRate) {
+        if (originalSampleRate === 16e3) {
+          return new Float32Array(input2);
+        }
+        if (originalSampleRate <= 0) {
+          return new Float32Array();
+        }
+        const sampleRatio = originalSampleRate / 16e3;
+        const newLength = Math.floor(input2.length / sampleRatio);
+        if (!Number.isFinite(newLength) || newLength <= 0) {
+          return new Float32Array();
+        }
+        const output = new Float32Array(newLength);
+        for (let i = 0; i < newLength; i++) {
+          const pos = i * sampleRatio;
+          const leftIndex = Math.floor(pos);
+          const rightIndex = Math.min(leftIndex + 1, input2.length - 1);
+          const interp = pos - leftIndex;
+          output[i] = input2[leftIndex] * (1 - interp) + input2[rightIndex] * interp;
+        }
+        return output;
+      }
+      static \u0275fac = function LiveTranslationService_Factory(__ngFactoryType__) {
+        return new (__ngFactoryType__ || _LiveTranslationService)(\u0275\u0275inject(NgZone));
+      };
+      static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _LiveTranslationService, factory: _LiveTranslationService.\u0275fac, providedIn: "root" });
+    };
+    (() => {
+      (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(LiveTranslationService, [{
+        type: Injectable,
+        args: [{
+          providedIn: "root"
+        }]
+      }], () => [{ type: NgZone }], null);
+    })();
+  }
+});
+
 // src/app/dashboard/dashboard.ts
 function Dashboard_div_0_span_17_Template(rf, ctx) {
   if (rf & 1) {
@@ -90609,7 +90926,7 @@ function Dashboard_main_2_div_2_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_4_div_1_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 98);
+    \u0275\u0275element(0, "video", 99);
   }
   if (rf & 2) {
     const p_r8 = \u0275\u0275nextContext().$implicit;
@@ -90619,7 +90936,7 @@ function Dashboard_main_2_div_4_div_1_video_1_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_4_div_1_audio_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "audio", 99);
+    \u0275\u0275element(0, "audio", 100);
   }
   if (rf & 2) {
     const p_r8 = \u0275\u0275nextContext().$implicit;
@@ -90640,15 +90957,15 @@ function Dashboard_main_2_div_4_div_1_div_3_span_2_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_4_div_1_div_3_span_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 103);
+    \u0275\u0275elementStart(0, "span", 104);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_2_div_4_div_1_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 100)(1, "div", 101);
-    \u0275\u0275template(2, Dashboard_main_2_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 2)(3, Dashboard_main_2_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 102);
+    \u0275\u0275elementStart(0, "div", 101)(1, "div", 102);
+    \u0275\u0275template(2, Dashboard_main_2_div_4_div_1_div_3_span_2_Template, 2, 1, "span", 2)(3, Dashboard_main_2_div_4_div_1_div_3_span_3_Template, 2, 0, "span", 103);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
@@ -90661,6 +90978,21 @@ function Dashboard_main_2_div_4_div_1_div_3_Template(rf, ctx) {
     \u0275\u0275property("ngIf", !p_r8.handRaised);
     \u0275\u0275advance();
     \u0275\u0275property("ngIf", p_r8.handRaised);
+  }
+}
+function Dashboard_main_2_div_4_div_1_div_11_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 105);
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const caption_r9 = ctx.ngIf;
+    const p_r8 = \u0275\u0275nextContext().$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275attribute("title", ctx_r1.getCaptionTooltip(p_r8.channel));
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1(" ", caption_r9, " ");
   }
 }
 function Dashboard_main_2_div_4_div_1_Template(rf, ctx) {
@@ -90676,7 +91008,9 @@ function Dashboard_main_2_div_4_div_1_Template(rf, ctx) {
     \u0275\u0275elementStart(8, "div", 96);
     \u0275\u0275element(9, "span", 97);
     \u0275\u0275text(10);
-    \u0275\u0275elementEnd()();
+    \u0275\u0275elementEnd();
+    \u0275\u0275template(11, Dashboard_main_2_div_4_div_1_div_11_Template, 2, 2, "div", 98);
+    \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const p_r8 = ctx.$implicit;
@@ -90693,15 +91027,17 @@ function Dashboard_main_2_div_4_div_1_Template(rf, ctx) {
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1(" \u{1F3A4} ", p_r8.voice, " ");
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(13, _c4, p_r8.mic === "on", p_r8.mic === "off"));
+    \u0275\u0275property("ngClass", \u0275\u0275pureFunction2(14, _c4, p_r8.mic === "on", p_r8.mic === "off"));
     \u0275\u0275advance();
     \u0275\u0275textInterpolate1(" ", p_r8.name, " ");
+    \u0275\u0275advance();
+    \u0275\u0275property("ngIf", ctx_r1.translationCaptions[p_r8.channel]);
   }
 }
 function Dashboard_main_2_div_4_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "div", 88);
-    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_Template, 11, 16, "div", 89);
+    \u0275\u0275template(1, Dashboard_main_2_div_4_div_1_Template, 12, 17, "div", 89);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90713,7 +91049,7 @@ function Dashboard_main_2_div_4_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_34_video_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "video", 106);
+    \u0275\u0275element(0, "video", 108);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(3);
@@ -90722,8 +91058,8 @@ function Dashboard_main_2_div_34_video_1_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_34_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 104);
-    \u0275\u0275template(1, Dashboard_main_2_div_34_video_1_Template, 1, 2, "video", 105);
+    \u0275\u0275elementStart(0, "div", 106);
+    \u0275\u0275template(1, Dashboard_main_2_div_34_video_1_Template, 1, 2, "video", 107);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90734,10 +91070,10 @@ function Dashboard_main_2_div_34_Template(rf, ctx) {
 }
 function Dashboard_main_2_button_48_Template(rf, ctx) {
   if (rf & 1) {
-    const _r9 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "button", 107);
+    const _r10 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "button", 109);
     \u0275\u0275listener("click", function Dashboard_main_2_button_48_Template_button_click_0_listener() {
-      \u0275\u0275restoreView(_r9);
+      \u0275\u0275restoreView(_r10);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.closeChat());
     });
@@ -90752,84 +91088,96 @@ function Dashboard_main_2_div_50_div_3_span_3_Template(rf, ctx) {
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r10 = \u0275\u0275nextContext().$implicit;
+    const p_r12 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate(p_r10.initials);
+    \u0275\u0275textInterpolate(p_r12.initials);
   }
 }
 function Dashboard_main_2_div_50_div_3_span_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 117);
+    \u0275\u0275elementStart(0, "span", 122);
     \u0275\u0275text(1, "\u270B");
     \u0275\u0275elementEnd();
   }
 }
 function Dashboard_main_2_div_50_div_3_span_7_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 118);
+    \u0275\u0275elementStart(0, "span", 123);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r10 = \u0275\u0275nextContext().$implicit;
+    const p_r12 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r10.gaze);
+    \u0275\u0275textInterpolate1("\u{1F441}\uFE0F ", p_r12.gaze);
   }
 }
 function Dashboard_main_2_div_50_div_3_span_8_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 119);
+    \u0275\u0275elementStart(0, "span", 124);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const p_r10 = \u0275\u0275nextContext().$implicit;
+    const p_r12 = \u0275\u0275nextContext().$implicit;
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1("\u{1F3A4} ", p_r10.voice);
+    \u0275\u0275textInterpolate1("\u{1F3A4} ", p_r12.voice);
   }
 }
 function Dashboard_main_2_div_50_div_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 111)(1, "div", 112)(2, "div", 113);
-    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_span_3_Template, 2, 1, "span", 2)(4, Dashboard_main_2_div_50_div_3_span_4_Template, 2, 0, "span", 114);
+    const _r11 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 113)(1, "div", 114)(2, "div", 115);
+    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_span_3_Template, 2, 1, "span", 2)(4, Dashboard_main_2_div_50_div_3_span_4_Template, 2, 0, "span", 116);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(5, "span");
     \u0275\u0275text(6);
     \u0275\u0275elementEnd();
-    \u0275\u0275template(7, Dashboard_main_2_div_50_div_3_span_7_Template, 2, 1, "span", 115)(8, Dashboard_main_2_div_50_div_3_span_8_Template, 2, 1, "span", 116);
+    \u0275\u0275template(7, Dashboard_main_2_div_50_div_3_span_7_Template, 2, 1, "span", 117)(8, Dashboard_main_2_div_50_div_3_span_8_Template, 2, 1, "span", 118);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "div");
-    \u0275\u0275element(10, "i", 62)(11, "i", 62);
+    \u0275\u0275elementStart(9, "div", 119)(10, "button", 120);
+    \u0275\u0275listener("click", function Dashboard_main_2_div_50_div_3_Template_button_click_10_listener() {
+      const p_r12 = \u0275\u0275restoreView(_r11).$implicit;
+      const ctx_r1 = \u0275\u0275nextContext(3);
+      return \u0275\u0275resetView(ctx_r1.toggleTranslationFor(p_r12));
+    });
+    \u0275\u0275element(11, "i", 121);
+    \u0275\u0275elementEnd();
+    \u0275\u0275element(12, "i", 62)(13, "i", 62);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const p_r10 = ctx.$implicit;
+    const p_r12 = ctx.$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
     \u0275\u0275advance(2);
-    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r10.channel));
-    \u0275\u0275classProp("hand-raised", p_r10.handRaised);
+    \u0275\u0275styleProp("background", ctx_r1.getGradientForParticipant(p_r12.channel));
+    \u0275\u0275classProp("hand-raised", p_r12.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", !p_r10.handRaised);
+    \u0275\u0275property("ngIf", !p_r12.handRaised);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r10.handRaised);
+    \u0275\u0275property("ngIf", p_r12.handRaised);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(p_r10.name);
+    \u0275\u0275textInterpolate(p_r12.name);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r10.gaze);
+    \u0275\u0275property("ngIf", p_r12.gaze);
     \u0275\u0275advance();
-    \u0275\u0275property("ngIf", p_r10.voice);
+    \u0275\u0275property("ngIf", p_r12.voice);
     \u0275\u0275advance(2);
-    \u0275\u0275property("ngClass", p_r10.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
+    \u0275\u0275classProp("active", ctx_r1.isTranslationEnabled(p_r12.channel));
+    \u0275\u0275property("disabled", p_r12.isYou)("title", ctx_r1.isTranslationEnabled(p_r12.channel) ? "Disable live captions" : "Enable live captions");
+    \u0275\u0275attribute("aria-pressed", ctx_r1.isTranslationEnabled(p_r12.channel));
+    \u0275\u0275advance(2);
+    \u0275\u0275property("ngClass", p_r12.mic === "on" ? "ph-microphone" : "ph-microphone-slash");
     \u0275\u0275advance();
-    \u0275\u0275property("ngClass", p_r10.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
+    \u0275\u0275property("ngClass", p_r12.cam === "on" ? "ph-video-camera" : "ph-camera-slash");
   }
 }
 function Dashboard_main_2_div_50_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 108)(1, "h3", 109);
+    \u0275\u0275elementStart(0, "div", 110)(1, "h3", 111);
     \u0275\u0275text(2, "Participants");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_Template, 12, 11, "div", 110);
+    \u0275\u0275template(3, Dashboard_main_2_div_50_div_3_Template, 14, 16, "div", 112);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90840,7 +91188,7 @@ function Dashboard_main_2_div_50_Template(rf, ctx) {
 }
 function Dashboard_main_2_div_51_div_4_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 122)(1, "div", 123);
+    \u0275\u0275elementStart(0, "div", 127)(1, "div", 128);
     \u0275\u0275text(2);
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(3, "div", 85);
@@ -90848,19 +91196,19 @@ function Dashboard_main_2_div_51_div_4_Template(rf, ctx) {
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const m_r11 = ctx.$implicit;
+    const m_r13 = ctx.$implicit;
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r11.by);
+    \u0275\u0275textInterpolate(m_r13.by);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate(m_r11.text);
+    \u0275\u0275textInterpolate(m_r13.text);
   }
 }
 function Dashboard_main_2_div_51_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "div", 120, 0)(2, "h3", 109);
+    \u0275\u0275elementStart(0, "div", 125, 0)(2, "h3", 111);
     \u0275\u0275text(3, "Chat");
     \u0275\u0275elementEnd();
-    \u0275\u0275template(4, Dashboard_main_2_div_51_div_4_Template, 5, 2, "div", 121);
+    \u0275\u0275template(4, Dashboard_main_2_div_51_div_4_Template, 5, 2, "div", 126);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -90871,22 +91219,22 @@ function Dashboard_main_2_div_51_Template(rf, ctx) {
 }
 function Dashboard_main_2_form_52_Template(rf, ctx) {
   if (rf & 1) {
-    const _r12 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "form", 124);
+    const _r14 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "form", 129);
     \u0275\u0275listener("ngSubmit", function Dashboard_main_2_form_52_Template_form_ngSubmit_0_listener() {
-      \u0275\u0275restoreView(_r12);
+      \u0275\u0275restoreView(_r14);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.sendChat());
     });
-    \u0275\u0275elementStart(1, "input", 125);
+    \u0275\u0275elementStart(1, "input", 130);
     \u0275\u0275twoWayListener("ngModelChange", function Dashboard_main_2_form_52_Template_input_ngModelChange_1_listener($event) {
-      \u0275\u0275restoreView(_r12);
+      \u0275\u0275restoreView(_r14);
       const ctx_r1 = \u0275\u0275nextContext(2);
       \u0275\u0275twoWayBindingSet(ctx_r1.chatText, $event) || (ctx_r1.chatText = $event);
       return \u0275\u0275resetView($event);
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(2, "button", 126);
+    \u0275\u0275elementStart(2, "button", 131);
     \u0275\u0275text(3, "Send");
     \u0275\u0275elementEnd()();
   }
@@ -91044,10 +91392,10 @@ function Dashboard_main_2_Template(rf, ctx) {
 }
 function Dashboard_app_notepad_3_Template(rf, ctx) {
   if (rf & 1) {
-    const _r13 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "app-notepad", 127);
+    const _r15 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "app-notepad", 132);
     \u0275\u0275listener("close", function Dashboard_app_notepad_3_Template_app_notepad_close_0_listener() {
-      \u0275\u0275restoreView(_r13);
+      \u0275\u0275restoreView(_r15);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.closeNotes());
     });
@@ -91072,6 +91420,7 @@ var init_dashboard = __esm({
     init_core();
     init_signaling_service();
     init_voice_service();
+    init_live_translation_service();
     init_common();
     init_forms();
     init_drag_drop();
@@ -91124,6 +91473,7 @@ var init_dashboard = __esm({
       signaling;
       voiceService;
       cdr;
+      translationService;
       // ==============voice detection helper==============
       _pendingChunks = [];
       _lastVerifyTime = 0;
@@ -91211,6 +91561,14 @@ var init_dashboard = __esm({
       ];
       _batchStartTime;
       chunks = [];
+      // Live translation state
+      subtitleTargetLanguage = "en";
+      translationCaptions = {};
+      translationMetadata = {};
+      translationUpdatesSub;
+      translationEnabledChannels = /* @__PURE__ */ new Set();
+      pendingTranslationChannels = /* @__PURE__ */ new Set();
+      lastBroadcastCaption = /* @__PURE__ */ new Map();
       // ====== Derived getters ======
       get you() {
         return this.participantsMap.get("__you__");
@@ -91242,6 +91600,128 @@ var init_dashboard = __esm({
       get canUseRecorder() {
         return !!this.mediaRecorder && this.enrollmentInProgress;
       }
+      isTranslationEnabled(channel) {
+        return this.translationEnabledChannels.has(channel);
+      }
+      toggleTranslationFor(participant) {
+        const channel = participant.channel;
+        if (!channel || participant.isYou)
+          return;
+        if (this.translationEnabledChannels.has(channel)) {
+          this.translationEnabledChannels.delete(channel);
+          this.pendingTranslationChannels.delete(channel);
+          this.translationService.stopSession(channel);
+          this.clearTranslation(channel, true);
+          return;
+        }
+        this.translationEnabledChannels.add(channel);
+        const stream = participant.stream ?? this.participantsMap.get(channel)?.stream;
+        if (stream) {
+          this.startTranslationSession(channel, stream);
+        } else {
+          this.pendingTranslationChannels.add(channel);
+        }
+      }
+      startTranslationSession(channel, stream) {
+        if (!this.translationEnabledChannels.has(channel))
+          return;
+        if (this.translationService.isActive(channel))
+          return;
+        const hasAudio = stream.getAudioTracks().length > 0;
+        if (!hasAudio) {
+          this.pendingTranslationChannels.add(channel);
+          return;
+        }
+        this.translationService.startSession(channel, stream, {
+          targetLanguage: this.subtitleTargetLanguage,
+          chunkMillis: 2e3
+        }).then(() => {
+          this.pendingTranslationChannels.delete(channel);
+        }).catch((err) => {
+          console.error("Failed to start translation session for", channel, err);
+          this.translationEnabledChannels.delete(channel);
+          this.pendingTranslationChannels.delete(channel);
+          this.ngZone.run(() => this.cdr.detectChanges());
+        });
+      }
+      clearTranslation(channel, broadcast = false) {
+        if (this.translationCaptions[channel]) {
+          const _a2 = this.translationCaptions, { [channel]: _discard } = _a2, rest = __objRest(_a2, [__restKey(channel)]);
+          const _b = this.translationMetadata, { [channel]: _discardMeta } = _b, metaRest = __objRest(_b, [__restKey(channel)]);
+          this.translationCaptions = rest;
+          this.translationMetadata = metaRest;
+          this.cdr.detectChanges();
+        }
+        this.lastBroadcastCaption.delete(channel);
+        if (broadcast) {
+          this.sendSig({
+            type: "live_translation",
+            channel,
+            translatedText: "",
+            sourceLanguage: "",
+            targetLanguage: this.subtitleTargetLanguage,
+            timestamp: Date.now()
+          });
+        }
+      }
+      handleLocalTranslation(update) {
+        if (!this.translationEnabledChannels.has(update.channel)) {
+          return;
+        }
+        const previous = this.lastBroadcastCaption.get(update.channel);
+        if (previous === update.translatedText) {
+          return;
+        }
+        this.lastBroadcastCaption.set(update.channel, update.translatedText);
+        this.translationCaptions = __spreadProps(__spreadValues({}, this.translationCaptions), {
+          [update.channel]: update.translatedText
+        });
+        this.translationMetadata = __spreadProps(__spreadValues({}, this.translationMetadata), {
+          [update.channel]: {
+            source: update.sourceLanguage,
+            target: update.targetLanguage,
+            ts: update.timestamp
+          }
+        });
+        this.cdr.detectChanges();
+        this.sendSig({
+          type: "live_translation",
+          channel: update.channel,
+          translatedText: update.translatedText,
+          originalText: update.originalText,
+          sourceLanguage: update.sourceLanguage,
+          targetLanguage: update.targetLanguage,
+          timestamp: update.timestamp
+        });
+      }
+      handleIncomingTranslation(payload) {
+        const channel = payload?.channel;
+        if (!channel)
+          return;
+        const text = (payload.translatedText ?? payload.text ?? "").trim();
+        if (!text) {
+          this.clearTranslation(channel, false);
+          return;
+        }
+        this.translationCaptions = __spreadProps(__spreadValues({}, this.translationCaptions), {
+          [channel]: text
+        });
+        this.translationMetadata = __spreadProps(__spreadValues({}, this.translationMetadata), {
+          [channel]: {
+            source: payload.sourceLanguage ?? "",
+            target: payload.targetLanguage ?? this.subtitleTargetLanguage,
+            ts: payload.timestamp ?? Date.now()
+          }
+        });
+        this.cdr.detectChanges();
+      }
+      getCaptionTooltip(channel) {
+        const meta2 = this.translationMetadata[channel];
+        if (!meta2?.source || !meta2?.target) {
+          return null;
+        }
+        return `From ${meta2.source.toUpperCase()} to ${meta2.target.toUpperCase()}`;
+      }
       //========= GazeTracking ==============
       gazeSocket;
       isGazeTracking = false;
@@ -91257,12 +91737,19 @@ var init_dashboard = __esm({
         camera: false,
         microphone: false
       };
-      constructor(signaling, ngZone, voiceService, cdr) {
+      constructor(signaling, ngZone, voiceService, cdr, translationService) {
         this.signaling = signaling;
         this.voiceService = voiceService;
         this.cdr = cdr;
+        this.translationService = translationService;
         this.ngZone = ngZone;
         initModel().catch((err) => console.warn("Model init (background) failed:", err));
+        this.translationUpdatesSub = this.translationService.translations$.subscribe((update) => {
+          if (!update) {
+            return;
+          }
+          this.ngZone.run(() => this.handleLocalTranslation(update));
+        });
       }
       // ====== Lifecycle ======
       ngOnInit() {
@@ -91282,6 +91769,12 @@ var init_dashboard = __esm({
       }
       joinRoom() {
         this.localPreviewStream = new MediaStream();
+        this.translationService.stopAll();
+        this.translationEnabledChannels.clear();
+        this.pendingTranslationChannels.clear();
+        this.translationCaptions = {};
+        this.translationMetadata = {};
+        this.lastBroadcastCaption.clear();
         this.participantsMap.set("__you__", this.makeLocalParticipant(this.userName));
         this.syncParticipantsArray();
         this.signaling.connect(this.roomName);
@@ -91309,6 +91802,11 @@ var init_dashboard = __esm({
         this.participantsMap.clear();
         this.iceQueue.clear();
         this.removeFullscreenListener();
+        this.translationService.stopAll();
+        this.translationUpdatesSub?.unsubscribe();
+        this.translationEnabledChannels.clear();
+        this.pendingTranslationChannels.clear();
+        this.lastBroadcastCaption.clear();
       }
       handleGazeStatus(status) {
         const me = this.participantsMap.get("__you__");
@@ -91336,7 +91834,6 @@ var init_dashboard = __esm({
           return;
         this.escPressCount++;
         if (this.escPressCount === 1 && !this.hasShownEscAlert) {
-          alert("You are not allowed to pres ESC key, If you do so it will notify interviewer immidiately.");
           this.hasShownEscAlert = true;
           if (this.escPressTimer)
             clearTimeout(this.escPressTimer);
@@ -91358,7 +91855,6 @@ var init_dashboard = __esm({
           if (wasFullscreen && !isCurrentlyFullscreen && this.isNameUpdated) {
             this.escPressCount++;
             if (this.escPressCount === 1 && !this.hasShownEscAlert) {
-              alert("Press ESC again to exit fullscreen");
               this.hasShownEscAlert = true;
               this.enterFullscreen();
               if (this.escPressTimer)
@@ -91630,6 +92126,9 @@ var init_dashboard = __esm({
           };
           this.participantsMap.set(remoteChan, updated);
           this.syncParticipantsArray();
+          if (this.translationEnabledChannels.has(remoteChan) || this.pendingTranslationChannels.has(remoteChan)) {
+            this.startTranslationSession(remoteChan, ms);
+          }
         };
         pc.onicecandidate = ({ candidate }) => {
           if (!candidate)
@@ -91743,6 +92242,10 @@ var init_dashboard = __esm({
             }
             this.syncParticipantsArray();
             this.monitorSelfVideo();
+            this.translationService.stopSession(ch);
+            this.translationEnabledChannels.delete(ch);
+            this.pendingTranslationChannels.delete(ch);
+            this.clearTranslation(ch, false);
             break;
           }
           case "participant_updated": {
@@ -91759,6 +92262,13 @@ var init_dashboard = __esm({
             const updated = this.participantsMap.get(ch);
             const camChanged = updated && prevCam !== updated.cam;
             const micChanged = updated && prevMic !== updated.mic;
+            if (updated && this.translationEnabledChannels.has(ch)) {
+              if (updated.stream) {
+                this.startTranslationSession(ch, updated.stream);
+              } else {
+                this.pendingTranslationChannels.add(ch);
+              }
+            }
             if (camChanged || micChanged) {
               console.log(`\u{1F504} Participant ${ch} changed cam:${prevCam}\u2192${updated?.cam} mic:${prevMic}\u2192${updated?.mic}, renegotiating...`);
               setTimeout(() => this.renegotiate(ch), 100);
@@ -91866,6 +92376,10 @@ var init_dashboard = __esm({
             }))();
             break;
           }
+          case "live_translation": {
+            this.handleIncomingTranslation(msg);
+            break;
+          }
           case "gaze_update": {
             const ch = msg.channel;
             const g = msg.gaze;
@@ -91882,22 +92396,68 @@ var init_dashboard = __esm({
             }
             break;
           }
+          case "voice_status":
           case "voice_update": {
-            const ch = msg.channel;
-            const v = msg.voice;
-            if (ch && this.participantsMap.has(ch)) {
-              const p = this.participantsMap.get(ch);
-              this.participantsMap.set(ch, __spreadProps(__spreadValues({}, p), { voice: v }));
-              this.syncParticipantsArray();
-            } else {
-              const p = this.participants.find((pp) => pp.name === msg.user);
-              if (p) {
-                p.voice = v;
-                this.syncParticipantsArray();
-              }
-            }
+            const payload = this.extractVoicePayload(msg);
+            if (!payload)
+              break;
+            this.applyVoiceUpdate(payload);
             break;
           }
+        }
+      }
+      extractVoicePayload(msg) {
+        if (!msg)
+          return null;
+        if (typeof msg.voice !== "undefined" || typeof msg.channel !== "undefined" || typeof msg.user !== "undefined") {
+          return msg;
+        }
+        const nested = msg.message ?? msg.payload ?? null;
+        if (!nested)
+          return null;
+        if (typeof nested.voice !== "undefined" || typeof nested.channel !== "undefined" || typeof nested.user !== "undefined") {
+          return nested;
+        }
+        return null;
+      }
+      applyVoiceUpdate(payload) {
+        if (!payload)
+          return;
+        const { channel, voice, user } = payload;
+        if (typeof voice === "undefined")
+          return;
+        const normalize = (val) => (val ?? "").trim().toLowerCase();
+        const userNorm = normalize(user);
+        const applyVoiceToKey = (key) => {
+          const current = this.participantsMap.get(key);
+          if (!current)
+            return false;
+          this.participantsMap.set(key, __spreadProps(__spreadValues({}, current), { voice }));
+          return true;
+        };
+        let updated = false;
+        if (channel && this.participantsMap.has(channel)) {
+          updated = applyVoiceToKey(channel);
+        }
+        if (!updated && user) {
+          for (const [key, participant] of this.participantsMap.entries()) {
+            if (normalize(participant.name) === userNorm) {
+              updated = applyVoiceToKey(key);
+              if (updated)
+                break;
+            }
+          }
+        }
+        if (!updated && this.you && normalize(this.you.name) === userNorm) {
+          this.participantsMap.set("__you__", __spreadProps(__spreadValues({}, this.you), { voice }));
+          updated = true;
+        }
+        if (updated) {
+          if (normalize(this.you?.name) === userNorm) {
+            this.voice = voice;
+          }
+          this.syncParticipantsArray();
+          this.cdr.detectChanges();
         }
       }
       // ====== UI actions ======
@@ -92356,7 +92916,8 @@ var init_dashboard = __esm({
                           this.syncParticipantsArray();
                         }
                         this.sendSig({
-                          type: "voice_update",
+                          type: "voice_status",
+                          channel: this.myServerChan,
                           user: this.userName,
                           voice: this.voice,
                           ts: Date.now()
@@ -92404,7 +92965,6 @@ var init_dashboard = __esm({
                 }
               }
             }, this.RECORD_MS + 200);
-            alert("Verification started \u2014 speak to verify your voice.");
           } catch (err) {
             alert("Could not start verification: " + (err.message || err));
             this.stopVerification();
@@ -92802,7 +93362,7 @@ var init_dashboard = __esm({
         return this.enrollmentSuccessCount >= this.ENROLL_SAMPLES;
       }
       static \u0275fac = function Dashboard_Factory(__ngFactoryType__) {
-        return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService), \u0275\u0275directiveInject(NgZone), \u0275\u0275directiveInject(VoiceService), \u0275\u0275directiveInject(ChangeDetectorRef));
+        return new (__ngFactoryType__ || _Dashboard)(\u0275\u0275directiveInject(SignalingService), \u0275\u0275directiveInject(NgZone), \u0275\u0275directiveInject(VoiceService), \u0275\u0275directiveInject(ChangeDetectorRef), \u0275\u0275directiveInject(LiveTranslationService));
       };
       static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Dashboard, selectors: [["app-dashboard"]], viewQuery: function Dashboard_Query(rf, ctx) {
         if (rf & 1) {
@@ -92824,7 +93384,7 @@ var init_dashboard = __esm({
             return ctx.onEscapeKey();
           }, \u0275\u0275resolveDocument);
         }
-      }, features: [\u0275\u0275ProvidersFeature([SignalingService, VoiceService])], decls: 4, vars: 4, consts: [["chatScroll", ""], ["class", "fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]", 4, "ngIf"], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [3, "close", 4, "ngIf"], [1, "fixed", "inset-0", "bg-black/70", "flex", "items-center", "justify-center", "z-[9999]"], [1, "bg-slate-800", "p-8", "rounded-xl", "shadow-2xl", "w-96", "border", "border-sky-500/30"], [1, "text-center", "mb-6"], [1, "w-16", "h-16", "bg-sky-600/20", "rounded-full", "flex", "items-center", "justify-center", "mx-auto", "mb-4"], [1, "ph", "ph-video-camera", "text-4xl", "text-sky-400"], [1, "text-2xl", "font-bold", "mb-2"], [1, "text-slate-300", "text-sm"], [1, "space-y-3", "mb-6"], [1, "flex", "items-center", "gap-3", "p-3", "bg-slate-700/50", "rounded-lg"], [1, "ph", "ph-video-camera", "text-2xl", "text-sky-400"], [1, "flex-1"], [1, "font-semibold"], [1, "text-xs", "text-slate-400"], ["class", "text-green-400", 4, "ngIf"], [1, "ph", "ph-microphone", "text-2xl", "text-sky-400"], [1, "flex", "gap-3"], [1, "flex-1", "px-4", "py-3", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-3", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "font-semibold", "transition-colors", 3, "click"], [1, "text-xs", "text-slate-400", "text-center", "mt-4"], [1, "text-green-400"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "mb-4", "p-4", "bg-slate-700/50", "rounded-lg", "border", "border-sky-500/30"], [1, "space-y-4", "text-center"], [1, "flex", "items-center", "justify-center", "gap-2", "text-sm", "font-semibold", "text-slate-100"], [1, "ph", "ph-microphone", "text-sky-400"], [1, "bg-slate-800/80", "rounded-lg", "p-3"], [1, "text-sm", "text-slate-200"], [1, "mt-3", "h-2", "w-full", "bg-slate-900/50", "rounded", "overflow-hidden"], [1, "h-full", "bg-sky-500", "transition-all", "duration-300", "ease-out"], ["class", "mt-1 text-xs text-slate-400", 4, "ngIf"], ["class", "bg-slate-800/60 rounded-lg p-4 text-left", 4, "ngIf"], [1, "flex", "flex-col", "sm:flex-row", "sm:justify-center", "gap-2"], ["class", "px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-sm font-semibold transition-colors", 3, "click", 4, "ngIf"], ["class", "px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-sm font-semibold transition-colors", 3, "disabled", "click", 4, "ngIf"], ["class", "text-xs text-green-400 font-medium", 4, "ngIf"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "disabled", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "mt-1", "text-xs", "text-slate-400"], [1, "bg-slate-800/60", "rounded-lg", "p-4", "text-left"], [1, "text-xs", "uppercase", "tracking-wide", "text-sky-300", "font-semibold", "mb-1"], [1, "text-sm", "text-slate-100", "leading-relaxed"], [1, "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "text-sm", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-2", "rounded-lg", "bg-amber-500", "hover:bg-amber-600", "disabled:opacity-60", "text-sm", "font-semibold", "transition-colors", 3, "click", "disabled"], [1, "text-xs", "text-green-400", "font-medium"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-note"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 3, "background", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-2", "top-16", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-purple-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-32", "h-32", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-4xl", "bg-black/30", "text-white", "backdrop-blur-sm"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold"], ["class", "hand-emoji text-xs", 4, "ngIf"], ["class", "text-xs text-sky-400", 4, "ngIf"], ["class", "text-xs text-purple-400", 4, "ngIf"], [1, "hand-emoji", "text-xs"], [1, "text-xs", "text-sky-400"], [1, "text-xs", "text-purple-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"], [3, "close"]], template: function Dashboard_Template(rf, ctx) {
+      }, features: [\u0275\u0275ProvidersFeature([SignalingService, VoiceService])], decls: 4, vars: 4, consts: [["chatScroll", ""], ["class", "fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]", 4, "ngIf"], [4, "ngIf"], ["class", "h-screen text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 p-4 overflow-hidden items-stretch", 3, "chat-open", 4, "ngIf"], [3, "close", 4, "ngIf"], [1, "fixed", "inset-0", "bg-black/70", "flex", "items-center", "justify-center", "z-[9999]"], [1, "bg-slate-800", "p-8", "rounded-xl", "shadow-2xl", "w-96", "border", "border-sky-500/30"], [1, "text-center", "mb-6"], [1, "w-16", "h-16", "bg-sky-600/20", "rounded-full", "flex", "items-center", "justify-center", "mx-auto", "mb-4"], [1, "ph", "ph-video-camera", "text-4xl", "text-sky-400"], [1, "text-2xl", "font-bold", "mb-2"], [1, "text-slate-300", "text-sm"], [1, "space-y-3", "mb-6"], [1, "flex", "items-center", "gap-3", "p-3", "bg-slate-700/50", "rounded-lg"], [1, "ph", "ph-video-camera", "text-2xl", "text-sky-400"], [1, "flex-1"], [1, "font-semibold"], [1, "text-xs", "text-slate-400"], ["class", "text-green-400", 4, "ngIf"], [1, "ph", "ph-microphone", "text-2xl", "text-sky-400"], [1, "flex", "gap-3"], [1, "flex-1", "px-4", "py-3", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-3", "rounded-lg", "bg-slate-700", "hover:bg-slate-600", "font-semibold", "transition-colors", 3, "click"], [1, "text-xs", "text-slate-400", "text-center", "mt-4"], [1, "text-green-400"], [1, "h-screen", "flex", "items-center", "justify-center", "bg-slate-900", "text-white"], [1, "bg-slate-800", "p-6", "rounded-xl", "shadow-xl", "w-96"], [1, "text-xl", "font-bold", "mb-4"], [1, "block", "mb-3"], [1, "text-sm"], ["id", "nameInput", "type", "text", "placeholder", "Enter Your name", 1, "mt-1", "w-full", "px-3", "py-2", "rounded-md", "bg-slate-700", "text-white", 3, "ngModelChange", "ngModel"], [1, "mb-4", "p-4", "bg-slate-700/50", "rounded-lg", "border", "border-sky-500/30"], [1, "space-y-4", "text-center"], [1, "flex", "items-center", "justify-center", "gap-2", "text-sm", "font-semibold", "text-slate-100"], [1, "ph", "ph-microphone", "text-sky-400"], [1, "bg-slate-800/80", "rounded-lg", "p-3"], [1, "text-sm", "text-slate-200"], [1, "mt-3", "h-2", "w-full", "bg-slate-900/50", "rounded", "overflow-hidden"], [1, "h-full", "bg-sky-500", "transition-all", "duration-300", "ease-out"], ["class", "mt-1 text-xs text-slate-400", 4, "ngIf"], ["class", "bg-slate-800/60 rounded-lg p-4 text-left", 4, "ngIf"], [1, "flex", "flex-col", "sm:flex-row", "sm:justify-center", "gap-2"], ["class", "px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-sm font-semibold transition-colors", 3, "click", 4, "ngIf"], ["class", "px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-sm font-semibold transition-colors", 3, "disabled", "click", 4, "ngIf"], ["class", "text-xs text-green-400 font-medium", 4, "ngIf"], [1, "flex", "items-center", "gap-2", "mb-4"], ["id", "termsCheckbox", "type", "checkbox", 1, "w-4", "h-4", 3, "ngModelChange", "disabled", "ngModel"], ["id", "joinBtn", 1, "w-full", "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "disabled:opacity-50", 3, "click"], [1, "mt-1", "text-xs", "text-slate-400"], [1, "bg-slate-800/60", "rounded-lg", "p-4", "text-left"], [1, "text-xs", "uppercase", "tracking-wide", "text-sky-300", "font-semibold", "mb-1"], [1, "text-sm", "text-slate-100", "leading-relaxed"], [1, "px-4", "py-2", "rounded-lg", "bg-sky-600", "hover:bg-sky-700", "text-sm", "font-semibold", "transition-colors", 3, "click"], [1, "px-4", "py-2", "rounded-lg", "bg-amber-500", "hover:bg-amber-600", "disabled:opacity-60", "text-sm", "font-semibold", "transition-colors", 3, "click", "disabled"], [1, "text-xs", "text-green-400", "font-medium"], [1, "h-screen", "text-white", "grid", "grid-cols-1", "lg:grid-cols-[1fr_340px]", "gap-4", "p-4", "overflow-hidden", "items-stretch"], [1, "stage", "flex-1", "flex", "flex-col", "relative", "min-h-0"], ["class", "stage-header flex items-center justify-between px-3 py-2 rounded-t-md shrink-0", 4, "ngIf"], [1, "tile-grid-container", "flex-1", "min-h-0", "p-4", "gap-6", "border", "border-sky-700/40", "rounded-xl", "bg-slate-900/40", "flex", "flex-col", "overflow-hidden"], ["class", "tile-grid min-h-0 overflow-y-auto no-scrollbar", 3, "ngClass", 4, "ngIf"], [1, "controls", "shrink-0", "bg-slate-900/60", "backdrop-blur-sm", "p-4", "rounded-lg", "border-t", "border-sky-700/30", "flex", "flex-wrap", "gap-3", "justify-center"], [1, "ctrl", "secondary", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", 3, "ngClass"], [1, "ph", "ph-monitor"], [1, "ph", "ph-hand"], [1, "ph", "ph-note"], [1, "ph", "ph-grid-four"], [1, "ctrl", "danger", "flex", "items-center", "gap-2", "px-4", "py-2", "rounded-full", 3, "click"], [1, "ph", "ph-sign-out"], ["class", "self-video-floating", "cdkDrag", "", "cdkDragBoundary", ".stage", 4, "ngIf"], [1, "chat-panel", "frosted", "lg:static", "fixed", "inset-y-0", "right-0", "w-full", "max-w-sm", "transform", "transition-transform", "duration-300", "flex", "flex-col", "z-50", "min-h-0", "shadow-2xl", 3, "ngClass"], [1, "shrink-0", "p-3"], [1, "relative", "floating", "mt-2"], [1, "ph", "ph-user", "icon-left", "text-sky-300"], ["id", "username", "type", "text", 1, "floating-input", "pl-10", "pr-3", "py-2", "text-sm", "rounded-md", "w-full", "dark-input", 3, "change", "value"], ["for", "username", 1, "floating-label"], [1, "chat-header", "flex", "items-center", "justify-between", "px-4", "py-3", "border-b", "border-sky-700/20", "shrink-0"], [1, "flex", "gap-4"], [1, "tab-btn", 3, "click"], ["class", "hr-btn px-3 py-1 text-xs", 3, "click", 4, "ngIf"], [1, "flex-1", "min-h-0", "flex", "flex-col"], ["class", "flex-1 max-h-full overflow-y-auto participants-scroll p-4", 4, "ngIf"], ["class", "flex-1 max-h-full overflow-y-auto chat-scroll p-4", 4, "ngIf"], ["class", "flex border-t border-sky-700/10 p-2", 3, "ngSubmit", 4, "ngIf"], [1, "stage-header", "flex", "items-center", "justify-between", "px-3", "py-2", "rounded-t-md", "shrink-0"], [1, "text-sm", "text-sky-100"], [1, "hr-btn", "flex", "items-center", "gap-2", 3, "click"], [1, "ph", "ph-users"], [1, "tile-grid", "min-h-0", "overflow-y-auto", "no-scrollbar", 3, "ngClass"], ["class", "tile group relative rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gradient-to-b from-slate-800 to-slate-900 shadow-md hover:shadow-xl transition-all duration-300", 3, "video-on", "hide-when-pip", "hand-raised", 4, "ngFor", "ngForOf", "ngForTrackBy"], [1, "tile", "group", "relative", "rounded-xl", "overflow-hidden", "aspect-video", "flex", "items-center", "justify-center", "bg-gradient-to-b", "from-slate-800", "to-slate-900", "shadow-md", "hover:shadow-xl", "transition-all", "duration-300"], ["autoplay", "", "playsinline", "", "class", "absolute inset-0 w-full h-full object-cover", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", 3, "appSrcObject", 4, "ngIf"], ["class", "placeholder flex items-center justify-center w-full h-full", 3, "background", 4, "ngIf"], [1, "nameplate", "absolute", "left-2", "top-9", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-sky-400"], [1, "nameplate", "absolute", "left-2", "top-16", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm", "text-purple-400"], [1, "nameplate", "absolute", "left-3", "bottom-3", "px-3", "py-1", "rounded-full", "text-xs", "font-semibold", "flex", "items-center", "gap-2", "bg-black/50", "backdrop-blur-sm"], [1, "badge", "w-2", "h-2", "rounded-full", 3, "ngClass"], ["class", "translation-caption", 4, "ngIf"], ["autoplay", "", "playsinline", "", 1, "absolute", "inset-0", "w-full", "h-full", "object-cover", 3, "appSrcObject", "muted"], ["autoplay", "", 3, "appSrcObject"], [1, "placeholder", "flex", "items-center", "justify-center", "w-full", "h-full"], [1, "initials", "w-32", "h-32", "rounded-full", "flex", "items-center", "justify-center", "font-extrabold", "text-4xl", "bg-black/30", "text-white", "backdrop-blur-sm"], ["class", "hand-emoji", 4, "ngIf"], [1, "hand-emoji"], [1, "translation-caption"], ["cdkDrag", "", "cdkDragBoundary", ".stage", 1, "self-video-floating"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", "class", "w-full h-full object-cover rounded-lg shadow-lg", 3, "appSrcObject", "muted", 4, "ngIf"], ["autoplay", "", "playsinline", "", "data-chan", "__you__", 1, "w-full", "h-full", "object-cover", "rounded-lg", "shadow-lg", 3, "appSrcObject", "muted"], [1, "hr-btn", "px-3", "py-1", "text-xs", 3, "click"], [1, "flex-1", "max-h-full", "overflow-y-auto", "participants-scroll", "p-4"], [1, "text-sky-100", "text-sm", "mb-2"], ["class", "flex justify-between items-center p-2 bg-slate-800/50 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "flex", "justify-between", "items-center", "p-2", "bg-slate-800/50", "rounded", "mb-1"], [1, "flex", "items-center", "gap-2"], [1, "w-8", "h-8", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold"], ["class", "hand-emoji text-xs", 4, "ngIf"], ["class", "text-xs text-sky-400", 4, "ngIf"], ["class", "text-xs text-purple-400", 4, "ngIf"], [1, "flex", "items-center", "gap-2", "text-base"], ["type", "button", 1, "transcript-toggle", 3, "click", "disabled", "title"], [1, "ph", "ph-closed-captioning"], [1, "hand-emoji", "text-xs"], [1, "text-xs", "text-sky-400"], [1, "text-xs", "text-purple-400"], [1, "flex-1", "max-h-full", "overflow-y-auto", "chat-scroll", "p-4"], ["class", "p-2 bg-slate-800/60 rounded mb-1", 4, "ngFor", "ngForOf"], [1, "p-2", "bg-slate-800/60", "rounded", "mb-1"], [1, "text-xs", "font-semibold", "text-sky-200"], [1, "flex", "border-t", "border-sky-700/10", "p-2", 3, "ngSubmit"], ["name", "chatText", "type", "text", "placeholder", "Message the room...", 1, "flex-1", "rounded-l-full", "px-3", "py-2", "text-sm", "dark-input", 3, "ngModelChange", "ngModel"], ["type", "submit", 1, "px-4", "py-2", "rounded-r-full", "hr-btn"], [3, "close"]], template: function Dashboard_Template(rf, ctx) {
         if (rf & 1) {
           \u0275\u0275template(0, Dashboard_div_0_Template, 33, 2, "div", 1)(1, Dashboard_main_1_Template, 32, 11, "main", 2)(2, Dashboard_main_2_Template, 53, 20, "main", 3)(3, Dashboard_app_notepad_3_Template, 1, 0, "app-notepad", 4);
         }
@@ -92837,7 +93397,7 @@ var init_dashboard = __esm({
           \u0275\u0275advance();
           \u0275\u0275property("ngIf", ctx.isNotesOpen);
         }
-      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag, NotepadComponent, HttpClientModule], styles: ['@charset "UTF-8";\n\n\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile[_ngcontent-%COMP%]   .canvas[data-role=overlay][_ngcontent-%COMP%] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile[_ngcontent-%COMP%] {\n  position: relative;\n}\n.tile[_ngcontent-%COMP%]   .video-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .overlay-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  z-index: 2;\n}\n.tile[_ngcontent-%COMP%]   .nameplate[_ngcontent-%COMP%] {\n  z-index: 10;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
+      }, dependencies: [CommonModule, NgClass, NgForOf, NgIf, FormsModule, \u0275NgNoValidate, DefaultValueAccessor, CheckboxControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, MediaSrcObjectDirective, SrcObjectDirective, DragDropModule, CdkDrag, NotepadComponent, HttpClientModule], styles: ['@charset "UTF-8";\n\n\n\n[_ngcontent-%COMP%]:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml[_ngcontent-%COMP%] {\n  scroll-behavior: smooth;\n}\nbody[_ngcontent-%COMP%] {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n}\n@keyframes _ngcontent-%COMP%_gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader[_ngcontent-%COMP%] {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted[_ngcontent-%COMP%] {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton[_ngcontent-%COMP%], \n.sign-in-btn[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton[_ngcontent-%COMP%]:hover, \n.sign-in-btn[_ngcontent-%COMP%]:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl[_ngcontent-%COMP%], \nh1[_ngcontent-%COMP%], \n.font-bold[_ngcontent-%COMP%] {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400[_ngcontent-%COMP%]::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles[_ngcontent-%COMP%] {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: _ngcontent-%COMP%_gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin[_ngcontent-%COMP%] {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating[_ngcontent-%COMP%] {\n  position: relative;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%] {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating[_ngcontent-%COMP%]   label.floating-label[_ngcontent-%COMP%] {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:focus    + label.floating-label[_ngcontent-%COMP%], \n.floating[_ngcontent-%COMP%]   input.floating-input[_ngcontent-%COMP%]:not(:placeholder-shown)    + label.floating-label[_ngcontent-%COMP%] {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating[_ngcontent-%COMP%]   input.floating-input[type=password][_ngcontent-%COMP%] {\n  letter-spacing: 0.25em;\n}\n.floating[_ngcontent-%COMP%]   .icon-left[_ngcontent-%COMP%] {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn[_ngcontent-%COMP%] {\n  z-index: 45;\n}\n.tile-grid-container[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid[_ngcontent-%COMP%] {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4[_ngcontent-%COMP%] {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more[_ngcontent-%COMP%] {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile[_ngcontent-%COMP%]   video[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile[_ngcontent-%COMP%]   .canvas[data-role=overlay][_ngcontent-%COMP%] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate[_ngcontent-%COMP%] {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate[_ngcontent-%COMP%]:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile[_ngcontent-%COMP%], \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%] {\n  scrollbar-width: none;\n}\n.tile[_ngcontent-%COMP%]::-webkit-scrollbar, \n.tile[_ngcontent-%COMP%]   *[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid[_ngcontent-%COMP%] {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile[_ngcontent-%COMP%] {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls[_ngcontent-%COMP%] {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:active {\n  transform: scale(0.98);\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1.25rem;\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls[_ngcontent-%COMP%] {\n    justify-content: space-around;\n  }\n  .controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n    display: none;\n  }\n}\n.controls[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn[_ngcontent-%COMP%] {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input[_ngcontent-%COMP%], \ninput[type=text][_ngcontent-%COMP%], \ninput[type=password][_ngcontent-%COMP%], \ntextarea[_ngcontent-%COMP%] {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input[_ngcontent-%COMP%]:focus, \ninput[type=text][_ngcontent-%COMP%]:focus, \ninput[type=password][_ngcontent-%COMP%]:focus, \ntextarea[_ngcontent-%COMP%]:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%], \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%] {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel[_ngcontent-%COMP%]   .participants-scroll[_ngcontent-%COMP%]::-webkit-scrollbar, \n.chat-panel[_ngcontent-%COMP%]   .chat-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn[_ngcontent-%COMP%] {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn[_ngcontent-%COMP%]:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active[_ngcontent-%COMP%] {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.transcript-toggle[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 2.1rem;\n  height: 2.1rem;\n  border-radius: 9999px;\n  border: 1px solid rgba(148, 163, 184, 0.25);\n  background: rgba(15, 23, 42, 0.65);\n  color: rgba(226, 232, 240, 0.8);\n  transition: all 0.2s ease;\n}\n.transcript-toggle[_ngcontent-%COMP%]:hover {\n  border-color: #0fd9ff;\n  color: #ffffff;\n  box-shadow: 0 0 12px rgba(15, 217, 255, 0.25);\n}\n.transcript-toggle.active[_ngcontent-%COMP%] {\n  border-color: #0fd9ff;\n  background: rgba(13, 148, 136, 0.18);\n  color: #0fd9ff;\n  box-shadow: 0 0 14px rgba(15, 217, 255, 0.35);\n}\n.transcript-toggle[_ngcontent-%COMP%]:disabled {\n  opacity: 0.45;\n  pointer-events: none;\n}\n.self-placeholder[_ngcontent-%COMP%] {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating[_ngcontent-%COMP%]:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised[_ngcontent-%COMP%] {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji[_ngcontent-%COMP%] {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile[_ngcontent-%COMP%] {\n  position: relative;\n}\n.tile[_ngcontent-%COMP%]   .video-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile[_ngcontent-%COMP%]   .overlay-el[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile[_ngcontent-%COMP%]   .placeholder[_ngcontent-%COMP%] {\n  z-index: 2;\n}\n.tile[_ngcontent-%COMP%]   .nameplate[_ngcontent-%COMP%] {\n  z-index: 10;\n}\n.tile[_ngcontent-%COMP%]   .translation-caption[_ngcontent-%COMP%] {\n  position: absolute;\n  bottom: 0.75rem;\n  left: 50%;\n  transform: translateX(-50%);\n  width: calc(100% - 2.5rem);\n  text-align: center;\n  color: #fff;\n  font-weight: 600;\n  font-size: clamp(0.75rem, 1.8vw, 1.35rem);\n  line-height: 1.3;\n  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);\n  pointer-events: none;\n  z-index: 12;\n  letter-spacing: 0.01em;\n}\n.tile.suspicious[_ngcontent-%COMP%] {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: _ngcontent-%COMP%_suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes _ngcontent-%COMP%_suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */'] });
     };
     (() => {
       (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Dashboard, [{
@@ -92991,13 +93551,19 @@ var init_dashboard = __esm({
               {{ fullParticipant.initials }}\r
             </div>\r
           </div>\r
-          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">\r
-            <span class="badge w-2 h-2 rounded-full"\r
-                  [ngClass]="{ 'bg-green-400': fullParticipant.mic==='on', 'bg-red-400': fullParticipant.mic==='off' }"></span>\r
-            {{ fullParticipant.name }}\r
-          </div>\r
-        </div>\r
-      </div> -->\r
+          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
+            <span class="badge w-2 h-2 rounded-full"
+                  [ngClass]="{ 'bg-green-400': fullParticipant.mic==='on', 'bg-red-400': fullParticipant.mic==='off' }"></span>
+            {{ fullParticipant.name }}
+          </div>
+          <div
+            class="translation-caption"
+            *ngIf="translationCaptions[fullParticipant.channel] as caption"
+            [attr.title]="getCaptionTooltip(fullParticipant.channel)">
+            {{ caption }}
+          </div>
+        </div>
+      </div> -->
 \r
       <!-- Video Tiles Grid -->\r
       <div class="tile-grid min-h-0 overflow-y-auto no-scrollbar"\r
@@ -93040,12 +93606,18 @@ var init_dashboard = __esm({
           <span class="nameplate absolute left-2 top-16 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm text-purple-400">\r
             \u{1F3A4} {{ p.voice }}\r
           </span>\r
-          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">\r
-            <span class="badge w-2 h-2 rounded-full"\r
-                  [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>\r
-            {{ p.name }}\r
-          </div>\r
-        </div>\r
+          <div class="nameplate absolute left-3 bottom-3 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2 bg-black/50 backdrop-blur-sm">
+            <span class="badge w-2 h-2 rounded-full"
+                  [ngClass]="{ 'bg-green-400': p.mic==='on', 'bg-red-400': p.mic==='off' }"></span>
+            {{ p.name }}
+          </div>
+          <div
+            class="translation-caption"
+            *ngIf="translationCaptions[p.channel] as caption"
+            [attr.title]="getCaptionTooltip(p.channel)">
+            {{ caption }}
+          </div>
+        </div>
       </div>\r
 \r
       <!-- Controls -->\r
@@ -93134,10 +93706,20 @@ var init_dashboard = __esm({
             <span *ngIf="p.gaze" class="text-xs text-sky-400">\u{1F441}\uFE0F {{ p.gaze }}</span>\r
             <span *ngIf="p.voice" class="text-xs text-purple-400">\u{1F3A4} {{ p.voice }}</span>\r
           </div>\r
-          <div>\r
-            <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>\r
-            <i class="ph" [ngClass]="p.cam==='on' ? 'ph-video-camera' : 'ph-camera-slash'"></i>\r
-          </div>\r
+          <div class="flex items-center gap-2 text-base">
+            <button
+              type="button"
+              class="transcript-toggle"
+              [class.active]="isTranslationEnabled(p.channel)"
+              [attr.aria-pressed]="isTranslationEnabled(p.channel)"
+              (click)="toggleTranslationFor(p)"
+              [disabled]="p.isYou"
+              [title]="isTranslationEnabled(p.channel) ? 'Disable live captions' : 'Enable live captions'">
+              <i class="ph ph-closed-captioning"></i>
+            </button>
+            <i class="ph" [ngClass]="p.mic==='on' ? 'ph-microphone' : 'ph-microphone-slash'"></i>
+            <i class="ph" [ngClass]="p.cam==='on' ? 'ph-video-camera' : 'ph-camera-slash'"></i>
+          </div>
         </div>\r
       </div>\r
 \r
@@ -93163,8 +93745,8 @@ var init_dashboard = __esm({
 \r
 <!-- Notepad Component -->\r
 <app-notepad *ngIf="isNotesOpen" (close)="closeNotes()"></app-notepad>\r
-`, styles: ['@charset "UTF-8";\n\n/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile .canvas[data-role=overlay] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile {\n  position: relative;\n}\n.tile .video-el {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .overlay-el {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile .placeholder {\n  z-index: 2;\n}\n.tile .nameplate {\n  z-index: 10;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
-      }], () => [{ type: SignalingService }, { type: NgZone }, { type: VoiceService }, { type: ChangeDetectorRef }], { chatScroll: [{
+`, styles: ['@charset "UTF-8";\n\n/* src/app/dashboard/dashboard.scss */\n:root {\n  --c1: #09162b;\n  --c2: #1a3463;\n  --c3: #23293b;\n}\nhtml {\n  scroll-behavior: smooth;\n}\nbody {\n  font-family: "Inter", sans-serif;\n  color: #fff;\n  margin: 0;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n}\n@keyframes gradientShift {\n  0% {\n    background-position: 0% 50%;\n  }\n  50% {\n    background-position: 100% 50%;\n  }\n  100% {\n    background-position: 0% 50%;\n  }\n}\n#mainHeader {\n  transition: background 500ms ease;\n}\n#mainHeader.overlay {\n  background:\n    linear-gradient(\n      to bottom,\n      rgba(2, 12, 27, 0.7),\n      rgba(2, 12, 27, 0));\n}\n.frosted {\n  -webkit-backdrop-filter: blur(25px);\n  backdrop-filter: blur(25px);\n  background-color: rgba(18, 27, 40, 0.62);\n  border: 1.5px solid rgba(0, 191, 255, 0.14);\n  box-shadow: 0 12px 40px 0 rgba(38, 112, 255, 0.14), -5px 0 25px rgba(0, 191, 255, 0.16);\n}\ninput:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.5);\n}\nbutton,\n.sign-in-btn {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  box-shadow: 0 2px 30px 0 rgba(40, 75, 255, 0.16);\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n}\nbutton:hover,\n.sign-in-btn:hover {\n  background:\n    linear-gradient(\n      90deg,\n      #51e2f5 0%,\n      #284bff 100%);\n  box-shadow: 0 4px 32px 0 rgba(40, 75, 255, 0.28);\n  color: #fff;\n}\n.text-xl,\nh1,\n.font-bold {\n  text-shadow: 1px 1px 8px rgba(40, 75, 255, 0.08);\n}\n.placeholder-gray-400::placeholder {\n  color: #a8b0c5;\n  opacity: 1;\n}\ncanvas#particles {\n  position: fixed;\n  inset: 0;\n  z-index: -1;\n  background:\n    linear-gradient(\n      135deg,\n      var(--c1),\n      var(--c2),\n      var(--c3));\n  background-size: 400% 400%;\n  animation: gradientShift 12s ease infinite;\n  pointer-events: none;\n}\n#closeLogin {\n  z-index: 9999;\n  position: absolute;\n  top: 1.5rem;\n  right: 1.5rem;\n  background: transparent;\n  border: none;\n  cursor: pointer;\n}\n.floating {\n  position: relative;\n}\n.floating input.floating-input {\n  width: 100%;\n  padding-left: 2.5rem;\n  padding-top: 1.25rem;\n  padding-bottom: 0.5rem;\n  border-radius: 0.5rem;\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  color: #fff;\n  transition: box-shadow 0.18s ease, border-color 0.18s ease;\n}\n.floating label.floating-label {\n  position: absolute;\n  left: 2.5rem;\n  top: 50%;\n  transform: translateY(-50%);\n  font-size: 1rem;\n  color: #a8b0c5;\n  pointer-events: none;\n  transition: all 180ms ease;\n}\n.floating input.floating-input:focus + label.floating-label,\n.floating input.floating-input:not(:placeholder-shown) + label.floating-label {\n  top: 0.3rem;\n  transform: translateY(0);\n  font-size: 0.78rem;\n  color: #0fd9ff;\n}\n.floating input.floating-input[type=password] {\n  letter-spacing: 0.25em;\n}\n.floating .icon-left {\n  pointer-events: none;\n  position: absolute;\n  left: 0.75rem;\n  top: 50%;\n  transform: translateY(-50%);\n  color: #9aa6bb;\n}\n#openLoginBtn {\n  z-index: 45;\n}\n.tile-grid-container {\n  flex: 1 1 auto;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  position: relative;\n}\n.tile-grid {\n  display: grid;\n  width: 100%;\n  height: 100%;\n  gap: 1rem;\n  justify-items: center;\n  grid-auto-rows: 1fr;\n  overflow: hidden;\n}\n.tile-grid.layout-1 {\n  grid-template-columns: 1fr;\n}\n.tile-grid.layout-2 {\n  grid-template-columns: 1fr;\n}\n@media (min-width: 768px) {\n  .tile-grid.layout-2 {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n.tile-grid.layout-3 {\n  grid-template-columns: 1fr 1fr;\n}\n.tile-grid.layout-4 {\n  grid-template-columns: 1fr 1fr;\n  grid-template-rows: 1fr 1fr;\n}\n.tile-grid.layout-more {\n  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));\n}\n.tile {\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  background: rgba(18, 27, 40, 0.55);\n  border-radius: 1rem;\n  overflow: hidden;\n  position: relative;\n  transition: transform 0.3s ease, box-shadow 0.3s ease;\n  width: 100%;\n  height: 100%;\n  min-height: 200px;\n  aspect-ratio: 16/9;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.tile video {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .placeholder {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.85);\n  z-index: 15;\n}\n.tile .canvas[data-role=overlay] {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 50;\n  pointer-events: none;\n  display: block;\n  background: transparent;\n  border: 2px solid green;\n  transform: translateZ(0);\n  will-change: transform;\n}\n.nameplate {\n  border: 1px solid rgba(0, 191, 255, 0.25);\n  transition: background 0.3s ease, transform 0.3s ease;\n  z-index: 30;\n}\n.nameplate:hover {\n  background: rgba(0, 191, 255, 0.25);\n  transform: translateY(-2px);\n}\n.tile,\n.tile * {\n  scrollbar-width: none;\n}\n.tile::-webkit-scrollbar,\n.tile *::-webkit-scrollbar {\n  display: none;\n}\n@media (max-width: 640px) {\n  .tile-grid {\n    grid-template-columns: 1fr;\n    gap: 0.5rem;\n  }\n  .tile {\n    min-height: 200px;\n    max-width: 100%;\n  }\n}\n.controls {\n  flex-wrap: wrap;\n  gap: 0.75rem;\n  justify-content: center;\n  background: rgba(18, 27, 40, 0.55);\n  border-top: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  padding: 1rem;\n  border-radius: 1rem;\n}\n.controls button {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  -webkit-backdrop-filter: blur(12px);\n  backdrop-filter: blur(12px);\n  transition:\n    background 0.3s ease,\n    box-shadow 0.25s ease,\n    transform 0.15s ease;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.6rem 1rem;\n  border-radius: 9999px;\n}\n.controls button:active {\n  transform: scale(0.98);\n}\n.controls button i {\n  font-size: 1.25rem;\n}\n.controls button span {\n  display: inline;\n}\n@media (max-width: 640px) {\n  .controls {\n    justify-content: space-around;\n  }\n  .controls button span {\n    display: none;\n  }\n}\n.controls button:hover {\n  background: rgba(40, 75, 255, 0.35);\n  box-shadow: 0 6px 20px rgba(40, 75, 255, 0.25);\n}\n.hr-btn {\n  border-radius: 9999px;\n  padding: 0.6rem 1rem;\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n  border: 1px solid rgba(148, 163, 184, 0.12);\n}\n.hr-btn:hover {\n  box-shadow: 0 6px 18px rgba(40, 75, 255, 0.28);\n}\n.dark-input,\ninput[type=text],\ninput[type=password],\ntextarea {\n  background: rgba(18, 27, 40, 0.55);\n  border: 1px solid rgba(148, 163, 184, 0.12);\n  border-radius: 0.75rem;\n  color: #fff;\n  padding: 0.6rem 0.8rem;\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n.dark-input:focus,\ninput[type=text]:focus,\ninput[type=password]:focus,\ntextarea:focus {\n  outline: none;\n  border-color: #0fd9ff;\n  box-shadow: 0 0 0 3px rgba(15, 217, 255, 0.4);\n}\n.chat-panel .participants-scroll,\n.chat-panel .chat-scroll {\n  flex: 1 1 auto;\n  min-height: 0;\n  overflow-y: auto;\n  -ms-overflow-style: none;\n  scrollbar-width: none;\n  scroll-behavior: smooth;\n  -webkit-overflow-scrolling: touch;\n}\n.chat-panel .participants-scroll::-webkit-scrollbar,\n.chat-panel .chat-scroll::-webkit-scrollbar {\n  display: none;\n}\n.tab-btn {\n  position: relative;\n  font-size: 0.875rem;\n  font-weight: 500;\n  padding: 0.4rem 0.75rem;\n  border-radius: 9999px;\n  background: transparent;\n  color: #a8b0c5;\n  transition: all 0.25s ease;\n}\n.tab-btn:hover {\n  background: rgba(40, 75, 255, 0.15);\n  color: #fff;\n}\n.tab-btn.active {\n  background:\n    linear-gradient(\n      90deg,\n      #0fd9ff 0%,\n      #2e57ff 100%);\n  color: #fff;\n  font-weight: 600;\n  box-shadow: 0 0 12px rgba(40, 75, 255, 0.35);\n}\n.transcript-toggle {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 2.1rem;\n  height: 2.1rem;\n  border-radius: 9999px;\n  border: 1px solid rgba(148, 163, 184, 0.25);\n  background: rgba(15, 23, 42, 0.65);\n  color: rgba(226, 232, 240, 0.8);\n  transition: all 0.2s ease;\n}\n.transcript-toggle:hover {\n  border-color: #0fd9ff;\n  color: #ffffff;\n  box-shadow: 0 0 12px rgba(15, 217, 255, 0.25);\n}\n.transcript-toggle.active {\n  border-color: #0fd9ff;\n  background: rgba(13, 148, 136, 0.18);\n  color: #0fd9ff;\n  box-shadow: 0 0 14px rgba(15, 217, 255, 0.35);\n}\n.transcript-toggle:disabled {\n  opacity: 0.45;\n  pointer-events: none;\n}\n.self-placeholder {\n  background: rgba(30, 41, 59, 0.7);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.self-video-floating {\n  position: absolute;\n  bottom: 1rem;\n  right: 1rem;\n  width: 200px;\n  height: 150px;\n  z-index: 60;\n  border-radius: 0.5rem;\n  overflow: hidden;\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);\n  background: rgba(18, 27, 40, 0.9);\n  border: 1px solid rgba(0, 191, 255, 0.14);\n  transition: opacity 0.3s ease;\n}\n.self-video-floating:hover {\n  box-shadow: 0 6px 24px rgba(40, 75, 255, 0.25);\n}\n.tile.hand-raised {\n  border-color: #FFD700;\n  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);\n}\n.hand-emoji {\n  font-size: 1.2em;\n  margin-left: 0.2em;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n.tile {\n  position: relative;\n}\n.tile .video-el {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: fill;\n  background: #000;\n  z-index: 1;\n  transform: translateZ(0);\n  will-change: transform;\n  mix-blend-mode: normal;\n}\n.tile .overlay-el {\n  position: absolute;\n  inset: 0;\n  width: 100% !important;\n  height: 100% !important;\n  display: block;\n  background: transparent;\n  pointer-events: none;\n  z-index: 5;\n}\n.tile .placeholder {\n  z-index: 2;\n}\n.tile .nameplate {\n  z-index: 10;\n}\n.tile .translation-caption {\n  position: absolute;\n  bottom: 0.75rem;\n  left: 50%;\n  transform: translateX(-50%);\n  width: calc(100% - 2.5rem);\n  text-align: center;\n  color: #fff;\n  font-weight: 600;\n  font-size: clamp(0.75rem, 1.8vw, 1.35rem);\n  line-height: 1.3;\n  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);\n  pointer-events: none;\n  z-index: 12;\n  letter-spacing: 0.01em;\n}\n.tile.suspicious {\n  border-color: #ff3b3b;\n  box-shadow: 0 0 25px rgba(255, 59, 59, 0.8), 0 0 45px rgba(255, 59, 59, 0.6);\n  animation: suspiciousPulse 1.5s infinite alternate;\n}\n@keyframes suspiciousPulse {\n  0% {\n    box-shadow: 0 0 15px rgba(255, 59, 59, 0.6), 0 0 25px rgba(255, 59, 59, 0.4);\n  }\n  100% {\n    box-shadow: 0 0 35px rgba(255, 59, 59, 0.9), 0 0 55px rgba(255, 59, 59, 0.7);\n  }\n}\n/*# sourceMappingURL=dashboard.css.map */\n'] }]
+      }], () => [{ type: SignalingService }, { type: NgZone }, { type: VoiceService }, { type: ChangeDetectorRef }, { type: LiveTranslationService }], { chatScroll: [{
         type: ViewChild,
         args: ["chatScroll"]
       }], enrollmentVideo: [{
@@ -93182,7 +93764,7 @@ var init_dashboard = __esm({
       }] });
     })();
     (() => {
-      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 96 });
+      (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Dashboard, { className: "Dashboard", filePath: "src/app/dashboard/dashboard.ts", lineNumber: 100 });
     })();
   }
 });

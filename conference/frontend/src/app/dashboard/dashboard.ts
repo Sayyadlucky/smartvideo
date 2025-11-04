@@ -30,6 +30,7 @@ import {
 import { initModel, blobToAudioBuffer, Embedding } from './voiceAnalyzer';
 import { VoiceService } from './voice.service';
 import { HttpClientModule } from '@angular/common/http';
+import { LiveTranslationService, TranslationUpdate } from './live-translation.service';
 
 type MicState = 'on' | 'off';
 type CamState = 'on' | 'off';
@@ -46,6 +47,9 @@ interface Participant {
   handRaised?: boolean;
   gaze: string;
   voice: string; // Voice match percentage
+  translationEnabled?: boolean;
+  translationTarget?: string;
+  latestTranslation?: string;
 }
 
 interface ChatMessage { by: string; text: string; }
@@ -185,6 +189,15 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   private _batchStartTime: number | undefined;
   private chunks: BlobPart[] = [];
 
+  // Live translation state
+  readonly subtitleTargetLanguage = 'en';
+  translationCaptions: Record<string, string> = {};
+  translationMetadata: { [channel: string]: { source: string; target: string; ts: number } | undefined } = {};
+  private translationUpdatesSub?: Subscription;
+  private translationEnabledChannels = new Set<string>();
+  private pendingTranslationChannels = new Set<string>();
+  private lastBroadcastCaption = new Map<string, string>();
+
   // ====== Derived getters ======
   get you(): Participant | undefined { return this.participantsMap.get('__you__'); }
   get tileCount(): number { return this.participants.length; }
@@ -211,6 +224,144 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     return !!this.mediaRecorder && this.enrollmentInProgress;
   }
 
+  isTranslationEnabled(channel: string): boolean {
+    return this.translationEnabledChannels.has(channel);
+  }
+
+  toggleTranslationFor(participant: Participant): void {
+    const channel = participant.channel;
+    if (!channel || participant.isYou) return;
+
+    if (this.translationEnabledChannels.has(channel)) {
+      this.translationEnabledChannels.delete(channel);
+      this.pendingTranslationChannels.delete(channel);
+      this.translationService.stopSession(channel);
+      this.clearTranslation(channel, true);
+      return;
+    }
+
+    this.translationEnabledChannels.add(channel);
+    const stream = participant.stream ?? this.participantsMap.get(channel)?.stream;
+    if (stream) {
+      this.startTranslationSession(channel, stream);
+    } else {
+      this.pendingTranslationChannels.add(channel);
+    }
+  }
+
+  private startTranslationSession(channel: string, stream: MediaStream): void {
+    if (!this.translationEnabledChannels.has(channel)) return;
+    if (this.translationService.isActive(channel)) return;
+    const hasAudio = stream.getAudioTracks().length > 0;
+    if (!hasAudio) {
+      this.pendingTranslationChannels.add(channel);
+      return;
+    }
+
+    this.translationService.startSession(channel, stream, {
+      targetLanguage: this.subtitleTargetLanguage,
+      chunkMillis: 2000,
+    }).then(() => {
+      this.pendingTranslationChannels.delete(channel);
+    }).catch(err => {
+      console.error('Failed to start translation session for', channel, err);
+      this.translationEnabledChannels.delete(channel);
+      this.pendingTranslationChannels.delete(channel);
+      this.ngZone.run(() => this.cdr.detectChanges());
+    });
+  }
+
+  private clearTranslation(channel: string, broadcast = false): void {
+    if (this.translationCaptions[channel]) {
+      const { [channel]: _discard, ...rest } = this.translationCaptions;
+      const { [channel]: _discardMeta, ...metaRest } = this.translationMetadata;
+      this.translationCaptions = rest;
+      this.translationMetadata = metaRest;
+      this.cdr.detectChanges();
+    }
+    this.lastBroadcastCaption.delete(channel);
+    if (broadcast) {
+      this.sendSig({
+        type: 'live_translation',
+        channel,
+        translatedText: '',
+        sourceLanguage: '',
+        targetLanguage: this.subtitleTargetLanguage,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  private handleLocalTranslation(update: TranslationUpdate): void {
+    if (!this.translationEnabledChannels.has(update.channel)) {
+      return;
+    }
+
+    const previous = this.lastBroadcastCaption.get(update.channel);
+    if (previous === update.translatedText) {
+      // Skip duplicates to reduce chatter.
+      return;
+    }
+    this.lastBroadcastCaption.set(update.channel, update.translatedText);
+
+    this.translationCaptions = {
+      ...this.translationCaptions,
+      [update.channel]: update.translatedText,
+    };
+    this.translationMetadata = {
+      ...this.translationMetadata,
+      [update.channel]: {
+        source: update.sourceLanguage,
+        target: update.targetLanguage,
+        ts: update.timestamp,
+      },
+    };
+    this.cdr.detectChanges();
+
+    this.sendSig({
+      type: 'live_translation',
+      channel: update.channel,
+      translatedText: update.translatedText,
+      originalText: update.originalText,
+      sourceLanguage: update.sourceLanguage,
+      targetLanguage: update.targetLanguage,
+      timestamp: update.timestamp,
+    });
+  }
+
+  private handleIncomingTranslation(payload: any): void {
+    const channel = payload?.channel;
+    if (!channel) return;
+
+    const text = (payload.translatedText ?? payload.text ?? '').trim();
+    if (!text) {
+      this.clearTranslation(channel, false);
+      return;
+    }
+
+    this.translationCaptions = {
+      ...this.translationCaptions,
+      [channel]: text,
+    };
+    this.translationMetadata = {
+      ...this.translationMetadata,
+      [channel]: {
+        source: payload.sourceLanguage ?? '',
+        target: payload.targetLanguage ?? this.subtitleTargetLanguage,
+        ts: payload.timestamp ?? Date.now(),
+      },
+    };
+    this.cdr.detectChanges();
+  }
+
+  getCaptionTooltip(channel: string): string | null {
+    const meta = this.translationMetadata[channel];
+    if (!meta?.source || !meta?.target) {
+      return null;
+    }
+    return `From ${meta.source.toUpperCase()} to ${meta.target.toUpperCase()}`;
+  }
+
   //========= GazeTracking ==============
   private gazeSocket?: WebSocket;
   private isGazeTracking = false;
@@ -233,11 +384,19 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     private signaling: SignalingService, 
     ngZone: NgZone,
     private voiceService: VoiceService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: LiveTranslationService
   ) {
     this.ngZone = ngZone;
     // try to init model early (non-blocking)
     initModel().catch(err => console.warn('Model init (background) failed:', err));
+    this.translationUpdatesSub = this.translationService.translations$
+      .subscribe(update => {
+        if (!update) {
+          return;
+        }
+        this.ngZone.run(() => this.handleLocalTranslation(update));
+      });
   }
 
   // ====== Lifecycle ======
@@ -260,6 +419,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   joinRoom(){
     // Create a single stable preview stream instance
     this.localPreviewStream = new MediaStream();
+    this.translationService.stopAll();
+    this.translationEnabledChannels.clear();
+    this.pendingTranslationChannels.clear();
+    this.translationCaptions = {};
+    this.translationMetadata = {};
+    this.lastBroadcastCaption.clear();
 
     this.participantsMap.set('__you__', this.makeLocalParticipant(this.userName));
     this.syncParticipantsArray();
@@ -291,6 +456,12 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     
     // Remove fullscreen listener
     this.removeFullscreenListener();
+
+    this.translationService.stopAll();
+    this.translationUpdatesSub?.unsubscribe();
+    this.translationEnabledChannels.clear();
+    this.pendingTranslationChannels.clear();
+    this.lastBroadcastCaption.clear();
   }
 
   private handleGazeStatus(status: GazeStatus) {
@@ -325,7 +496,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     
     if (this.escPressCount === 1 && !this.hasShownEscAlert) {
       // First ESC press - show alert
-      alert('You are not allowed to pres ESC key, If you do so it will notify interviewer immidiately.');
+      // alert('You are not allowed to pres ESC key, If you do so it will notify interviewer immidiately.');
       this.hasShownEscAlert = true;
       
       // Reset counter after 2 seconds
@@ -359,7 +530,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         
         if (this.escPressCount === 1 && !this.hasShownEscAlert) {
           // First ESC press - show alert and re-enter fullscreen
-          alert('Press ESC again to exit fullscreen');
+          // alert('Press ESC again to exit fullscreen');
           this.hasShownEscAlert = true;
           this.enterFullscreen();
           
@@ -650,6 +821,9 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
     
       this.participantsMap.set(remoteChan, updated);
       this.syncParticipantsArray();
+      if (this.translationEnabledChannels.has(remoteChan) || this.pendingTranslationChannels.has(remoteChan)) {
+        this.startTranslationSession(remoteChan, ms);
+      }
     };
     
 
@@ -744,6 +918,10 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         const st = this.peers.get(ch); if (st) { try { st.pc.close(); } catch {} this.peers.delete(ch); }
         this.syncParticipantsArray();
         this.monitorSelfVideo();
+        this.translationService.stopSession(ch);
+        this.translationEnabledChannels.delete(ch);
+        this.pendingTranslationChannels.delete(ch);
+        this.clearTranslation(ch, false);
         break;
       }
 
@@ -763,6 +941,13 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         const updated = this.participantsMap.get(ch);
         const camChanged = updated && prevCam !== updated.cam;
         const micChanged = updated && prevMic !== updated.mic;
+        if (updated && this.translationEnabledChannels.has(ch)) {
+          if (updated.stream) {
+            this.startTranslationSession(ch, updated.stream);
+          } else {
+            this.pendingTranslationChannels.add(ch);
+          }
+        }
         
         // If cam or mic state changed, trigger renegotiation to update tracks
         if (camChanged || micChanged) {
@@ -842,6 +1027,11 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
 
+      case 'live_translation': {
+        this.handleIncomingTranslation(msg);
+        break;
+      }
+
       case "gaze_update": {
         const ch = msg.channel;
         const g = msg.gaze;
@@ -860,23 +1050,68 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
 
+      case "voice_status":
       case "voice_update": {
-        const ch = msg.channel;
-        const v = msg.voice;
-      
-        if (ch && this.participantsMap.has(ch)) {
-          const p = this.participantsMap.get(ch)!;
-          this.participantsMap.set(ch, { ...p, voice: v });
-          this.syncParticipantsArray();
-        } else {
-          const p = this.participants.find(pp => pp.name === msg.user);
-          if (p) {
-            p.voice = v;
-            this.syncParticipantsArray();
-          }
-        }
+        const payload = this.extractVoicePayload(msg);
+        if (!payload) break;
+        this.applyVoiceUpdate(payload);
         break;
       }
+    }
+  }
+
+  private extractVoicePayload(msg: any): { channel?: string; voice?: string; user?: string } | null {
+    if (!msg) return null;
+    if (typeof msg.voice !== 'undefined' || typeof msg.channel !== 'undefined' || typeof msg.user !== 'undefined') {
+      return msg;
+    }
+    const nested = msg.message ?? msg.payload ?? null;
+    if (!nested) return null;
+    if (typeof nested.voice !== 'undefined' || typeof nested.channel !== 'undefined' || typeof nested.user !== 'undefined') {
+      return nested;
+    }
+    return null;
+  }
+
+  private applyVoiceUpdate(payload: { channel?: string; voice?: string; user?: string }): void {
+    if (!payload) return;
+    const { channel, voice, user } = payload;
+    if (typeof voice === 'undefined') return;
+
+    const normalize = (val?: string) => (val ?? '').trim().toLowerCase();
+    const userNorm = normalize(user);
+
+    const applyVoiceToKey = (key: string) => {
+      const current = this.participantsMap.get(key);
+      if (!current) return false;
+      this.participantsMap.set(key, { ...current, voice });
+      return true;
+    };
+
+    let updated = false;
+    if (channel && this.participantsMap.has(channel)) {
+      updated = applyVoiceToKey(channel);
+    }
+    if (!updated && user) {
+      for (const [key, participant] of this.participantsMap.entries()) {
+        if (normalize(participant.name) === userNorm) {
+          updated = applyVoiceToKey(key);
+          if (updated) break;
+        }
+      }
+    }
+
+    if (!updated && this.you && normalize(this.you.name) === userNorm) {
+      this.participantsMap.set('__you__', { ...this.you, voice });
+      updated = true;
+    }
+
+    if (updated) {
+      if (normalize(this.you?.name) === userNorm) {
+        this.voice = voice;
+      }
+      this.syncParticipantsArray();
+      this.cdr.detectChanges();
     }
   }
 
@@ -1390,7 +1625,8 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
                   }
 
                   this.sendSig({
-                    type: 'voice_update',
+                    type: 'voice_status',
+                    channel: this.myServerChan,
                     user: this.userName,
                     voice: this.voice,
                     ts: Date.now(),
@@ -1434,8 +1670,6 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
           try { this.mediaRecorder.start(); } catch (err) { console.warn('recorder start err', err); }
         }
       }, this.RECORD_MS + 200);
-
-      alert('Verification started — speak to verify your voice.');
     } catch (err: any) {
       alert('Could not start verification: ' + (err.message || err));
       this.stopVerification();
